@@ -749,7 +749,7 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
 
       {/* Invoice Modal */}
       {showInvoice && viewSale && (
-        <InvoiceModal sale={viewSale} companyName={companyName} companyPhone={companyPhone} companyAddress={companyAddress} onClose={() => setShowInvoice(false)} />
+        <InvoiceModal sale={viewSale} companyName={companyName} companyPhone={companyPhone} companyAddress={companyAddress} companyEmail={settings.email} soldBy={viewSale.soldBy || settings.userName} onClose={() => setShowInvoice(false)} />
       )}
 
       {/* Delete Confirm */}
