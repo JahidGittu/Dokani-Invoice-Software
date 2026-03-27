@@ -578,24 +578,44 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
         <div className="px-8 sm:px-12 py-5">
           <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3">{t('saleItems')}</div>
 
-          {/* Table header */}
-          <div className="hidden sm:grid grid-cols-12 gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-1 mb-2 border-b border-border pb-2">
-            <div className="col-span-5">{t('products')}</div>
-            <div className="col-span-2 text-center">{t('qty')}</div>
-            <div className="col-span-2 text-right">{t('rate')}</div>
-            <div className="col-span-2 text-right">{t('total')}</div>
-            <div className="col-span-1"></div>
+          {/* Table header - matching invoice: SN, Type, Carton/Piece, Category, Product Name, Sqft/Qty, Price, Sub Total */}
+          <div className="hidden sm:grid grid-cols-[40px_50px_1fr_80px_2fr_80px_80px_90px_32px] gap-1 text-[10px] font-bold text-primary-foreground uppercase tracking-wider px-2 mb-1 py-2 rounded-t-lg" style={{ background: 'hsl(var(--destructive))' }}>
+            <div>SN</div>
+            <div>Type</div>
+            <div>Carton/Piece</div>
+            <div>Category</div>
+            <div>Product Name</div>
+            <div className="text-right">Sqft/Qty</div>
+            <div className="text-right">Price</div>
+            <div className="text-right">Sub Total</div>
+            <div></div>
           </div>
 
           {/* Item rows */}
-          <div className="space-y-1">
-            {rows.map((row) => {
+          <div className="space-y-0">
+            {rows.map((row, idx) => {
               const rowTotal = row.qty * row.rate;
               const product = products.find(p => p.id === row.productId);
+              const sqftQty = row.qty * (product?.sqftPerBox || 1);
               return (
-                <div key={row.id} className="grid grid-cols-12 gap-2 items-center px-1 py-2 border-b border-border/50 hover:bg-muted/20 transition-colors">
-                  {/* Product picker */}
-                  <div className="col-span-12 sm:col-span-5">
+                <div key={row.id} className="grid grid-cols-1 sm:grid-cols-[40px_50px_1fr_80px_2fr_80px_80px_90px_32px] gap-1 items-center px-2 py-2 border-b border-border/50 hover:bg-muted/20 transition-colors">
+                  {/* SN */}
+                  <div className="hidden sm:block text-xs font-semibold text-muted-foreground">{idx + 1}</div>
+                  {/* Type */}
+                  <div className="hidden sm:block text-[10px] text-muted-foreground">Sale</div>
+                  {/* Carton / Piece */}
+                  <div className="flex items-center gap-1">
+                    <input type="number" min={0} value={row.carton || ''} onChange={e => updateRow(row.id, 'carton', parseInt(e.target.value) || 0)}
+                      className="w-12 bg-transparent border-b border-border text-xs py-1 text-center outline-none focus:border-primary" placeholder="0" />
+                    <span className="text-[9px] text-muted-foreground">Ctn</span>
+                    <input type="number" min={0} value={row.piece || ''} onChange={e => updateRow(row.id, 'piece', parseInt(e.target.value) || 0)}
+                      className="w-12 bg-transparent border-b border-border text-xs py-1 text-center outline-none focus:border-primary" placeholder="0" />
+                    <span className="text-[9px] text-muted-foreground">Pc</span>
+                  </div>
+                  {/* Category */}
+                  <div className="hidden sm:block text-[10px] text-muted-foreground truncate">{product?.category || '-'}</div>
+                  {/* Product Name (with picker) */}
+                  <div>
                     <ProductPicker
                       products={products}
                       row={row}
@@ -606,24 +626,25 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
                       onToggleScan={() => { setShowScanModal(true); setScanStatus('waiting'); setScanResult(null); setBarcodeInput(''); }}
                       t={t as (key: string) => string}
                     />
-                    {product && <div className="text-[10px] text-muted-foreground mt-0.5 pl-1">{product.size} · {product.finish}</div>}
+                    {product && <div className="text-[9px] text-muted-foreground mt-0.5">{product.name} (Size: {product.size})</div>}
                   </div>
-                  {/* Qty */}
-                  <div className="col-span-4 sm:col-span-2">
+                  {/* Sqft/Qty */}
+                  <div className="text-right">
                     <input type="number" min={1} value={row.qty || ''} onChange={e => updateRow(row.id, 'qty', parseInt(e.target.value) || 0)}
-                      className="w-full bg-transparent border-b border-border text-sm py-1 text-center outline-none focus:border-primary" />
+                      className="w-full bg-transparent border-b border-border text-xs py-1 text-right outline-none focus:border-primary" />
+                    {product && <div className="text-[9px] text-muted-foreground">{sqftQty.toFixed(2)} sqft</div>}
                   </div>
-                  {/* Rate */}
-                  <div className="col-span-4 sm:col-span-2">
+                  {/* Price */}
+                  <div>
                     <input type="number" value={row.rate || ''} onChange={e => updateRow(row.id, 'rate', parseFloat(e.target.value) || 0)}
-                      className="w-full bg-transparent border-b border-border text-sm py-1 text-right outline-none focus:border-primary" />
+                      className="w-full bg-transparent border-b border-border text-xs py-1 text-right outline-none focus:border-primary" />
                   </div>
-                  {/* Total */}
-                  <div className="col-span-3 sm:col-span-2 text-right">
+                  {/* Sub Total */}
+                  <div className="text-right">
                     <span className="text-sm font-bold text-foreground">{formatCurrency(rowTotal)}</span>
                   </div>
                   {/* Delete */}
-                  <div className="col-span-1 flex justify-center">
+                  <div className="flex justify-center">
                     <button onClick={() => removeRow(row.id)} className="w-6 h-6 rounded-md hover:bg-destructive/10 text-destructive flex items-center justify-center transition-colors">
                       <span className="material-symbols-outlined text-sm">close</span>
                     </button>
