@@ -92,13 +92,13 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
 
   // ── Add Purchase helpers ──
   const debouncedProductSearch = useDebounce(productSearch, 200);
-  const filteredProducts = useMemo(() => {
-    if (!debouncedProductSearch) return [];
+  const displayProducts = useMemo(() => {
+    if (!debouncedProductSearch) return products;
     return products.filter(p =>
       p.name.toLowerCase().includes(debouncedProductSearch.toLowerCase()) ||
       (p.barcode || '').toLowerCase().includes(debouncedProductSearch.toLowerCase()) ||
       p.batch.toLowerCase().includes(debouncedProductSearch.toLowerCase())
-    ).slice(0, 8);
+    );
   }, [products, debouncedProductSearch]);
 
   const addProductToItems = (product: Product) => {
