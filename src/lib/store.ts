@@ -10,6 +10,10 @@ export interface Product {
   sqftPerBox: number;
   stock: number;
   batch: string;
+  barcode?: string;
+  category?: string;
+  brand?: string;
+  buyRate?: number;
 }
 
 export interface CartItem {
@@ -23,6 +27,11 @@ export interface SaleItem {
   detail: string;
   qty: number;
   price: number;
+  carton?: number;
+  piece?: number;
+  sqftQty?: number;
+  itemType?: 'Sale' | 'Return';
+  category?: string;
 }
 
 export interface SaleRecord {
@@ -41,6 +50,17 @@ export interface SaleRecord {
   status: 'paid' | 'pending' | 'credit';
   date: string;
   time: string;
+  // New fields
+  paid?: number;
+  due?: number;
+  delivery?: number;
+  returnAmount?: number;
+  lessAmount?: number;
+  previousDues?: number;
+  balance?: number;
+  labour?: number;
+  soldBy?: string;
+  customerType?: 'Listed' | 'Walking';
 }
 
 export interface Customer {
@@ -50,8 +70,43 @@ export interface Customer {
   phone: string;
   address: string;
   totalSpent: number;
+  totalDue: number;
   lastOrder: string;
   color: 'secondary' | 'tertiary' | 'primary' | 'error';
+}
+
+export interface Supplier {
+  id: string;
+  name: string;
+  phone: string;
+  address: string;
+  totalDue: number;
+}
+
+export interface PurchaseItem {
+  productId: string;
+  name: string;
+  barcode: string;
+  carton: number;
+  piece: number;
+  sqftQty: number;
+  buyRate: number;
+  subTotal: number;
+}
+
+export interface PurchaseRecord {
+  id: string;
+  invoice: string;
+  supplierName: string;
+  date: string;
+  items: PurchaseItem[];
+  total: number;
+  discount: number;
+  delivery: number;
+  payable: number;
+  paid: number;
+  due: number;
+  remark: string;
 }
 
 export interface CompanySettings {
@@ -68,19 +123,24 @@ export interface CompanySettings {
 
 // ─── Default Data ───
 const defaultProducts: Product[] = [
-  { id: '1', name: 'Royal Marble', size: '60×60', finish: 'Glossy', pricePerBox: 1500, sqftPerBox: 9.6, stock: 80, batch: 'BT-2501' },
-  { id: '2', name: 'Ocean Blue', size: '30×60', finish: 'Matte', pricePerBox: 1200, sqftPerBox: 7.2, stock: 45, batch: 'BT-2502' },
-  { id: '3', name: 'Rustic Wood', size: '15×60', finish: 'Matte', pricePerBox: 890, sqftPerBox: 5.4, stock: 15, batch: 'BT-2503' },
-  { id: '4', name: 'Calacatta Gold', size: '60×120', finish: 'Glossy', pricePerBox: 2200, sqftPerBox: 14.4, stock: 30, batch: 'BT-2504' },
-  { id: '5', name: 'Pearl White', size: '30×30', finish: 'Glossy', pricePerBox: 750, sqftPerBox: 5.4, stock: 8, batch: 'BT-2505' },
+  { id: '1', name: 'Royal Marble', size: '60×60', finish: 'Glossy', pricePerBox: 1500, sqftPerBox: 9.6, stock: 80, batch: 'BT-2501', category: 'Floor Tiles', brand: 'RAK', buyRate: 1200 },
+  { id: '2', name: 'Ocean Blue', size: '30×60', finish: 'Matte', pricePerBox: 1200, sqftPerBox: 7.2, stock: 45, batch: 'BT-2502', category: 'Wall Tiles', brand: 'Akij', buyRate: 900 },
+  { id: '3', name: 'Rustic Wood', size: '15×60', finish: 'Matte', pricePerBox: 890, sqftPerBox: 5.4, stock: 15, batch: 'BT-2503', category: 'Floor Tiles', brand: 'China', buyRate: 650 },
+  { id: '4', name: 'Calacatta Gold', size: '60×120', finish: 'Glossy', pricePerBox: 2200, sqftPerBox: 14.4, stock: 30, batch: 'BT-2504', category: 'Wall Tiles', brand: 'TYT', buyRate: 1800 },
+  { id: '5', name: 'Pearl White', size: '30×30', finish: 'Glossy', pricePerBox: 750, sqftPerBox: 5.4, stock: 8, batch: 'BT-2505', category: 'Wall Tiles', brand: 'Fresh', buyRate: 550 },
 ];
 
 const defaultCustomers: Customer[] = [
-  { id: '1', name: 'Rahim Uddin', initials: 'RU', phone: '01711223344', address: 'Dhaka', totalSpent: 234500, lastOrder: '27 Mar 2026', color: 'secondary' },
-  { id: '2', name: 'Karim Trading', initials: 'KT', phone: '01922334455', address: 'Chittagong', totalSpent: 189000, lastOrder: '25 Mar 2026', color: 'tertiary' },
+  { id: '1', name: 'Rahim Uddin', initials: 'RU', phone: '01711223344', address: 'Dhaka', totalSpent: 234500, totalDue: 0, lastOrder: '27 Mar 2026', color: 'secondary' },
+  { id: '2', name: 'Karim Trading', initials: 'KT', phone: '01922334455', address: 'Chittagong', totalSpent: 189000, totalDue: 25000, lastOrder: '25 Mar 2026', color: 'tertiary' },
 ];
 
 const defaultSales: SaleRecord[] = [];
+const defaultSuppliers: Supplier[] = [
+  { id: '1', name: 'Akij Ceramics', phone: '01811223344', address: 'Dhaka', totalDue: 0 },
+  { id: '2', name: 'RAK Bangladesh', phone: '01922112233', address: 'Gazipur', totalDue: 6000 },
+];
+const defaultPurchases: PurchaseRecord[] = [];
 
 const defaultSettings: CompanySettings = {
   name: 'TilePOS Lite',
@@ -122,6 +182,19 @@ export function getNextInvoiceNumber(prefix = 'INV'): string {
   return `${prefix}-${String(c).padStart(4, '0')}`;
 }
 
+// Purchase invoice counter
+function getPurchaseCounter(): number {
+  return loadJSON<number>('tilepos_purchase_counter', 1);
+}
+function setPurchaseCounter(n: number) {
+  saveJSON('tilepos_purchase_counter', n);
+}
+export function getNextPurchaseNumber(): string {
+  const c = getPurchaseCounter();
+  setPurchaseCounter(c + 1);
+  return `PUR-${String(c).padStart(4, '0')}`;
+}
+
 // ─── Format ───
 export function formatCurrency(amount: number): string {
   return '৳' + amount.toLocaleString('en-IN');
@@ -129,6 +202,28 @@ export function formatCurrency(amount: number): string {
 
 export function calcDiscount(subtotal: number, discountVal: number, discountType: 'flat' | 'percent'): number {
   return discountType === 'percent' ? Math.round(subtotal * discountVal / 100) : discountVal;
+}
+
+// Number to words (Bengali + English)
+export function numberToWords(num: number, lang: 'en' | 'bn' = 'en'): string {
+  if (num === 0) return lang === 'bn' ? 'শূন্য টাকা মাত্র' : 'Zero Taka Only';
+  const ones = lang === 'bn'
+    ? ['', 'এক', 'দুই', 'তিন', 'চার', 'পাঁচ', 'ছয়', 'সাত', 'আট', 'নয়', 'দশ', 'এগারো', 'বারো', 'তেরো', 'চৌদ্দ', 'পনেরো', 'ষোল', 'সতেরো', 'আঠারো', 'উনিশ']
+    : ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+  const tens = lang === 'bn'
+    ? ['', '', 'বিশ', 'ত্রিশ', 'চল্লিশ', 'পঞ্চাশ', 'ষাট', 'সত্তর', 'আশি', 'নব্বই']
+    : ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+  
+  const convert = (n: number): string => {
+    if (n < 20) return ones[n];
+    if (n < 100) return tens[Math.floor(n / 10)] + (n % 10 ? ' ' + ones[n % 10] : '');
+    if (n < 1000) return ones[Math.floor(n / 100)] + (lang === 'bn' ? ' শত ' : ' Hundred ') + convert(n % 100);
+    if (n < 100000) return convert(Math.floor(n / 1000)) + (lang === 'bn' ? ' হাজার ' : ' Thousand ') + convert(n % 1000);
+    if (n < 10000000) return convert(Math.floor(n / 100000)) + (lang === 'bn' ? ' লক্ষ ' : ' Lakh ') + convert(n % 100000);
+    return convert(Math.floor(n / 10000000)) + (lang === 'bn' ? ' কোটি ' : ' Crore ') + convert(n % 10000000);
+  };
+  const result = convert(Math.floor(num)).trim();
+  return result + (lang === 'bn' ? ' টাকা মাত্র' : ' Taka Only');
 }
 
 // ─── Custom Hooks ───
@@ -156,7 +251,14 @@ export function useProducts() {
     }));
   }, []);
 
-  return { products, setProducts, addProduct, updateProduct, deleteProduct, deductStock };
+  const addStock = useCallback((items: { productId: string; qty: number }[]) => {
+    setProducts(prev => prev.map(p => {
+      const item = items.find(i => i.productId === p.id);
+      return item ? { ...p, stock: p.stock + item.qty } : p;
+    }));
+  }, []);
+
+  return { products, setProducts, addProduct, updateProduct, deleteProduct, deductStock, addStock };
 }
 
 export function useCustomers() {
@@ -171,6 +273,7 @@ export function useCustomers() {
       id: crypto.randomUUID(),
       name, initials, phone, address,
       totalSpent: 0,
+      totalDue: 0,
       lastOrder: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
       color: colors[Math.floor(Math.random() * colors.length)],
     };
@@ -182,11 +285,12 @@ export function useCustomers() {
     setCustomers(prev => prev.filter(c => c.id !== id));
   }, []);
 
-  const updateCustomerSpend = useCallback((name: string, amount: number) => {
+  const updateCustomerSpend = useCallback((name: string, amount: number, dueAmount: number = 0) => {
     setCustomers(prev => prev.map(c =>
       c.name === name ? {
         ...c,
         totalSpent: c.totalSpent + amount,
+        totalDue: (c.totalDue || 0) + dueAmount,
         lastOrder: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
       } : c
     ));
@@ -211,6 +315,44 @@ export function useSales() {
   return { sales, setSales, addSale, deleteSale };
 }
 
+export function useSuppliers() {
+  const [suppliers, setSuppliers] = useState<Supplier[]>(() => loadJSON('tilepos_suppliers', defaultSuppliers));
+
+  useEffect(() => { saveJSON('tilepos_suppliers', suppliers); }, [suppliers]);
+
+  const addSupplier = useCallback((name: string, phone: string, address: string) => {
+    const s: Supplier = { id: crypto.randomUUID(), name, phone, address, totalDue: 0 };
+    setSuppliers(prev => [...prev, s]);
+    return s;
+  }, []);
+
+  const deleteSupplier = useCallback((id: string) => {
+    setSuppliers(prev => prev.filter(s => s.id !== id));
+  }, []);
+
+  const updateSupplierDue = useCallback((name: string, dueAmount: number) => {
+    setSuppliers(prev => prev.map(s => s.name === name ? { ...s, totalDue: (s.totalDue || 0) + dueAmount } : s));
+  }, []);
+
+  return { suppliers, setSuppliers, addSupplier, deleteSupplier, updateSupplierDue };
+}
+
+export function usePurchases() {
+  const [purchases, setPurchases] = useState<PurchaseRecord[]>(() => loadJSON('tilepos_purchases', defaultPurchases));
+
+  useEffect(() => { saveJSON('tilepos_purchases', purchases); }, [purchases]);
+
+  const addPurchase = useCallback((p: PurchaseRecord) => {
+    setPurchases(prev => [p, ...prev]);
+  }, []);
+
+  const deletePurchase = useCallback((id: string) => {
+    setPurchases(prev => prev.filter(p => p.id !== id));
+  }, []);
+
+  return { purchases, setPurchases, addPurchase, deletePurchase };
+}
+
 export function useCompanySettings() {
   const [settings, setSettings] = useState<CompanySettings>(() => loadJSON('tilepos_settings', defaultSettings));
 
@@ -225,8 +367,11 @@ export function exportAllData() {
     products: loadJSON('tilepos_products', defaultProducts),
     customers: loadJSON('tilepos_customers', defaultCustomers),
     sales: loadJSON('tilepos_sales', defaultSales),
+    suppliers: loadJSON('tilepos_suppliers', defaultSuppliers),
+    purchases: loadJSON('tilepos_purchases', defaultPurchases),
     settings: loadJSON('tilepos_settings', defaultSettings),
     invoiceCounter: getInvoiceCounter(),
+    purchaseCounter: getPurchaseCounter(),
     exportDate: new Date().toISOString(),
   };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -244,8 +389,11 @@ export function importAllData(jsonString: string): boolean {
     if (data.products) saveJSON('tilepos_products', data.products);
     if (data.customers) saveJSON('tilepos_customers', data.customers);
     if (data.sales) saveJSON('tilepos_sales', data.sales);
+    if (data.suppliers) saveJSON('tilepos_suppliers', data.suppliers);
+    if (data.purchases) saveJSON('tilepos_purchases', data.purchases);
     if (data.settings) saveJSON('tilepos_settings', data.settings);
     if (data.invoiceCounter) setInvoiceCounter(data.invoiceCounter);
+    if (data.purchaseCounter) setPurchaseCounter(data.purchaseCounter);
     return true;
   } catch {
     return false;
@@ -278,3 +426,13 @@ export function downloadCSV(rows: string[][], filename: string) {
   a.download = filename;
   a.click();
 }
+
+// Product categories list
+export const PRODUCT_CATEGORIES = [
+  'Wall Tiles', 'Floor Tiles', 'Scarting Tiles', 'Wall Paper', 
+  'Tiles Related', 'Sanitary', 'Fitting', 'Other'
+];
+
+export const PRODUCT_BRANDS = [
+  'Akij', 'RAK', 'Fresh', 'TYT', 'China', 'Bangla', 'Great Wall', 'Other'
+];
