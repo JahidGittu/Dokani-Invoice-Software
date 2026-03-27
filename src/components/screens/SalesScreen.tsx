@@ -81,11 +81,6 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
   const [remark, setRemark] = useState('');
   const [saleStatus, setSaleStatus] = useState('Complete');
   const [paymentMode, setPaymentMode] = useState('Cash');
-  const [manualCarton, setManualCarton] = useState('0');
-  const [manualPiece, setManualPiece] = useState('0');
-  const [manualSqft, setManualSqft] = useState('0');
-  const [manualRate, setManualRate] = useState('');
-  const [selectedProductId, setSelectedProductId] = useState('');
   const searchRef = useRef<HTMLInputElement>(null);
 
   // ── Sort helpers ──
