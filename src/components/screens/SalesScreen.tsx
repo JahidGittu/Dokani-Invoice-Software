@@ -382,9 +382,9 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
           </button>
         </div>
 
-        <div className="flex flex-col gap-4">
-          {/* ── Main form ── */}
-          <div className="space-y-4">
+        <div className="flex gap-4 flex-col lg:flex-row">
+          {/* ── LEFT: Main form ── */}
+          <div className="flex-1 space-y-4">
             {/* Top fields: Date + Customer */}
             <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container p-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -544,15 +544,13 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
               </div>
             </div>
 
-            {/* ── Bottom: Payment Method + Status + Notes ── */}
+            {/* Bottom: Remark + Status + Send SMS */}
             <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container p-4">
               <div className="flex flex-wrap items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-pos-on-surface-variant uppercase">Payment Method</span>
-                  <select value={paymentMode} onChange={e => setPaymentMode(e.target.value)}
-                    className="bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2 px-3 outline-none">
-                    <option>Cash</option><option>bKash</option><option>Nagad</option><option>Card</option><option>Credit</option>
-                  </select>
+                <div className="flex items-center gap-2 flex-1 min-w-[200px]">
+                  <span className="text-xs font-bold text-pos-on-surface-variant uppercase shrink-0">Remark</span>
+                  <input value={remark} onChange={e => setRemark(e.target.value)}
+                    className="flex-1 bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2 px-3 outline-none" placeholder="Optional note..." />
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold text-pos-on-surface-variant uppercase">Status</span>
@@ -561,114 +559,90 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
                     <option>Complete</option><option>Pending</option><option>Credit</option>
                   </select>
                 </div>
-                <div className="flex items-center gap-2 flex-1 min-w-[180px]">
-                  <span className="text-xs font-bold text-pos-on-surface-variant uppercase shrink-0">Notes</span>
-                  <input value={remark} onChange={e => setRemark(e.target.value)}
-                    className="flex-1 bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2 px-3 outline-none" placeholder="..." />
-                </div>
                 <label className="flex items-center gap-1.5 text-xs cursor-pointer">
                   <input type="checkbox" className="w-3.5 h-3.5 accent-pos-secondary" />
                   Send SMS
                 </label>
               </div>
             </div>
+          </div>
 
-            {/* ══ Invoice-style bottom: 2-column layout ══ */}
-            <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container p-5">
-              <div className="flex flex-col lg:flex-row gap-6">
-                {/* LEFT: Due Box + Remark/Qty/InWord */}
-                <div className="flex-1 space-y-3">
-                  <div className="border-2 border-foreground/50 rounded px-4 py-3 space-y-1.5 max-w-[280px]">
-                    <div className="flex justify-between text-[12px]"><span>Due In This Bill:</span><strong className="min-w-[80px] text-right">{dueVal}/-</strong></div>
-                    <div className="flex justify-between text-[12px]"><span>Previous Dues:</span><strong className="min-w-[80px] text-right">{prevDues}/-</strong></div>
-                    <div className="flex justify-between text-[12px]"><span>Balance:</span><strong className={`min-w-[80px] text-right ${balanceVal > 0 ? 'text-pos-error' : ''}`}>{balanceVal}/-</strong></div>
-                  </div>
-                  <div className="text-[12px] space-y-1">
-                    <div><strong>Remark:</strong> {remark || ''}</div>
-                    <div><strong>Total Quantity: {items.reduce((s, i) => s + i.sqftQty, 0).toFixed(2)}</strong></div>
-                    <div>In Word: <strong className="text-[hsl(215,80%,45%)]">{numberToWords(payable)}</strong></div>
-                  </div>
+          {/* ── RIGHT: Summary sidebar ── */}
+          <div className="w-full lg:w-[280px] shrink-0">
+            <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container p-4 space-y-2.5 sticky top-4">
+              {/* Total */}
+              <div className="flex items-center justify-between border border-pos-surface-container rounded-lg px-3 py-2.5">
+                <span className="text-sm font-medium text-pos-on-surface-variant">Total</span>
+                <span className="text-lg font-black text-pos-secondary">{formatCurrency(total)}</span>
+              </div>
+              {/* Return */}
+              <div className="flex items-center justify-between border border-pos-surface-container rounded-lg px-3 py-2">
+                <span className="text-sm text-pos-on-surface-variant">Return</span>
+                <input type="number" value={returnAmt} onChange={e => setReturnAmt(e.target.value)} placeholder="0"
+                  className="w-20 bg-transparent text-sm text-right outline-none font-bold text-pos-error" />
+              </div>
+              {/* Discount */}
+              <div className="flex items-center justify-between border border-pos-surface-container rounded-lg px-3 py-2">
+                <div className="flex items-center gap-1">
+                  <span className="text-sm text-pos-on-surface-variant">Discount</span>
+                  <select value={discountType} onChange={e => setDiscountType(e.target.value as 'flat' | 'percent')}
+                    className="bg-transparent text-[10px] outline-none">
+                    <option value="percent">%</option><option value="flat">৳</option>
+                  </select>
                 </div>
-
-                {/* RIGHT: Financial Summary */}
-                <div className="min-w-[260px] space-y-0.5">
-                  <div className="flex justify-between items-center py-1.5">
-                    <span className="text-sm">Subtotal</span>
-                    <span className="text-sm font-bold min-w-[90px] text-right">{formatCurrency(total)}</span>
-                  </div>
-                  <div className="flex justify-between items-center py-1.5">
-                    <div className="flex items-center gap-1"><span className="text-sm">Discount</span>
-                      <select value={discountType} onChange={e => setDiscountType(e.target.value as 'flat' | 'percent')} className="bg-transparent text-[10px] outline-none"><option value="percent">%</option><option value="flat">৳</option></select>
-                    </div>
-                    <input type="number" value={discount} onChange={e => setDiscount(e.target.value)} placeholder="0" className="w-20 bg-transparent text-sm text-right outline-none font-bold border-b border-pos-surface-container" />
-                  </div>
-                  <div className="flex justify-between items-center py-1.5">
-                    <span className="text-sm">Return</span>
-                    <input type="number" value={returnAmt} onChange={e => setReturnAmt(e.target.value)} placeholder="0" className="w-20 bg-transparent text-sm text-right outline-none font-bold text-pos-error border-b border-pos-surface-container" />
-                  </div>
-                  <div className="flex justify-between items-center py-1.5">
-                    <span className="text-sm">Less</span>
-                    <input type="number" value={lessAmt} onChange={e => setLessAmt(e.target.value)} placeholder="0" className="w-20 bg-transparent text-sm text-right outline-none border-b border-pos-surface-container" />
-                  </div>
-                  <div className="flex justify-between items-center py-1.5">
-                    <span className="text-sm">Delivery</span>
-                    <input type="number" value={delivery} onChange={e => setDelivery(e.target.value)} placeholder="0" className="w-20 bg-transparent text-sm text-right outline-none font-bold border-b border-pos-surface-container" />
-                  </div>
-                  <div className="flex justify-between items-center py-1.5">
-                    <span className="text-sm">Labour</span>
-                    <input type="number" value={labourCost} onChange={e => setLabourCost(e.target.value)} placeholder="0" className="w-20 bg-transparent text-sm text-right outline-none font-bold border-b border-pos-surface-container" />
-                  </div>
-                  <div className="flex justify-between items-center py-1.5 border-t border-pos-surface-container mt-1">
-                    <span className="text-sm font-bold">Total</span>
-                    <span className="text-sm font-bold text-right">{formatCurrency(total)}</span>
-                  </div>
-                  {labourVal > 0 && <div className="flex justify-between items-center py-1"><span className="text-sm">Labour</span><span className="text-sm font-bold text-right">{formatCurrency(labourVal)}</span></div>}
-                  {/* PAYABLE */}
-                  <div className="flex justify-between items-center py-2.5 border-t-2 border-b-2 border-foreground mt-1">
-                    <span className="text-lg font-black">PAYABLE:</span>
-                    <span className="text-xl font-black text-right">{formatCurrency(payable)}</span>
-                  </div>
-                  <div className="flex justify-between items-center py-1.5">
-                    <span className="text-sm font-bold">Paid</span>
-                    <input type="number" value={paidAmount} onChange={e => setPaidAmount(e.target.value)} placeholder="0" className="w-24 bg-transparent text-sm text-right outline-none font-bold border-b border-pos-surface-container" />
-                  </div>
-                  <div className="flex justify-between items-center py-1.5">
-                    <span className="text-sm font-bold text-pos-error">Due</span>
-                    <span className={`text-sm font-black text-right ${dueVal > 0 ? 'text-pos-error' : 'text-[hsl(125,60%,35%)]'}`}>{formatCurrency(dueVal)}</span>
-                  </div>
-                  <div className="flex justify-between items-center py-1.5">
-                    <span className="text-sm font-bold">Balance</span>
-                    <span className={`text-sm font-black text-right ${balanceVal > 0 ? 'text-pos-error' : 'text-[hsl(125,60%,35%)]'}`}>{formatCurrency(balanceVal)}</span>
-                  </div>
-                  <div className="flex justify-between items-center py-1.5 border-t border-pos-surface-container">
-                    <span className="text-sm">Amount Received</span>
-                    <span className="text-sm font-bold text-right">{formatCurrency(paidVal)}</span>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <input type="number" value={discount} onChange={e => setDiscount(e.target.value)} placeholder="0"
+                    className="w-14 bg-transparent text-sm text-right outline-none" />
+                  <span className="text-xs font-bold text-pos-on-surface-variant">Less</span>
+                  <input type="number" value={lessAmt} onChange={e => setLessAmt(e.target.value)} placeholder="0"
+                    className="w-14 bg-transparent text-sm text-right outline-none" />
                 </div>
               </div>
-
-              {/* Terms */}
-              <div className="mt-4 pt-3 border-t border-pos-surface-container text-[10px] text-pos-on-surface-variant">
-                <strong>Terms & Conditions</strong><span className="ml-1">• Goods once delivered cannot be returned or exchanged. • Prices are subject to change without prior notice. • Credit payment due within 30 days.</span>
+              {/* Delivery */}
+              <div className="flex items-center justify-between border border-pos-surface-container rounded-lg px-3 py-2">
+                <span className="text-sm text-pos-on-surface-variant">Delivery</span>
+                <input type="number" value={delivery} onChange={e => setDelivery(e.target.value)} placeholder="0"
+                  className="w-20 bg-transparent text-sm text-right outline-none font-bold text-pos-secondary" />
               </div>
-            </div>
-
-            {/* Action Buttons Row */}
-            <div className="grid grid-cols-5 gap-2">
-              <button onClick={handleSave} className="py-3 bg-gradient-to-b from-[hsl(215,80%,45%)] to-[hsl(215,80%,35%)] text-white rounded-lg font-semibold text-[11px] flex flex-col items-center gap-1 shadow-lg hover:-translate-y-0.5 transition-transform">
-                <span className="material-symbols-outlined text-lg">print</span>Save Sale & Print
-              </button>
-              <button onClick={handleSave} className="py-3 bg-pos-surface-container text-pos-on-surface rounded-lg font-semibold text-[11px] flex flex-col items-center gap-1 hover:bg-pos-surface-high transition-colors">
-                <span className="material-symbols-outlined text-lg">picture_as_pdf</span>PDF
-              </button>
-              <button className="py-3 bg-pos-surface-container text-pos-on-surface rounded-lg font-semibold text-[11px] flex flex-col items-center gap-1 hover:bg-pos-surface-high transition-colors">
-                <span className="material-symbols-outlined text-lg">receipt</span>80mm
-              </button>
-              <button className="py-3 bg-[hsl(142,70%,42%)] text-white rounded-lg font-semibold text-[11px] flex flex-col items-center gap-1 hover:bg-[hsl(142,70%,38%)] transition-colors">
-                <span className="material-symbols-outlined text-lg">send</span>WhatsApp
-              </button>
-              <button onClick={handleSave} className="py-3 bg-pos-error text-white rounded-lg font-semibold text-[11px] flex flex-col items-center gap-1 hover:bg-pos-error/90 transition-colors">
-                <span className="material-symbols-outlined text-lg">save</span>Save Sale
+              {/* Labour */}
+              <div className="flex items-center justify-between border border-pos-surface-container rounded-lg px-3 py-2">
+                <span className="text-sm text-pos-on-surface-variant">Labour</span>
+                <input type="number" value={labourCost} onChange={e => setLabourCost(e.target.value)} placeholder="0"
+                  className="w-20 bg-transparent text-sm text-right outline-none font-bold text-pos-secondary" />
+              </div>
+              {/* Payable */}
+              <div className="flex items-center justify-between border border-pos-surface-container rounded-lg px-3 py-2.5 bg-pos-surface-high">
+                <span className="text-sm font-bold text-pos-on-surface">Payable</span>
+                <span className="text-lg font-black text-pos-secondary">{formatCurrency(payable)}</span>
+              </div>
+              {/* Paid */}
+              <div className="flex items-center justify-between border border-pos-surface-container rounded-lg px-3 py-2">
+                <span className="text-sm font-bold text-pos-on-surface-variant">Paid</span>
+                <input type="number" value={paidAmount} onChange={e => setPaidAmount(e.target.value)} placeholder="0"
+                  className="w-20 bg-transparent text-sm text-right outline-none font-bold" />
+              </div>
+              {/* Due */}
+              <div className="flex items-center justify-between border border-pos-surface-container rounded-lg px-3 py-2.5">
+                <span className="text-sm font-bold text-pos-error">Due</span>
+                <span className={`text-lg font-black ${dueVal > 0 ? 'text-pos-error' : 'text-[hsl(125,60%,35%)]'}`}>{formatCurrency(dueVal)}</span>
+              </div>
+              {/* Balance */}
+              <div className="flex items-center justify-between border border-pos-surface-container rounded-lg px-3 py-2.5">
+                <span className="text-sm font-bold text-pos-secondary">Balance</span>
+                <span className={`text-lg font-black ${balanceVal > 0 ? 'text-pos-error' : 'text-[hsl(125,60%,35%)]'}`}>{formatCurrency(balanceVal)}</span>
+              </div>
+              {/* Mode */}
+              <div className="flex items-center justify-between border border-pos-surface-container rounded-lg px-3 py-2">
+                <span className="text-sm text-pos-on-surface-variant">Mode</span>
+                <select value={paymentMode} onChange={e => setPaymentMode(e.target.value)}
+                  className="bg-transparent text-sm outline-none text-right">
+                  <option>Cash</option><option>bKash</option><option>Nagad</option><option>Card</option><option>Credit</option>
+                </select>
+              </div>
+              {/* Save */}
+              <button onClick={handleSave}
+                className="w-full py-3 bg-pos-error text-white rounded-lg font-bold text-base hover:bg-pos-error/90 transition-colors mt-2">
+                Save
               </button>
             </div>
           </div>

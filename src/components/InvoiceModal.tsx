@@ -187,8 +187,8 @@ tbody tr:nth-child(even){background:#fafafa}
       <div class="due-row"><span>Balance:</span><span class="due-val">${balance}/-</span></div>
     </div>
     <div class="remark">
-      ${sale.notes ? `<div><strong>Remark:</strong> ${sale.notes}</div>` : '<div><strong>Remark:</strong></div>'}
-      <div><strong>Total Quantity: ${totalQty}</strong></div>
+      <div><strong>Remark:</strong> ${sale.notes || ''}</div>
+      <div><strong>Total Quantity:</strong> ${totalQty}</div>
       <div>In Word: <span class="inword">${numberToWords(sale.total)}</span></div>
     </div>
   </div>
@@ -203,13 +203,13 @@ tbody tr:nth-child(even){background:#fafafa}
 
 <!-- Signatures -->
 <div class="sig-row">
-  <div class="sig"><em>Customer Signature</em></div>
-  <div class="sig"><em>Authorized Signature</em></div>
+  <div class="sig">Customer Signature</div>
+  <div class="sig">Authorized Signature</div>
 </div>
 
 <!-- Disclaimer -->
 <div class="disclaimer">বিক্রিত মাল ১ মাসের মধ্যে ফেরত নেওয়া হয়।চায়না/ইন্ডিয়ান মাল ফেরত নেওয়া হয় না।</div>
-<div class="footer-line">SOFTWARE: ${companyName} | ${companyPhone || ''} | Printing @: ${new Date().toLocaleString()}</div>
+<div class="footer-line">SOFTWARE: ${companyName} | Printing @: ${new Date().toLocaleString()}</div>
 
 </div>
 </body></html>`;
@@ -418,11 +418,11 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
     doc.text('Authorized Signature', pw - 47, sigY + 5, { align: 'center' });
 
     // Disclaimer
-    doc.setTextColor(192, 57, 43); doc.setFontSize(9); doc.setFont('helvetica', 'bold');
+    doc.setTextColor(192, 57, 43); doc.setFontSize(9);
     doc.text('Goods once sold are not returnable. Chinese/Indian products are non-refundable.', pw / 2, sigY + 16, { align: 'center' });
 
     doc.setTextColor(150); doc.setFontSize(7); doc.setFont('helvetica', 'normal');
-    doc.text(`SOFTWARE: ${companyName} | ${companyPhone || ''} | Printing @: ${new Date().toLocaleString()}`, pw / 2, sigY + 22, { align: 'center' });
+    doc.text(`SOFTWARE: ${companyName} | Printing @: ${new Date().toLocaleString()}`, pw / 2, sigY + 22, { align: 'center' });
 
     doc.save(`${sale.invoice}.pdf`);
     toast.success('PDF downloaded!');
@@ -515,51 +515,43 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
             </table>
           </div>
 
-          {/* Due Box + Summary - matching reference layout */}
-          <div className="flex justify-between gap-4 mt-2">
-            {/* Left: Due Box + Remark */}
-            <div className="flex-1">
-              <div className="border-2 border-[#333] rounded p-2.5 text-[11px] space-y-1 inline-block min-w-[180px]">
-                <div className="flex justify-between gap-6"><span>Due In This Bill:</span><strong className="text-right min-w-[70px]">{dueInBill}/-</strong></div>
-                <div className="flex justify-between gap-6"><span>Previous Dues:</span><strong className="text-right min-w-[70px]">{prevDues}/-</strong></div>
-                <div className="flex justify-between gap-6"><span>Balance:</span><strong className="text-right min-w-[70px]">{balance}/-</strong></div>
-              </div>
-              <div className="text-[10px] mt-2 space-y-0.5">
-                {sale.notes && <div><strong>Remark:</strong> {sale.notes}</div>}
-                <div><strong>Total Quantity: {totalQty}</strong></div>
-                <div>In Word: <strong className="text-[#005cc1]">{numberToWords(sale.total)}</strong></div>
-              </div>
+          {/* Due Box + Summary */}
+          <div className="flex justify-between gap-3 mb-3">
+            <div className="border-2 border-[#333] rounded p-2 text-[10px] min-w-[160px] space-y-0.5">
+              <div className="flex justify-between gap-4"><span>Due In This Bill:</span><strong>{dueInBill}/-</strong></div>
+              <div className="flex justify-between gap-4"><span>Previous Dues:</span><strong>{prevDues}/-</strong></div>
+              <div className="flex justify-between gap-4"><span>Balance:</span><strong>{balance}/-</strong></div>
             </div>
-            {/* Right: Summary */}
-            <div className="min-w-[170px] text-[11px]">
-              <div className="flex justify-between py-0.5"><span>Total:</span><span className="font-bold text-right min-w-[70px]">{sale.subtotal}</span></div>
-              {(sale.labour ?? 0) > 0 && <div className="flex justify-between py-0.5"><span>Labour:</span><span className="font-bold text-right min-w-[70px]">{sale.labour}</span></div>}
-              {sale.discount > 0 && <div className="flex justify-between py-0.5"><span>Discount:</span><span className="font-bold text-right min-w-[70px]">-{sale.discount}</span></div>}
-              <div className="flex justify-between font-black text-lg py-1.5 mt-1 border-t-2 border-b-2 border-[#222]">
-                <span>PAYABLE:</span><span className="text-right">{sale.total}</span>
+            <div className="min-w-[160px] space-y-0.5 text-[11px]">
+              <div className="flex justify-between"><span>Total:</span><span className="font-bold">{sale.subtotal}</span></div>
+              {(sale.labour ?? 0) > 0 && <div className="flex justify-between"><span>Labour:</span><span className="font-bold">{sale.labour}</span></div>}
+              {sale.discount > 0 && <div className="flex justify-between"><span>Discount:</span><span className="font-bold">-{sale.discount}</span></div>}
+              <div className="flex justify-between font-black text-base pt-1 mt-1 border-t-2 border-b-2 border-[#222] py-1">
+                <span>PAYABLE:</span><span>{sale.total}</span>
               </div>
-              <div className="flex justify-between font-bold text-[12px] py-0.5 mt-1"><span>Paid:</span><span className="text-right min-w-[70px]">{sale.paid ?? sale.total}</span></div>
+              <div className="flex justify-between font-bold"><span>Paid:</span><span>{sale.paid ?? sale.total}</span></div>
             </div>
+          </div>
+
+          {/* Remark & In Word */}
+          <div className="text-[10px] mb-2 space-y-0.5">
+            {sale.notes && <div><strong>Remark:</strong> {sale.notes}</div>}
+            <div><strong>Total Quantity:</strong> {totalQty}</div>
+            <div>In Word: <strong className="text-[#005cc1]">{numberToWords(sale.total)}</strong></div>
           </div>
 
           {/* Signatures */}
-          <div className="flex justify-between mt-14 px-4">
-            <div className="text-center">
-              <div className="border-t border-gray-400 w-[160px] mb-1"></div>
-              <span className="text-[12px] font-bold italic text-[#005cc1]">Customer Signature</span>
-            </div>
-            <div className="text-center">
-              <div className="border-t border-gray-400 w-[160px] mb-1"></div>
-              <span className="text-[12px] font-bold italic text-[#005cc1]">Authorized Signature</span>
-            </div>
+          <div className="flex justify-between mt-12 text-[11px] font-bold text-[#005cc1]">
+            <div className="border-t border-gray-400 pt-1 px-4 text-center">Customer Signature</div>
+            <div className="border-t border-gray-400 pt-1 px-4 text-center">Authorized Signature</div>
           </div>
 
           {/* Disclaimer */}
-          <div className="text-center mt-5 text-[11px] text-[#c0392b] font-bold py-2 border-t border-gray-200">
+          <div className="text-center mt-4 text-[10px] text-[#c0392b] font-bold border-t border-gray-200 pt-2">
             বিক্রিত মাল ১ মাসের মধ্যে ফেরত নেওয়া হয়।চায়না/ইন্ডিয়ান মাল ফেরত নেওয়া হয় না।
           </div>
-          <div className="text-[8px] text-center text-gray-400 mt-0.5">
-            SOFTWARE: {companyName} | {companyPhone || ''} | Printing @: {new Date().toLocaleString()}
+          <div className="text-[8px] text-center text-gray-400 mt-1">
+            SOFTWARE: {companyName} | {new Date().toLocaleString()}
           </div>
         </div>
 
