@@ -42,7 +42,9 @@ export function useSupabaseProducts() {
       user_id: user.id, name: p.name, size: p.size, finish: p.finish,
       price_per_box: p.pricePerBox, sqft_per_box: p.sqftPerBox,
       stock: p.stock, batch: p.batch, barcode: (p as any).barcode || '',
-    });
+      category: (p as any).category || '', brand: (p as any).brand || '',
+      buy_rate: (p as any).buyRate || 0,
+    } as any);
     if (error) { toast.error('Failed to add product'); return; }
     fetchProducts();
   }, [user, fetchProducts]);
