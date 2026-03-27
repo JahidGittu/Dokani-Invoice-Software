@@ -331,69 +331,21 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
               </div>
             </div>
 
-            {/* Product search + manual inputs */}
-            <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container p-4 space-y-3">
-              <div className="flex gap-3">
-                <div className="relative flex-1">
-                  <input ref={searchRef} value={productSearch} onChange={e => { setProductSearch(e.target.value); setSelectedProductId(''); }}
-                    className="w-full bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2.5 pl-10 pr-4 outline-none focus:border-pos-secondary transition-colors"
-                    placeholder="Search the Product..." />
-                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-pos-on-surface-variant">search</span>
-                  {filteredProducts.length > 0 && !selectedProductId && (
-                    <div className="absolute left-0 top-full mt-1 w-full bg-popover border border-border rounded-xl shadow-xl z-50 max-h-[250px] overflow-y-auto">
-                      {filteredProducts.map(p => (
-                        <button key={p.id} onClick={() => selectSearchProduct(p)}
-                          className="w-full text-left px-4 py-2.5 hover:bg-accent transition-colors flex items-center justify-between border-b border-border/50 last:border-0">
-                          <div>
-                            <span className="font-semibold text-sm">{p.name}</span>
-                            <span className="text-xs text-muted-foreground ml-2">({p.barcode || p.batch || '—'})</span>
-                          </div>
-                          <div className="text-right">
-                            <span className="text-xs text-muted-foreground">Stock: {p.stock}</span>
-                            <span className="text-xs font-bold text-pos-secondary ml-3">৳{p.pricePerBox}</span>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-              {/* Manual inputs row */}
-              <div className="flex flex-wrap gap-2 items-end">
-                <div className="flex items-center gap-1 bg-pos-surface-high border border-pos-surface-container rounded-lg px-2 py-1.5">
-                  <span className="text-[10px] font-bold text-pos-on-surface-variant">Carton</span>
-                  <input type="number" min={0} value={manualCarton} onChange={e => setManualCarton(e.target.value)}
-                    className="w-14 bg-transparent text-sm text-center outline-none" />
-                </div>
-                <div className="flex items-center gap-1 bg-pos-surface-high border border-pos-surface-container rounded-lg px-2 py-1.5">
-                  <span className="text-[10px] font-bold text-pos-on-surface-variant">Piece</span>
-                  <input type="number" min={0} value={manualPiece} onChange={e => setManualPiece(e.target.value)}
-                    className="w-14 bg-transparent text-sm text-center outline-none" />
-                </div>
-                <div className="flex items-center gap-1 bg-pos-surface-high border border-pos-surface-container rounded-lg px-2 py-1.5">
-                  <span className="text-[10px] font-bold text-pos-on-surface-variant">Sqft./Qty.</span>
-                  <input type="number" min={0} step="0.1" value={manualSqft} onChange={e => setManualSqft(e.target.value)}
-                    className="w-14 bg-transparent text-sm text-center outline-none" />
-                </div>
-                <div className="flex items-center gap-1 bg-pos-surface-high border border-pos-surface-container rounded-lg px-2 py-1.5">
-                  <span className="text-[10px] font-bold text-pos-on-surface-variant">Sales Rate</span>
-                  <input type="number" value={manualRate} onChange={e => setManualRate(e.target.value)} placeholder="Sales Rate"
-                    className="w-20 bg-transparent text-sm text-right outline-none" />
-                </div>
-                <button onClick={addProductToItems}
-                  className="px-5 py-2 bg-pos-error text-white rounded-lg font-bold text-sm hover:bg-pos-error/90 transition-colors">
-                  Add
-                </button>
-              </div>
+            {/* Product search */}
+            <div className="relative">
+              <input ref={searchRef} value={productSearch} onChange={e => setProductSearch(e.target.value)}
+                className="w-full bg-pos-surface-lowest border-2 border-pos-secondary/30 rounded-xl text-sm py-3 pl-11 pr-4 outline-none focus:border-pos-secondary transition-colors"
+                placeholder="Search the Product..." />
+              <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-pos-on-surface-variant">search</span>
             </div>
 
-            {/* Items table */}
+            {/* All products table with checkbox */}
             <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container overflow-hidden">
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
                 <table className="w-full min-w-[700px]">
-                  <thead>
+                  <thead className="sticky top-0 z-10">
                     <tr className="text-[10px] font-bold text-white uppercase tracking-wider bg-[hsl(230,45%,35%)]">
-                      <th className="px-2 py-2.5 w-8"><span className="material-symbols-outlined text-sm">delete</span></th>
+                      <th className="px-2 py-2.5 w-8"><span className="material-symbols-outlined text-sm">check_box</span></th>
                       <th className="px-3 py-2.5">Type</th>
                       <th className="px-3 py-2.5">Barcode</th>
                       <th className="px-3 py-2.5">Description</th>
@@ -405,38 +357,58 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-pos-surface-container">
-                    {items.map(item => (
-                      <tr key={item.id} className="bg-[hsl(45,100%,96%)] dark:bg-[hsl(45,20%,12%)] hover:bg-[hsl(45,100%,93%)] transition-colors">
-                        <td className="px-2 py-2 text-center">
-                          <input type="checkbox" checked onChange={() => removeItem(item.id)}
-                            className="w-4 h-4 rounded border-pos-surface-container accent-pos-secondary cursor-pointer" />
-                        </td>
-                        <td className="px-1 py-1">
-                          <select value={item.itemType} onChange={e => updateItem(item.id, 'itemType', e.target.value)}
-                            className="bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-xs py-1.5 px-1 outline-none">
-                            <option>Sale</option><option>Return</option>
-                          </select>
-                        </td>
-                        <td className="px-3 py-2 text-sm font-mono">{item.barcode || '—'}</td>
-                        <td className="px-3 py-2 text-sm font-medium">{item.name}</td>
-                        <td className="px-1 py-1">
-                          <input type="number" min={0} value={item.carton} onChange={e => updateItem(item.id, 'carton', parseInt(e.target.value) || 0)}
-                            className="w-16 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-center outline-none focus:border-pos-secondary mx-auto block" />
-                        </td>
-                        <td className="px-1 py-1">
-                          <input type="number" min={0} value={item.piece} onChange={e => updateItem(item.id, 'piece', parseInt(e.target.value) || 0)}
-                            className="w-14 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-center outline-none focus:border-pos-secondary mx-auto block" />
-                        </td>
-                        <td className="px-3 py-2 text-center text-sm">{item.sqftQty > 0 ? item.sqftQty.toFixed(1) : '0'}</td>
-                        <td className="px-1 py-1">
-                          <input type="number" value={item.salesRate} onChange={e => updateItem(item.id, 'salesRate', parseFloat(e.target.value) || 0)}
-                            className="w-20 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-right outline-none focus:border-pos-secondary ml-auto block" />
-                        </td>
-                        <td className="px-3 py-2 text-right font-bold text-sm">{formatCurrency(item.subTotal)}</td>
-                      </tr>
-                    ))}
-                    {items.length === 0 && (
-                      <tr><td colSpan={9} className="px-8 py-8 text-center text-sm text-pos-on-surface-variant">Search and add products above</td></tr>
+                    {displayProducts.map(p => {
+                      const item = items.find(i => i.productId === p.id);
+                      const isSelected = !!item;
+                      return (
+                        <tr key={p.id} className={`transition-colors ${isSelected ? 'bg-[hsl(45,100%,96%)] dark:bg-[hsl(45,20%,12%)]' : 'hover:bg-muted/30'}`}>
+                          <td className="px-2 py-2 text-center">
+                            <input type="checkbox" checked={isSelected}
+                              onChange={() => isSelected ? removeItem(item!.id) : addProductToItems(p)}
+                              className="w-4 h-4 rounded border-pos-surface-container accent-pos-secondary cursor-pointer" />
+                          </td>
+                          {isSelected ? (
+                            <>
+                              <td className="px-1 py-1">
+                                <select value={item!.itemType} onChange={e => updateItem(item!.id, 'itemType', e.target.value)}
+                                  className="bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-xs py-1.5 px-1 outline-none">
+                                  <option>Sale</option><option>Return</option>
+                                </select>
+                              </td>
+                              <td className="px-3 py-2 text-sm font-mono">{item!.barcode || '—'}</td>
+                              <td className="px-3 py-2 text-sm font-medium">{item!.name}</td>
+                              <td className="px-1 py-1">
+                                <input type="number" min={0} value={item!.carton} onChange={e => updateItem(item!.id, 'carton', parseInt(e.target.value) || 0)}
+                                  className="w-16 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-center outline-none focus:border-pos-secondary mx-auto block" />
+                              </td>
+                              <td className="px-1 py-1">
+                                <input type="number" min={0} value={item!.piece} onChange={e => updateItem(item!.id, 'piece', parseInt(e.target.value) || 0)}
+                                  className="w-14 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-center outline-none focus:border-pos-secondary mx-auto block" />
+                              </td>
+                              <td className="px-3 py-2 text-center text-sm">{item!.sqftQty > 0 ? item!.sqftQty.toFixed(1) : '0'}</td>
+                              <td className="px-1 py-1">
+                                <input type="number" value={item!.salesRate} onChange={e => updateItem(item!.id, 'salesRate', parseFloat(e.target.value) || 0)}
+                                  className="w-20 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-right outline-none focus:border-pos-secondary ml-auto block" />
+                              </td>
+                              <td className="px-3 py-2 text-right font-bold text-sm">{formatCurrency(item!.subTotal)}</td>
+                            </>
+                          ) : (
+                            <>
+                              <td className="px-3 py-2 text-sm text-muted-foreground">Sale</td>
+                              <td className="px-3 py-2 text-sm font-mono text-muted-foreground">{p.barcode || p.batch || '—'}</td>
+                              <td className="px-3 py-2 text-sm text-muted-foreground">{p.name}</td>
+                              <td className="px-3 py-2 text-center text-sm text-muted-foreground">0</td>
+                              <td className="px-3 py-2 text-center text-sm text-muted-foreground">0</td>
+                              <td className="px-3 py-2 text-center text-sm text-muted-foreground">0</td>
+                              <td className="px-3 py-2 text-right text-sm text-muted-foreground">{p.pricePerBox}</td>
+                              <td className="px-3 py-2 text-right text-sm text-muted-foreground">0.00</td>
+                            </>
+                          )}
+                        </tr>
+                      );
+                    })}
+                    {displayProducts.length === 0 && (
+                      <tr><td colSpan={9} className="px-8 py-8 text-center text-sm text-pos-on-surface-variant">No products found</td></tr>
                     )}
                   </tbody>
                 </table>
