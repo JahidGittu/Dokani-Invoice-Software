@@ -114,12 +114,12 @@ export default function ExcelImportScreen({ products, onImportProducts }: ExcelI
             <div className="space-y-3">
               {[
                 { label: t('tileName'), value: mapName, set: setMapName },
-                { label: t('category'), value: mapCategory, set: setMapCategory },
-                { label: t('brand'), value: mapBrand, set: setMapBrand },
+                { label: t('categoryLabel'), value: mapCategory, set: setMapCategory },
+                { label: t('brandLabel'), value: mapBrand, set: setMapBrand },
                 { label: t('sizeArrow'), value: mapSize, set: setMapSize },
                 { label: t('finishArrow'), value: mapFinish, set: setMapFinish },
                 { label: 'Sqft/Box →', value: mapSqft, set: setMapSqft },
-                { label: t('buyRate') + ' →', value: mapBuyRate, set: setMapBuyRate },
+                { label: t('buyRateLabel') + ' →', value: mapBuyRate, set: setMapBuyRate },
                 { label: t('rateArrow'), value: mapPrice, set: setMapPrice },
                 { label: t('qtyArrow'), value: mapQty, set: setMapQty },
                 { label: 'Batch →', value: mapBatch, set: setMapBatch },
