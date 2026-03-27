@@ -458,7 +458,7 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
     setTimeout(() => w.print(), 400);
   };
 
-  const generatePDF = (sale: SaleRecord) => {
+  const generatePDF = async (sale: SaleRecord) => {
     const doc = new jsPDF({ unit: 'mm', format: 'a4' });
     const pw = 210;
     let y = 20;
@@ -470,12 +470,18 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
     doc.setTextColor(45, 52, 53); doc.setFontSize(16); doc.text(settings.name, 30, y + 1);
     if (bizInfoLine) { doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.text(bizInfoLine, 30, y + 6); }
 
+    // QR Code
+    try {
+      const qrUrl = await QRCode.toDataURL(`${sale.invoice}-${sale.total}`, { width: 80, margin: 1 });
+      doc.addImage(qrUrl, 'PNG', pw - 33, y - 4, 16, 16);
+    } catch {}
+
     doc.setFontSize(8); doc.setTextColor(90, 96, 97);
-    doc.text('INVOICE / CHALLAN', pw - 15, y - 2, { align: 'right' });
+    doc.text('INVOICE / CHALLAN', pw - 15, y + 16, { align: 'right' });
     doc.setFontSize(12); doc.setTextColor(0, 92, 193); doc.setFont('helvetica', 'bold');
-    doc.text(sale.invoice, pw - 15, y + 4, { align: 'right' });
+    doc.text(sale.invoice, pw - 15, y + 22, { align: 'right' });
     doc.setFontSize(8); doc.setTextColor(90, 96, 97); doc.setFont('helvetica', 'normal');
-    doc.text(`${dateStr} · ${sale.time}`, pw - 15, y + 9, { align: 'right' });
+    doc.text(`${dateStr} · ${sale.time}`, pw - 15, y + 27, { align: 'right' });
 
     y += 16;
     doc.setDrawColor(0, 92, 193); doc.setLineWidth(0.8); doc.line(15, y, pw - 15, y);
