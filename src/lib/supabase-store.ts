@@ -24,6 +24,7 @@ export function useSupabaseProducts() {
       finish: p.finish,
       pricePerBox: Number(p.price_per_box),
       sqftPerBox: Number(p.sqft_per_box),
+      piecesPerBox: Number((p as any).pieces_per_box) || 4,
       stock: p.stock,
       batch: p.batch,
       barcode: p.barcode || '',
