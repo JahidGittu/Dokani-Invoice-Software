@@ -28,7 +28,6 @@ interface NewSaleScreenProps {
   settings: CompanySettings;
   onSaleComplete: (sale: SaleRecord, stockDeductions: { productId: string; qty: number }[]) => void;
   onAutoAddCustomer: (name: string, phone: string, address: string) => void;
-  getNextInvoiceNumber?: () => Promise<string>;
 }
 
 // Searchable Product Picker component
@@ -122,7 +121,7 @@ function ProductPicker({
   );
 }
 
-export default function NewSaleScreen({ products, customers, settings, onSaleComplete, onAutoAddCustomer, getNextInvoiceNumber: getNextInvNum }: NewSaleScreenProps) {
+export default function NewSaleScreen({ products, customers, settings, onSaleComplete, onAutoAddCustomer }: NewSaleScreenProps) {
   const { t } = useI18n();
   const [customerName, setCustomerName] = useState('');
   const [phone, setPhone] = useState('');
@@ -203,7 +202,7 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
   const timeStr = today.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
   const bizInfoLine = [settings.phone, settings.address].filter(Boolean).join(' · ');
 
-  const collectSaleData = async (): Promise<{ sale: SaleRecord; deductions: { productId: string; qty: number }[] } | null> => {
+  const collectSaleData = (): { sale: SaleRecord; deductions: { productId: string; qty: number }[] } | null => {
     const items = rows.filter(r => r.productId && r.qty > 0 && r.rate > 0).map(r => {
       const p = products.find(x => x.id === r.productId);
       return { productId: r.productId, name: p?.name || 'Custom Item', detail: p ? `${p.size} · ${p.finish}` : '', qty: r.qty, price: r.rate, stock: p?.stock ?? 999 };
@@ -211,7 +210,7 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
     if (!items.length) { toast.error(t('addAtLeastOneItem')); return null; }
     const overStock = items.find(i => i.qty > i.stock);
     if (overStock) { toast.error(`${overStock.name}: ${t('qty')} ${overStock.qty} > ${t('stock')} ${overStock.stock}`); return null; }
-    const inv = getNextInvNum ? await getNextInvNum() : getNextInvoiceNumber(settings.invPrefix);
+    const inv = getNextInvoiceNumber(settings.invPrefix);
     const now = new Date();
     const sale: SaleRecord = {
       id: crypto.randomUUID(), invoice: inv, customer: customerName || t('walkInCustomer'),
@@ -235,31 +234,31 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
     setRows([{ id: Date.now(), productId: '', qty: 1, rate: 0, searchQuery: '', showDropdown: false }]);
   };
 
-  const handleSaveAndPrint = async () => {
-    const data = await collectSaleData(); if (!data) return;
+  const handleSaveAndPrint = () => {
+    const data = collectSaleData(); if (!data) return;
     commitSale(data.sale, data.deductions);
     handlePrintSale(data.sale);
     resetForm();
     toast.success(t('saleSaved'));
   };
 
-  const handleSaveOnly = async () => {
-    const data = await collectSaleData(); if (!data) return;
+  const handleSaveOnly = () => {
+    const data = collectSaleData(); if (!data) return;
     commitSale(data.sale, data.deductions);
     resetForm();
     toast.success(t('saleSaved'));
   };
 
-  const handleSaveAndPDF = async () => {
-    const data = await collectSaleData(); if (!data) return;
+  const handleSaveAndPDF = () => {
+    const data = collectSaleData(); if (!data) return;
     commitSale(data.sale, data.deductions);
     generatePDF(data.sale);
     resetForm();
     toast.success(t('saleSaved'));
   };
 
-  const handleSaveAndThermal = async () => {
-    const data = await collectSaleData(); if (!data) return;
+  const handleSaveAndThermal = () => {
+    const data = collectSaleData(); if (!data) return;
     commitSale(data.sale, data.deductions);
     handleThermalPrint(data.sale);
     resetForm();
@@ -459,8 +458,8 @@ ${sale.discount > 0 ? `<div class="row"><span>Discount</span><span>-${formatCurr
     toast.success(t('pdfDownloaded'));
   };
 
-  const handleWhatsApp = async () => {
-    const data = await collectSaleData(); if (!data) return;
+  const handleWhatsApp = () => {
+    const data = collectSaleData(); if (!data) return;
     const sale = data.sale;
     let msg = `*${settings.name}*\n`;
     if (bizInfoLine) msg += `${bizInfoLine}\n`;
