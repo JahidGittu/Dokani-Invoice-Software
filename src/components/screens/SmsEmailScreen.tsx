@@ -76,15 +76,26 @@ export default function SmsEmailScreen({ customers, suppliers = [], staffs = [] 
       </div>
 
       {/* Tab Switcher */}
-      <div className="flex bg-muted rounded-lg p-0.5 w-fit">
-        <button onClick={() => setTab('sms')}
-          className={`px-5 py-2 rounded-md text-sm font-semibold transition-colors flex items-center gap-2 ${tab === 'sms' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'}`}>
-          <span className="material-symbols-outlined text-lg">sms</span>SMS / WhatsApp
-        </button>
-        <button onClick={() => setTab('email')}
-          className={`px-5 py-2 rounded-md text-sm font-semibold transition-colors flex items-center gap-2 ${tab === 'email' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'}`}>
-          <span className="material-symbols-outlined text-lg">mail</span>Email
-        </button>
+      {/* Recipient Type */}
+      <div className="flex flex-wrap gap-2">
+        <div className="flex bg-muted rounded-lg p-0.5">
+          {(['customer', 'supplier', 'staff'] as const).map(type => (
+            <button key={type} onClick={() => { setRecipientType(type); setSelectedCustomers([]); }}
+              className={`px-4 py-2 rounded-md text-sm font-semibold transition-colors ${recipientType === type ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'}`}>
+              {type === 'customer' ? '👥 Customers' : type === 'supplier' ? '🏭 Suppliers' : '👷 Staffs'}
+            </button>
+          ))}
+        </div>
+        <div className="flex bg-muted rounded-lg p-0.5">
+          <button onClick={() => setTab('sms')}
+            className={`px-5 py-2 rounded-md text-sm font-semibold transition-colors flex items-center gap-2 ${tab === 'sms' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'}`}>
+            <span className="material-symbols-outlined text-lg">sms</span>SMS / WhatsApp
+          </button>
+          <button onClick={() => setTab('email')}
+            className={`px-5 py-2 rounded-md text-sm font-semibold transition-colors flex items-center gap-2 ${tab === 'email' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'}`}>
+            <span className="material-symbols-outlined text-lg">mail</span>Email
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
