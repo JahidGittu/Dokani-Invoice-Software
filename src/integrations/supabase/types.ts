@@ -75,6 +75,7 @@ export type Database = {
           last_order: string | null
           name: string
           phone: string
+          total_due: number
           total_spent: number
           updated_at: string
           user_id: string
@@ -88,6 +89,7 @@ export type Database = {
           last_order?: string | null
           name: string
           phone?: string
+          total_due?: number
           total_spent?: number
           updated_at?: string
           user_id: string
@@ -101,8 +103,48 @@ export type Database = {
           last_order?: string | null
           name?: string
           phone?: string
+          total_due?: number
           total_spent?: number
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      due_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          customer_or_supplier: string
+          id: string
+          note: string
+          payment_date: string
+          payment_method: string
+          reference_id: string
+          reference_type: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          customer_or_supplier?: string
+          id?: string
+          note?: string
+          payment_date?: string
+          payment_method?: string
+          reference_id: string
+          reference_type?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          customer_or_supplier?: string
+          id?: string
+          note?: string
+          payment_date?: string
+          payment_method?: string
+          reference_id?: string
+          reference_type?: string
           user_id?: string
         }
         Relationships: []
@@ -188,33 +230,146 @@ export type Database = {
         }
         Relationships: []
       }
-      sale_items: {
+      purchase_items: {
         Row: {
-          detail: string
+          barcode: string
+          buy_rate: number
+          carton: number
           id: string
           name: string
+          piece: number
+          product_id: string
+          purchase_id: string
+          sqft_qty: number
+          sub_total: number
+        }
+        Insert: {
+          barcode?: string
+          buy_rate?: number
+          carton?: number
+          id?: string
+          name?: string
+          piece?: number
+          product_id?: string
+          purchase_id: string
+          sqft_qty?: number
+          sub_total?: number
+        }
+        Update: {
+          barcode?: string
+          buy_rate?: number
+          carton?: number
+          id?: string
+          name?: string
+          piece?: number
+          product_id?: string
+          purchase_id?: string
+          sqft_qty?: number
+          sub_total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_items_purchase_id_fkey"
+            columns: ["purchase_id"]
+            isOneToOne: false
+            referencedRelation: "purchases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      purchases: {
+        Row: {
+          created_at: string
+          delivery: number
+          discount: number
+          due: number
+          id: string
+          invoice: string
+          paid: number
+          payable: number
+          purchase_date: string
+          remark: string
+          supplier_name: string
+          total: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          delivery?: number
+          discount?: number
+          due?: number
+          id?: string
+          invoice?: string
+          paid?: number
+          payable?: number
+          purchase_date?: string
+          remark?: string
+          supplier_name?: string
+          total?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          delivery?: number
+          discount?: number
+          due?: number
+          id?: string
+          invoice?: string
+          paid?: number
+          payable?: number
+          purchase_date?: string
+          remark?: string
+          supplier_name?: string
+          total?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      sale_items: {
+        Row: {
+          carton: number
+          category: string
+          detail: string
+          id: string
+          item_type: string
+          name: string
+          piece: number
           price: number
           product_id: string
           qty: number
           sale_id: string
+          sqft_qty: number
         }
         Insert: {
+          carton?: number
+          category?: string
           detail?: string
           id?: string
+          item_type?: string
           name: string
+          piece?: number
           price?: number
           product_id?: string
           qty?: number
           sale_id: string
+          sqft_qty?: number
         }
         Update: {
+          carton?: number
+          category?: string
           detail?: string
           id?: string
+          item_type?: string
           name?: string
+          piece?: number
           price?: number
           product_id?: string
           qty?: number
           sale_id?: string
+          sqft_qty?: number
         }
         Relationships: [
           {
@@ -229,17 +384,27 @@ export type Database = {
       sales: {
         Row: {
           address: string | null
+          balance: number
           created_at: string
           customer: string
+          customer_type: string
+          delivery: number
           discount: number
           discount_type: string
+          due: number
           id: string
           invoice: string
+          labour: number
+          less_amount: number
           notes: string | null
+          paid: number
           payment_method: string
           phone: string
+          previous_dues: number
+          return_amount: number
           sale_date: string
           sale_time: string
+          sold_by: string
           status: string
           subtotal: number
           total: number
@@ -248,17 +413,27 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          balance?: number
           created_at?: string
           customer?: string
+          customer_type?: string
+          delivery?: number
           discount?: number
           discount_type?: string
+          due?: number
           id?: string
           invoice: string
+          labour?: number
+          less_amount?: number
           notes?: string | null
+          paid?: number
           payment_method?: string
           phone?: string
+          previous_dues?: number
+          return_amount?: number
           sale_date?: string
           sale_time?: string
+          sold_by?: string
           status?: string
           subtotal?: number
           total?: number
@@ -267,20 +442,63 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          balance?: number
           created_at?: string
           customer?: string
+          customer_type?: string
+          delivery?: number
           discount?: number
           discount_type?: string
+          due?: number
           id?: string
           invoice?: string
+          labour?: number
+          less_amount?: number
           notes?: string | null
+          paid?: number
           payment_method?: string
           phone?: string
+          previous_dues?: number
+          return_amount?: number
           sale_date?: string
           sale_time?: string
+          sold_by?: string
           status?: string
           subtotal?: number
           total?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      suppliers: {
+        Row: {
+          address: string
+          created_at: string
+          id: string
+          name: string
+          phone: string
+          total_due: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address?: string
+          created_at?: string
+          id?: string
+          name: string
+          phone?: string
+          total_due?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string
+          created_at?: string
+          id?: string
+          name?: string
+          phone?: string
+          total_due?: number
           updated_at?: string
           user_id?: string
         }

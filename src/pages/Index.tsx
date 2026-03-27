@@ -15,24 +15,26 @@ import SupplierScreen from "@/components/screens/SupplierScreen";
 import TransactionsScreen from "@/components/screens/TransactionsScreen";
 import StaffsScreen from "@/components/screens/StaffsScreen";
 import SmsEmailScreen from "@/components/screens/SmsEmailScreen";
-import { useProducts, useCustomers, useSales, useSuppliers, usePurchases, useCompanySettings, type SaleRecord, type Product } from "@/lib/store";
+import { useSupabaseProducts, useSupabaseCustomers, useSupabaseSales, useSupabaseSuppliers, useSupabasePurchases, useSupabaseSettings } from "@/lib/supabase-store";
+import { type SaleRecord, type Product } from "@/lib/store";
 
 export default function Index() {
   const [activeScreen, setActiveScreen] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { products, addProduct, updateProduct, deleteProduct, deductStock, addStock, setProducts } = useProducts();
-  const { customers, addCustomer, deleteCustomer, updateCustomerSpend } = useCustomers();
-  const { sales, addSale, deleteSale } = useSales();
-  const { suppliers, addSupplier, deleteSupplier, updateSupplierDue } = useSuppliers();
-  const { purchases, addPurchase, deletePurchase } = usePurchases();
-  const { settings, setSettings } = useCompanySettings();
+  const { products, addProduct, updateProduct, deleteProduct, deductStock, addStock, setProducts } = useSupabaseProducts();
+  const { customers, addCustomer, deleteCustomer, updateCustomerSpend, updateCustomerDue } = useSupabaseCustomers();
+  const { sales, addSale, deleteSale } = useSupabaseSales();
+  const { suppliers, addSupplier, deleteSupplier, updateSupplierDue } = useSupabaseSuppliers();
+  const { purchases, addPurchase, deletePurchase } = useSupabasePurchases();
+  const { settings, setSettings } = useSupabaseSettings();
 
   const handleSaleComplete = useCallback((sale: SaleRecord, stockDeductions: { productId: string; qty: number }[]) => {
     addSale(sale);
     deductStock(stockDeductions);
     const walkInNames = ['Walk-in Customer', 'সরাসরি কাস্টমার'];
     if (!walkInNames.includes(sale.customer) && sale.customer.trim()) {
-      updateCustomerSpend(sale.customer, sale.total);
+      const dueAmount = sale.due ?? 0;
+      updateCustomerSpend(sale.customer, sale.total, dueAmount);
     }
   }, [addSale, deductStock, updateCustomerSpend]);
 
@@ -78,7 +80,7 @@ export default function Index() {
       case 'sales': return <SalesScreen products={products} customers={customers} sales={sales} settings={settings} onSaleComplete={handleSaleComplete} onDeleteSale={deleteSale} onAutoAddCustomer={handleAutoAddCustomer} companyName={settings.name} companyPhone={settings.phone} companyAddress={settings.address} onNavigate={setActiveScreen} />;
       case 'new-sale': return <NewSaleScreen products={products} customers={customers} settings={settings} onSaleComplete={handleSaleComplete} onAutoAddCustomer={handleAutoAddCustomer} />;
       case 'inventory': return <InventoryScreen products={products} onUpdateProduct={updateProduct} />;
-      case 'customers': return <CustomersScreen customers={customers} onAddCustomer={addCustomer} onDeleteCustomer={deleteCustomer} />;
+      case 'customers': return <CustomersScreen customers={customers} sales={sales} onAddCustomer={addCustomer} onDeleteCustomer={deleteCustomer} onUpdateCustomerDue={updateCustomerDue} />;
       case 'reports': return <ReportsScreen sales={sales} products={products} customers={customers} suppliers={suppliers} purchases={purchases} />;
       case 'purchases': return <PurchaseScreen products={products} suppliers={suppliers} purchases={purchases} onAddPurchase={addPurchase} onDeletePurchase={deletePurchase} onAddStock={addStock} onUpdateSupplierDue={updateSupplierDue} />;
       case 'suppliers': return <SupplierScreen suppliers={suppliers} onAddSupplier={addSupplier} onDeleteSupplier={deleteSupplier} />;
