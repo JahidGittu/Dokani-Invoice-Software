@@ -88,24 +88,17 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
     setTimeout(() => editRef.current?.focus(), 30);
   };
 
-  const commitEdit = (productId: string, field: EditableField) => {
+  const commitEdit = useCallback((productId: string, field: EditableField, value: string) => {
     const numericFields = ['buyRate', 'pricePerBox', 'sqftPerBox', 'piecesPerBox', 'stock'];
     const update: Partial<Product> = {};
     if (numericFields.includes(field)) {
-      (update as any)[field] = parseFloat(editValue) || 0;
+      (update as any)[field] = parseFloat(value) || 0;
     } else {
-      (update as any)[field] = editValue;
+      (update as any)[field] = value;
     }
     onUpdateProduct(productId, update);
     setEditingCell(null);
-  };
-
-  const cancelEdit = () => setEditingCell(null);
-
-  const handleCellKeyDown = (e: React.KeyboardEvent, productId: string, field: EditableField) => {
-    if (e.key === 'Enter') { e.preventDefault(); commitEdit(productId, field); }
-    if (e.key === 'Escape') cancelEdit();
-  };
+  }, [onUpdateProduct]);
 
   const confirmDelete = () => {
     if (showDeleteConfirm && onDeleteProduct) { onDeleteProduct(showDeleteConfirm); toast.success(t('productDeleted')); }
