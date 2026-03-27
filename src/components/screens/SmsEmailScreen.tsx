@@ -16,15 +16,22 @@ interface SmsEmailScreenProps {
   staffs?: { id: string; name: string; phone: string }[];
 }
 
-export default function SmsEmailScreen({ customers }: SmsEmailScreenProps) {
+export default function SmsEmailScreen({ customers, suppliers = [], staffs = [] }: SmsEmailScreenProps) {
   const { t } = useI18n();
   const [tab, setTab] = useState<'sms' | 'email'>('sms');
+  const [recipientType, setRecipientType] = useState<'customer' | 'supplier' | 'staff'>('customer');
   const [selectedCustomers, setSelectedCustomers] = useState<string[]>([]);
   const [message, setMessage] = useState('');
   const [subject, setSubject] = useState('');
   const [search, setSearch] = useState('');
 
-  const filtered = customers.filter(c =>
+  const allContacts: Contact[] = recipientType === 'customer'
+    ? customers.map(c => ({ id: c.id, name: c.name, phone: c.phone, type: 'customer' as const }))
+    : recipientType === 'supplier'
+    ? suppliers.map(s => ({ id: s.id, name: s.name, phone: s.phone, type: 'supplier' as const }))
+    : staffs.map(s => ({ id: s.id, name: s.name, phone: s.phone, type: 'staff' as const }));
+
+  const filtered = allContacts.filter(c =>
     !search || c.name.toLowerCase().includes(search.toLowerCase()) || c.phone.includes(search)
   );
 
