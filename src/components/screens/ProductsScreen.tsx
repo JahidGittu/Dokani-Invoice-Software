@@ -1,7 +1,9 @@
 import { useState, useMemo, useRef, useCallback } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useI18n } from "@/lib/i18n";
-import { type Product, formatCurrency, PRODUCT_CATEGORIES, PRODUCT_BRANDS } from "@/lib/store";
+import { type Product, formatCurrency } from "@/lib/store";
+import { useProductOptions } from "@/hooks/useProductOptions";
+import ComboInput from "@/components/ComboInput";
 import { toast } from "sonner";
 
 interface ProductsScreenProps {
@@ -12,7 +14,6 @@ interface ProductsScreenProps {
 }
 
 const PAGE_SIZE = 20;
-const FINISHES = ['Glossy', 'Matte', 'Lappato', 'Rustic', 'Carving'];
 
 interface InlineRow {
   key: number;
@@ -30,6 +31,7 @@ const emptyRow = (): InlineRow => ({
 
 export default function ProductsScreen({ products, onAddProduct, onUpdateProduct, onDeleteProduct }: ProductsScreenProps) {
   const { t } = useI18n();
+  const { getOptions, addOption } = useProductOptions();
   const [search, setSearch] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [editId, setEditId] = useState<string | null>(null);
@@ -185,7 +187,7 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
                 <th className="px-2 py-2.5 text-center cursor-pointer select-none" onClick={() => toggleSort('stock')}>
                   <span className="inline-flex items-center gap-0.5">{t('stock')} <span className="material-symbols-outlined text-[10px]">{sortIcon('stock')}</span></span>
                 </th>
-                <th className="px-2 py-2.5">Batch</th>
+                <th className="px-2 py-2.5">Bar/Code</th>
                 <th className="px-2 py-2.5 text-center w-16">{t('action')}</th>
               </tr>
 
@@ -200,23 +202,16 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
                     className={`${inputCls} font-semibold`} placeholder="নাম লিখুন..." autoFocus />
                 </td>
                 <td className="px-0 py-1 border-r border-[hsl(125,30%,80%)]">
-                  <select value={newRow.category} onChange={e => updateNewRow('category', e.target.value)} className={selectCls}>
-                    {PRODUCT_CATEGORIES.map(c => <option key={c}>{c}</option>)}
-                  </select>
+                  <ComboInput value={newRow.category} onChange={v => updateNewRow('category', v)} options={getOptions('category')} onAddNew={v => addOption('category', v)} placeholder="Category" className={inputCls} />
                 </td>
                 <td className="px-0 py-1 border-r border-[hsl(125,30%,80%)]">
-                  <select value={newRow.brand} onChange={e => updateNewRow('brand', e.target.value)} className={selectCls}>
-                    <option value="">—</option>
-                    {PRODUCT_BRANDS.map(b => <option key={b}>{b}</option>)}
-                  </select>
+                  <ComboInput value={newRow.brand} onChange={v => updateNewRow('brand', v)} options={getOptions('brand')} onAddNew={v => addOption('brand', v)} placeholder="Brand" className={inputCls} />
                 </td>
                 <td className="px-0 py-1 border-r border-[hsl(125,30%,80%)]">
-                  <input value={newRow.size} onChange={e => updateNewRow('size', e.target.value)} className={inputCls} placeholder="60×60" />
+                  <ComboInput value={newRow.size} onChange={v => updateNewRow('size', v)} options={getOptions('size')} onAddNew={v => addOption('size', v)} placeholder="60×60" className={inputCls} />
                 </td>
                 <td className="px-0 py-1 border-r border-[hsl(125,30%,80%)]">
-                  <select value={newRow.finish} onChange={e => updateNewRow('finish', e.target.value)} className={selectCls}>
-                    {FINISHES.map(f => <option key={f}>{f}</option>)}
-                  </select>
+                  <ComboInput value={newRow.finish} onChange={v => updateNewRow('finish', v)} options={getOptions('finish')} onAddNew={v => addOption('finish', v)} placeholder="Finish" className={inputCls} />
                 </td>
                 <td className="px-0 py-1 border-r border-[hsl(125,30%,80%)]">
                   <input type="number" value={newRow.buyRate} onChange={e => updateNewRow('buyRate', e.target.value)} className={`${inputCls} text-right`} placeholder="৳ Buy" />
@@ -234,7 +229,7 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
                   <input type="number" value={newRow.stock} onChange={e => updateNewRow('stock', e.target.value)} className={`${inputCls} text-center`} placeholder="qty" />
                 </td>
                 <td className="px-0 py-1 border-r border-[hsl(125,30%,80%)]">
-                  <input value={newRow.batch} onChange={e => updateNewRow('batch', e.target.value)} className={inputCls} placeholder="batch" />
+                  <input value={newRow.batch} onChange={e => updateNewRow('batch', e.target.value)} className={inputCls} placeholder="Bar/Code" />
                 </td>
                 <td className="px-2 py-1 text-center">
                   <button onClick={autoSaveRow} disabled={!isRowComplete(newRow)}
@@ -315,26 +310,27 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
               <div className="col-span-2"><label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">{t('productNameReq')}</label><input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" placeholder="e.g. Royal Marble" /></div>
               <div>
                 <label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">{t('categoryLabel')}</label>
-                <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none">
-                  {PRODUCT_CATEGORIES.map(c => <option key={c}>{c}</option>)}
-                </select>
+                <ComboInput value={form.category} onChange={v => setForm(f => ({ ...f, category: v }))} options={getOptions('category')} onAddNew={v => addOption('category', v)} placeholder="Category" className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" />
               </div>
               <div>
                 <label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">{t('brandLabel')}</label>
-                <select value={form.brand} onChange={e => setForm(f => ({ ...f, brand: e.target.value }))} className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none">
-                  <option value="">—</option>
-                  {PRODUCT_BRANDS.map(b => <option key={b}>{b}</option>)}
-                </select>
+                <ComboInput value={form.brand} onChange={v => setForm(f => ({ ...f, brand: v }))} options={getOptions('brand')} onAddNew={v => addOption('brand', v)} placeholder="Brand" className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" />
               </div>
-              <div><label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">{t('size')}</label><input value={form.size} onChange={e => setForm(f => ({ ...f, size: e.target.value }))} className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" placeholder="24×24" /></div>
-              <div><label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">{t('finish')}</label><select value={form.finish} onChange={e => setForm(f => ({ ...f, finish: e.target.value }))} className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none">{FINISHES.map(f => <option key={f}>{f}</option>)}</select></div>
+              <div>
+                <label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">{t('size')}</label>
+                <ComboInput value={form.size} onChange={v => setForm(f => ({ ...f, size: v }))} options={getOptions('size')} onAddNew={v => addOption('size', v)} placeholder="24×24" className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">{t('finish')}</label>
+                <ComboInput value={form.finish} onChange={v => setForm(f => ({ ...f, finish: v }))} options={getOptions('finish')} onAddNew={v => addOption('finish', v)} placeholder="Finish" className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" />
+              </div>
               <div><label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">{t('buyRateLabel')} (৳)</label><input value={form.buyRate} onChange={e => setForm(f => ({ ...f, buyRate: e.target.value }))} type="number" className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" placeholder="900" /></div>
               <div><label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">{t('salesRateLabel')} (৳) *</label><input value={form.pricePerBox} onChange={e => setForm(f => ({ ...f, pricePerBox: e.target.value }))} type="number" className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" placeholder="1200" /></div>
               <div><label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">{t('sqftPerBox')}</label><input value={form.sqftPerBox} onChange={e => setForm(f => ({ ...f, sqftPerBox: e.target.value }))} type="number" className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" placeholder="9.2" /></div>
               <div><label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">Pieces/Box</label><input value={form.piecesPerBox} onChange={e => setForm(f => ({ ...f, piecesPerBox: e.target.value }))} type="number" className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" placeholder="4" /></div>
               <div><label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">{t('stock')} ({t('boxes')})</label><input value={form.stock} onChange={e => setForm(f => ({ ...f, stock: e.target.value }))} type="number" className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" placeholder="100" /></div>
               <div><label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">{t('barcode')}</label><input value={form.barcode} onChange={e => setForm(f => ({ ...f, barcode: e.target.value }))} className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" placeholder="01" /></div>
-              <div><label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">{t('batchNo')}</label><input value={form.batch} onChange={e => setForm(f => ({ ...f, batch: e.target.value }))} className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" placeholder="BT-2501" /></div>
+              <div><label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">Bar/Product Code</label><input value={form.batch} onChange={e => setForm(f => ({ ...f, batch: e.target.value }))} className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" placeholder="BT-2501" /></div>
             </div>
             <div className="flex gap-3 mt-6">
               <button onClick={() => { setShowAddModal(false); setEditId(null); }} className="flex-1 py-2.5 bg-pos-surface-container text-pos-on-surface-variant rounded-lg font-semibold text-sm">{t('cancel')}</button>
