@@ -545,22 +545,40 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
       <div ref={invoiceRef} className="bg-card rounded-sm border border-border shadow-[0_2px_20px_rgba(0,0,0,0.08)] overflow-hidden mx-auto"
         style={{ maxWidth: '210mm', minHeight: '297mm', aspectRatio: '210/297' }}>
 
-        {/* ── Invoice Header ── */}
-        <div className="px-8 sm:px-12 pt-8 sm:pt-10 pb-4 border-b-[3px] border-primary">
-          <div className="flex justify-between items-start">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-black text-base">
-                {settings.name.slice(0, 2).toUpperCase()}
-              </div>
-              <div>
-                <div className="text-xl sm:text-2xl font-black tracking-tight text-foreground">{settings.name}</div>
-                {bizInfoLine && <div className="text-[11px] text-muted-foreground">{bizInfoLine}</div>}
-              </div>
+        {/* ── Invoice Header: Logo | Company Info | QR Code ── */}
+        <div className="px-6 sm:px-10 pt-6 sm:pt-8 pb-3 border-b-2 border-foreground">
+          <div className="flex items-start justify-between">
+            {/* Left: Logo */}
+            <div className="w-16 h-16 bg-primary rounded-xl flex items-center justify-center text-primary-foreground font-black text-xl shrink-0">
+              {settings.name.slice(0, 3).toUpperCase()}
             </div>
-            <div className="text-right">
-              <div className="text-[9px] font-bold text-muted-foreground uppercase tracking-[2px]">INVOICE / CHALLAN</div>
-              <div className="text-primary font-black text-lg tracking-wide">#NEW</div>
-              <div className="text-xs text-muted-foreground">{dateStr} · {timeStr}</div>
+            {/* Center: Company Info */}
+            <div className="flex-1 text-center px-3">
+              <div className="text-2xl sm:text-3xl font-black tracking-wide leading-tight text-foreground">{settings.name.toUpperCase()}</div>
+              {settings.address && <div className="text-[11px] text-muted-foreground mt-0.5">{settings.address}</div>}
+              {settings.phone && <div className="text-[11px] text-muted-foreground">Phone# {settings.phone}</div>}
+              {settings.email && <div className="text-[10px] text-muted-foreground">{settings.email}</div>}
+            </div>
+            {/* Right: QR Code */}
+            <div className="shrink-0" dangerouslySetInnerHTML={{ __html: generateQRSVG(`NEW-${dateStr}`, 64) }} />
+          </div>
+        </div>
+
+        {/* ── BILL-INVOICE Title ── */}
+        <div className="text-center font-black text-lg tracking-[3px] py-2 underline underline-offset-4">BILL-INVOICE</div>
+
+        {/* ── Customer & Invoice Info ── */}
+        <div className="px-6 sm:px-10 py-3">
+          <div className="flex justify-between text-xs leading-relaxed">
+            <div className="space-y-0.5">
+              <div className="flex gap-1"><span className="w-16 text-muted-foreground">Name</span><span>:</span><strong className="text-foreground">{customerName || '—'}</strong></div>
+              {address && <div className="flex gap-1"><span className="w-16 text-muted-foreground">Address</span><span>:</span><strong className="text-foreground">{address}</strong></div>}
+              {phone && <div className="flex gap-1"><span className="w-16 text-muted-foreground">Mobile</span><span>:</span><strong className="text-foreground">{phone}</strong></div>}
+            </div>
+            <div className="text-right space-y-0.5">
+              <div className="flex gap-1 justify-end"><span className="text-muted-foreground">Invoice#</span><span>:</span><strong className="text-primary">#NEW</strong></div>
+              <div className="flex gap-1 justify-end"><span className="text-muted-foreground">Date</span><span>:</span><strong>{dateStr}</strong></div>
+              <div className="flex gap-1 justify-end"><span className="text-muted-foreground">Sold By</span><span>:</span><strong>{settings.userName || settings.name}</strong></div>
             </div>
           </div>
         </div>
