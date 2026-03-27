@@ -405,122 +405,99 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
     <div className="fixed inset-0 bg-black/35 flex items-center justify-center z-[1000]" onClick={onClose}>
       <div className="bg-pos-surface-lowest rounded-xl w-[95vw] max-w-[500px] shadow-2xl p-5 sm:p-7 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div ref={invoiceRef}>
-          {/* Professional Invoice Header */}
-          <div className="flex justify-between items-start mb-3 pb-3 border-b-[3px] border-pos-secondary">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-pos-secondary rounded-lg flex items-center justify-center text-white font-black text-sm">
-                {companyName.slice(0, 2).toUpperCase()}
-              </div>
-              <div>
-                <div className="text-lg font-black tracking-tighter">{companyName}</div>
-                {bizInfoLine && <div className="text-[10px] text-pos-on-surface-variant">{bizInfoLine}</div>}
-              </div>
+          {/* Header with QR */}
+          <div className="text-center pb-3 mb-3 border-b-2 border-foreground relative">
+            <div className="absolute right-0 top-0" dangerouslySetInnerHTML={{ __html: qrSVG }} />
+            <div className="w-10 h-10 bg-pos-secondary rounded-lg flex items-center justify-center text-white font-black text-sm mx-auto mb-1">
+              {companyName.slice(0, 2).toUpperCase()}
             </div>
-            <div className="text-right">
-              <div className="text-[9px] font-bold text-pos-on-surface-variant uppercase tracking-wider">Invoice / Challan</div>
-              <div className="text-sm font-black text-pos-secondary">{sale.invoice}</div>
-              <div className="text-[10px] text-pos-on-surface-variant">{dateStr} · {sale.time}</div>
+            <div className="text-lg font-black tracking-tighter">{companyName}</div>
+            {bizInfoLine && <div className="text-[10px] text-muted-foreground">{bizInfoLine}</div>}
+          </div>
+
+          <div className="text-center font-black text-base mb-3 tracking-wider">BILL-INVOICE</div>
+
+          {/* Customer & Invoice Info */}
+          <div className="flex justify-between text-[11px] mb-3">
+            <div className="space-y-0.5">
+              <div>Name : <strong>{sale.customer}</strong></div>
+              {sale.address && <div>Address : <strong>{sale.address}</strong></div>}
+              {sale.phone && <div>Mobile : <strong>{sale.phone}</strong></div>}
+            </div>
+            <div className="text-right space-y-0.5">
+              <div>Invoice# : <strong>{sale.invoice}</strong></div>
+              <div>Date : <strong>{dateStr}</strong></div>
             </div>
           </div>
 
-          {/* Customer Block */}
-          <div className="bg-pos-surface-high rounded-lg p-3 mb-3 grid grid-cols-3 gap-3">
-            <div>
-              <div className="text-[9px] font-bold text-pos-on-surface-variant uppercase">{t('customer')}</div>
-              <div className="text-xs font-semibold">{sale.customer}</div>
-            </div>
-            {sale.phone && (
-              <div>
-                <div className="text-[9px] font-bold text-pos-on-surface-variant uppercase">{t('phone').replace(' (optional)', '')}</div>
-                <div className="text-xs font-semibold">{sale.phone}</div>
-              </div>
-            )}
-            <div>
-              <div className="text-[9px] font-bold text-pos-on-surface-variant uppercase">{t('payment')}</div>
-              <div className="text-xs font-semibold capitalize">{sale.paymentMethod}</div>
-            </div>
-          </div>
-          {sale.notes && <div className="text-[10px] text-pos-on-surface-variant italic mb-3">Notes: {sale.notes}</div>}
-
-          {/* Items Table */}
+          {/* Items Table - matching reference */}
           <table className="w-full text-left mb-3">
             <thead>
-              <tr className="text-[9px] font-bold text-pos-on-surface-variant uppercase bg-pos-surface-high">
-                <th className="py-2 px-2 rounded-l">Product</th><th className="py-2 px-2 text-center">Qty</th><th className="py-2 px-2 text-right">Rate</th><th className="py-2 px-2 text-right rounded-r">{t('total')}</th>
+              <tr className="text-[8px] font-bold uppercase bg-destructive text-white">
+                <th className="py-1.5 px-1.5">SN</th>
+                <th className="py-1.5 px-1.5">Type</th>
+                <th className="py-1.5 px-1.5">Carton/Piece</th>
+                <th className="py-1.5 px-1.5">Category</th>
+                <th className="py-1.5 px-1.5">Product Name</th>
+                <th className="py-1.5 px-1.5 text-right">Sqft./Qty.</th>
+                <th className="py-1.5 px-1.5 text-right">Price</th>
+                <th className="py-1.5 px-1.5 text-right">Sub Total</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-pos-surface-container text-xs">
+            <tbody className="divide-y divide-border text-[10px]">
               {sale.items.map((item, i) => (
                 <tr key={i}>
-                  <td className="py-2 px-2">
-                    <div className="font-semibold">{item.name}</div>
-                    <div className="text-[10px] text-pos-on-surface-variant">{item.detail}</div>
-                  </td>
-                  <td className="py-2 px-2 text-center">{item.qty}</td>
-                  <td className="py-2 px-2 text-right text-pos-on-surface-variant">{formatCurrency(item.price)}</td>
-                  <td className="py-2 px-2 text-right font-semibold">{formatCurrency(item.price * item.qty)}</td>
+                  <td className="py-1.5 px-1.5">{i + 1}</td>
+                  <td className="py-1.5 px-1.5">Sale</td>
+                  <td className="py-1.5 px-1.5">{item.carton ?? item.qty} Carton {item.piece ?? 0} Piece</td>
+                  <td className="py-1.5 px-1.5">{item.category || '-'}</td>
+                  <td className="py-1.5 px-1.5 font-semibold">{item.name}</td>
+                  <td className="py-1.5 px-1.5 text-right">{item.sqftQty ?? item.qty}</td>
+                  <td className="py-1.5 px-1.5 text-right">{formatCurrency(item.price)}</td>
+                  <td className="py-1.5 px-1.5 text-right font-semibold">{formatCurrency(item.price * item.qty)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
 
-          {/* Totals */}
-          <div className="flex justify-end mb-3">
-            <div className="w-48 space-y-1">
-              <div className="flex justify-between text-xs text-pos-on-surface-variant">
-                <span>{t('subtotal')}</span><span>{formatCurrency(sale.subtotal)}</span>
+          {/* Due Box + Summary */}
+          <div className="flex justify-between mb-3">
+            <div className="border border-foreground rounded p-2 text-[10px] w-[170px] space-y-0.5">
+              <div className="flex justify-between"><span>Due In This Bill:</span><strong>{formatCurrency(sale.due ?? 0)}/-</strong></div>
+              <div className="flex justify-between"><span>Previous Dues:</span><strong>{formatCurrency(sale.previousDues ?? 0)}/-</strong></div>
+              <div className="flex justify-between"><span>Balance:</span><strong>{formatCurrency(sale.balance ?? (sale.due ?? 0))}/-</strong></div>
+            </div>
+            <div className="w-[170px] space-y-0.5 text-[11px]">
+              <div className="flex justify-between"><span>Total:</span><span>{formatCurrency(sale.subtotal)}</span></div>
+              {sale.discount > 0 && <div className="flex justify-between text-destructive"><span>Discount:</span><span>-{formatCurrency(sale.discount)}</span></div>}
+              {(sale.labour ?? 0) > 0 && <div className="flex justify-between"><span>Labour:</span><span>{formatCurrency(sale.labour!)}</span></div>}
+              <div className="flex justify-between font-black text-sm pt-1 border-t-2 border-foreground">
+                <span>PAYABLE:</span><span>{formatCurrency(sale.total)}</span>
               </div>
-              {sale.discount > 0 && (
-                <div className="flex justify-between text-xs text-pos-error">
-                  <span>{t('discount')}</span><span>-{formatCurrency(sale.discount)}</span>
-                </div>
-              )}
-              {(sale.delivery ?? 0) > 0 && (
-                <div className="flex justify-between text-xs text-pos-on-surface-variant">
-                  <span>{t('delivery')}</span><span>+{formatCurrency(sale.delivery!)}</span>
-                </div>
-              )}
-              {(sale.labour ?? 0) > 0 && (
-                <div className="flex justify-between text-xs text-pos-on-surface-variant">
-                  <span>{t('labour')}</span><span>+{formatCurrency(sale.labour!)}</span>
-                </div>
-              )}
-              <div className="flex justify-between font-black text-base pt-1 border-t-2 border-pos-on-surface">
-                <span>{t('total')}</span><span className="text-pos-secondary">{formatCurrency(sale.total)}</span>
-              </div>
-              <div className="flex justify-between text-xs font-bold text-[hsl(125,60%,35%)]">
-                <span>{t('paid')}</span><span>{formatCurrency(sale.paid ?? sale.total)}</span>
-              </div>
-              {(sale.due ?? 0) > 0 && (
-                <div className="flex justify-between text-xs font-bold text-pos-error">
-                  <span>{t('due')}</span><span>{formatCurrency(sale.due!)}</span>
-                </div>
-              )}
-              <div className="flex justify-between text-[10px] text-pos-on-surface-variant">
-                <span>{t('status')}</span>
-                <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${statusBadgeClass}`}>{sale.status}</span>
-              </div>
+              <div className="flex justify-between font-bold text-[hsl(125,60%,35%)]"><span>Paid:</span><span>{formatCurrency(sale.paid ?? sale.total)}</span></div>
             </div>
           </div>
 
-          {/* QR + Terms */}
-          <div className="flex justify-between items-end border-t border-pos-surface-container pt-3 mb-3">
-            <div className="flex items-center gap-2">
-              <div dangerouslySetInnerHTML={{ __html: generateQRSVG(`${sale.invoice}-${sale.total}`, 50) }} />
-              <div className="text-[8px] text-pos-on-surface-variant">Scan to<br/>verify</div>
-            </div>
-            <div className="text-right max-w-[240px]">
-              <div className="text-[9px] font-bold text-pos-on-surface mb-1">{t('termsAndConditions')}</div>
-              <div className="text-[8px] text-pos-on-surface-variant leading-relaxed">
-                • {t('goodsOnceDelivered')}<br/>
-                • {t('priceSubjectToChange')}<br/>
-                • {t('paymentDueWithin')}
-              </div>
-            </div>
+          {/* Remark & In Word */}
+          <div className="text-[10px] mb-2 space-y-0.5">
+            {sale.notes && <div><strong>Remark:</strong> {sale.notes}</div>}
+            <div><strong>Total Quantity:</strong> {sale.items.reduce((s, i) => s + i.qty, 0)}</div>
+            <div>In Word: <strong className="text-primary">{numberToWords(sale.total)}</strong></div>
           </div>
 
-          <div className="text-[10px] text-center text-pos-on-surface-variant border-t border-pos-surface-container pt-2 mb-3">
-            {companyName ? `${t('thankYou').replace('!', '')} ${companyName}!` : t('thankYou')}
+          {/* Signatures */}
+          <div className="flex justify-between mt-10 pt-1 border-t border-muted-foreground text-[11px] text-primary font-bold">
+            <span>Customer Signature</span>
+            <span>Authorized Signature</span>
+          </div>
+
+          {/* Disclaimer */}
+          <div className="text-center mt-4 text-[10px] text-destructive font-bold">
+            বিক্রিত মাল ১ মাসের মধ্যে ফেরত নেওয়া হয়।চায়না/ইন্ডিয়ান মাল ফেরত নেওয়া হয় না।
+          </div>
+          <div className="text-[8px] text-center text-muted-foreground mt-2 border-t border-border pt-1">
+            SOFTWARE: {companyName} | {new Date().toLocaleString()}
+          </div>
           </div>
         </div>
 
