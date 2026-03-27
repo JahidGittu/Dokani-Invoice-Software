@@ -1,34 +1,48 @@
 import { useMemo } from "react";
 import { useI18n } from "@/lib/i18n";
-import { formatCurrency, getLowStockProducts, type Product, type Customer, type SaleRecord } from "@/lib/store";
+import { formatCurrency, getLowStockProducts, type Product, type Customer, type SaleRecord, type Supplier, type PurchaseRecord } from "@/lib/store";
 
 interface DashboardScreenProps {
   onNavigate: (screen: string) => void;
   products: Product[];
   customers: Customer[];
   sales: SaleRecord[];
+  suppliers?: Supplier[];
+  purchases?: PurchaseRecord[];
 }
 
-export default function DashboardScreen({ onNavigate, products, customers, sales }: DashboardScreenProps) {
+export default function DashboardScreen({ onNavigate, products, customers, sales, suppliers = [], purchases = [] }: DashboardScreenProps) {
   const { t } = useI18n();
   const todayStr = new Date().toDateString();
 
-  const { todayTotal, todayCount, todayPaid, todayDue, totalDueAll } = useMemo(() => {
-    let total = 0, count = 0, paid = 0, due = 0;
+  const { todayTotal, todayCount, todayCashSales, todayDueSales, todayCashReceive, todayCashPayment } = useMemo(() => {
+    let total = 0, count = 0, cashSales = 0, dueSales = 0, cashReceive = 0, cashPayment = 0;
     sales.forEach(s => {
       try {
         if (new Date(s.date).toDateString() === todayStr) {
           total += s.total; count++;
-          paid += (s.paid ?? s.total);
-          due += (s.due ?? 0);
+          const paid = s.paid ?? s.total;
+          const due = s.due ?? 0;
+          if (due === 0) cashSales += s.total;
+          else dueSales += s.total;
+          cashReceive += paid;
         }
       } catch {}
     });
-    const totalDueAll = sales.reduce((sum, s) => sum + (s.due ?? 0), 0);
-    return { todayTotal: total, todayCount: count, todayPaid: paid, todayDue: due, totalDueAll };
-  }, [sales, todayStr]);
+    purchases.forEach(p => {
+      try {
+        if (new Date(p.date).toDateString() === todayStr) {
+          cashPayment += p.paid;
+        }
+      } catch {}
+    });
+    return { todayTotal: total, todayCount: count, todayCashSales: cashSales, todayDueSales: dueSales, todayCashReceive: cashReceive, todayCashPayment: cashPayment };
+  }, [sales, purchases, todayStr]);
 
-  const customerDueTotal = useMemo(() => customers.reduce((sum, c) => sum + (c.totalDue || 0), 0), [customers]);
+  const supplierDues = useMemo(() => suppliers.reduce((sum, s) => sum + (s.totalDue || 0), 0), [suppliers]);
+  const customerDues = useMemo(() => customers.reduce((sum, c) => sum + (c.totalDue || 0), 0), [customers]);
+  const liability = customerDues - supplierDues;
+  const cashBalance = todayCashReceive - todayCashPayment;
   const lowStock = useMemo(() => getLowStockProducts(products), [products]);
   const totalStock = useMemo(() => products.reduce((s, p) => s + p.stock, 0), [products]);
 
@@ -47,12 +61,20 @@ export default function DashboardScreen({ onNavigate, products, customers, sales
 
   const maxWeekly = Math.max(...weeklyData.map(d => d.total), 1);
 
-  const stats = [
-    { label: t('todaysSales'), value: formatCurrency(todayTotal), icon: 'payments', iconBg: 'bg-pos-secondary-container', iconColor: 'text-pos-secondary', trend: `${todayCount} ${t('salesToday')}`, trendColor: 'text-pos-tertiary' },
-    { label: t('paid'), value: formatCurrency(todayPaid), icon: 'check_circle', iconBg: 'bg-[hsl(125,40%,90%)]', iconColor: 'text-[hsl(125,60%,35%)]', trend: t('todaysSales'), trendColor: 'text-[hsl(125,60%,35%)]' },
-    { label: t('totalDue'), value: formatCurrency(totalDueAll), icon: 'warning', iconBg: 'bg-pos-error-container', iconColor: 'text-pos-error', trend: `${t('customers')}: ${formatCurrency(customerDueTotal)}`, trendColor: 'text-pos-error' },
-    { label: t('totalStock'), value: totalStock.toLocaleString(), icon: 'layers', iconBg: 'bg-pos-primary-container', iconColor: 'text-pos-on-primary-container', trend: `${lowStock.length} ${t('lowStock')}`, trendColor: lowStock.length > 0 ? 'text-pos-error' : 'text-pos-on-surface-variant' },
-  ];
+  // Account balances from all sales
+  const accountBalances = useMemo(() => {
+    const balances: Record<string, number> = { cash: 0, bkash: 0, nagad: 0, card: 0, bank: 0 };
+    sales.forEach(s => {
+      const method = (s.paymentMethod || 'cash').toLowerCase();
+      const paid = s.paid ?? s.total;
+      if (method in balances) balances[method] += paid;
+      else balances['cash'] += paid;
+    });
+    // Subtract purchase payments (assume cash)
+    purchases.forEach(p => { balances['cash'] -= p.paid; });
+    return balances;
+  }, [sales, purchases]);
+  const totalBalance = Object.values(accountBalances).reduce((s, v) => s + v, 0);
 
   return (
     <section className="p-4 sm:p-8 max-w-7xl mx-auto space-y-8">
@@ -61,35 +83,80 @@ export default function DashboardScreen({ onNavigate, products, customers, sales
           <span className="text-xs text-pos-on-surface-variant uppercase tracking-widest block mb-2">{t('today')} — {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
           <h2 className="text-3xl sm:text-5xl font-bold text-pos-on-surface leading-tight tracking-tighter">{t('businessOverview')}</h2>
         </div>
-        <button onClick={() => onNavigate('new-sale')} className="px-6 py-3 bg-gradient-to-b from-pos-secondary to-pos-secondary-dim text-white rounded-lg font-medium flex items-center gap-2 shadow-lg hover:-translate-y-1 transition-transform">
-          <span className="material-symbols-outlined text-lg">add_shopping_cart</span> {t('newSale')}
-        </button>
+        <div className="flex gap-2">
+          <button onClick={() => onNavigate('sales')} className="px-4 py-2 bg-pos-error text-white rounded-lg font-medium text-sm flex items-center gap-1">
+            <span className="material-symbols-outlined text-sm">list</span>{t('recentSales')}
+          </button>
+          <button onClick={() => onNavigate('inventory')} className="px-4 py-2 bg-pos-secondary text-white rounded-lg font-medium text-sm flex items-center gap-1">
+            <span className="material-symbols-outlined text-sm">layers</span>{t('stock')}
+          </button>
+          <button onClick={() => onNavigate('new-sale')} className="px-4 py-2 bg-gradient-to-b from-pos-secondary to-pos-secondary-dim text-white rounded-lg font-medium text-sm flex items-center gap-1 shadow-lg">
+            <span className="material-symbols-outlined text-sm">add_shopping_cart</span>{t('newSale')}
+          </button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        {stats.map((s) => (
-          <div key={s.label} className="bg-pos-surface-lowest rounded-xl p-4 sm:p-6 shadow-sm border border-pos-surface-container">
-            <div className="flex justify-between items-start mb-4">
-              <span className="text-[10px] sm:text-xs font-bold text-pos-on-surface-variant uppercase tracking-widest">{s.label}</span>
-              <div className={`w-8 h-8 sm:w-9 sm:h-9 ${s.iconBg} rounded-lg flex items-center justify-center`}>
-                <span className={`material-symbols-outlined ${s.iconColor} text-base sm:text-lg`}>{s.icon}</span>
-              </div>
-            </div>
-            <div className="text-xl sm:text-3xl font-black tracking-tighter text-pos-on-surface">{s.value}</div>
-            <div className={`mt-2 flex items-center gap-1 ${s.trendColor} text-[10px] sm:text-xs font-bold`}>
-              <span className="material-symbols-outlined text-sm">trending_up</span>{s.trend}
-            </div>
+      {/* 4 Summary Cards like reference */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* PROFILE */}
+        <div className="bg-pos-secondary rounded-xl p-5 text-white">
+          <div className="flex items-center gap-3 mb-4">
+            <span className="material-symbols-outlined text-2xl">group</span>
+            <span className="text-sm font-bold uppercase tracking-wider">PROFILE</span>
           </div>
-        ))}
+          <div className="space-y-1 text-sm">
+            <div className="flex justify-between"><span>{t('totalCustomers')}:</span><span className="font-bold">{customers.length}</span></div>
+            <div className="flex justify-between"><span>{t('totalSuppliers')}:</span><span className="font-bold">{suppliers.length}</span></div>
+            <div className="flex justify-between"><span>{t('totalProducts')}:</span><span className="font-bold">{products.length}</span></div>
+          </div>
+        </div>
+
+        {/* SALES TODAY */}
+        <div className="bg-pos-secondary rounded-xl p-5 text-white">
+          <div className="flex items-center gap-3 mb-4">
+            <span className="material-symbols-outlined text-2xl">shopping_cart</span>
+            <span className="text-sm font-bold uppercase tracking-wider">{t('salesToday')}</span>
+          </div>
+          <div className="space-y-1 text-sm">
+            <div className="flex justify-between"><span>{t('totalSales')} ({todayCount}):</span><span className="font-bold">{formatCurrency(todayTotal)}</span></div>
+            <div className="flex justify-between"><span>Cash Sales:</span><span className="font-bold">{formatCurrency(todayCashSales)}</span></div>
+            <div className="flex justify-between"><span>Dues Sales:</span><span className="font-bold">{formatCurrency(todayDueSales)}</span></div>
+          </div>
+        </div>
+
+        {/* CASH TRX TODAY */}
+        <div className="bg-pos-secondary rounded-xl p-5 text-white">
+          <div className="flex items-center gap-3 mb-4">
+            <span className="material-symbols-outlined text-2xl">check_circle</span>
+            <span className="text-sm font-bold uppercase tracking-wider">CASH TRX. TODAY</span>
+          </div>
+          <div className="space-y-1 text-sm">
+            <div className="flex justify-between"><span>Cash Receive:</span><span className="font-bold">{formatCurrency(todayCashReceive)}</span></div>
+            <div className="flex justify-between"><span>Cash Payment:</span><span className="font-bold">{formatCurrency(todayCashPayment)}</span></div>
+            <div className="flex justify-between"><span>Cash Balance:</span><span className="font-bold">{formatCurrency(cashBalance)}</span></div>
+          </div>
+        </div>
+
+        {/* OVERALL BALANCE */}
+        <div className="bg-pos-secondary rounded-xl p-5 text-white">
+          <div className="flex items-center gap-3 mb-4">
+            <span className="material-symbols-outlined text-2xl">grid_view</span>
+            <span className="text-sm font-bold uppercase tracking-wider">OVERALL BALANCE</span>
+          </div>
+          <div className="space-y-1 text-sm">
+            <div className="flex justify-between"><span>Supplier Dues:</span><span className="font-bold">{formatCurrency(supplierDues)}</span></div>
+            <div className="flex justify-between"><span>Customer Dues:</span><span className="font-bold">{formatCurrency(customerDues)}</span></div>
+            <div className="flex justify-between"><span>Liability:</span><span className="font-bold">{formatCurrency(liability)}</span></div>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-8 bg-pos-surface-low p-6 sm:p-8 rounded-xl">
-          <div className="flex justify-between items-start mb-10">
-            <div>
-              <h3 className="text-lg font-semibold mb-1">{t('weeklySales')}</h3>
-              <p className="text-sm text-pos-on-surface-variant">{t('last7Days')}</p>
-            </div>
+        {/* SALES PROGRESS */}
+        <div className="lg:col-span-7 bg-pos-surface-lowest p-6 sm:p-8 rounded-xl border border-pos-surface-container">
+          <div className="flex items-center gap-2 mb-8">
+            <span className="material-symbols-outlined text-pos-secondary">trending_up</span>
+            <h3 className="text-lg font-semibold">{t('salesProgress')}</h3>
           </div>
           <div className="flex items-end justify-between h-40 gap-2 sm:gap-3 px-2">
             {weeklyData.map((d, i) => {
@@ -106,6 +173,40 @@ export default function DashboardScreen({ onNavigate, products, customers, sales
           </div>
         </div>
 
+        {/* BALANCE TABLE */}
+        <div className="lg:col-span-5 bg-pos-surface-lowest rounded-xl border border-pos-surface-container overflow-hidden">
+          <div className="flex items-center gap-2 px-6 py-4 border-b border-pos-surface-container">
+            <span className="material-symbols-outlined text-pos-secondary">account_balance</span>
+            <h3 className="text-lg font-semibold">BALANCE</h3>
+          </div>
+          <table className="w-full text-sm">
+            <thead><tr className="text-[11px] font-bold text-pos-on-surface-variant uppercase bg-pos-surface-low">
+              <th className="px-6 py-2 text-left">ACCOUNT</th><th className="px-6 py-2 text-right">BALANCE</th>
+            </tr></thead>
+            <tbody className="divide-y divide-pos-surface-container">
+              {[
+                { name: 'Cash', value: accountBalances.cash },
+                { name: 'Bank', value: accountBalances.bank || 0 },
+                { name: 'bKash', value: accountBalances.bkash },
+                { name: 'Nagad', value: accountBalances.nagad },
+                { name: 'Card', value: accountBalances.card },
+              ].map(acc => (
+                <tr key={acc.name} className="hover:bg-pos-surface-low">
+                  <td className="px-6 py-3 font-medium">{acc.name}</td>
+                  <td className="px-6 py-3 text-right font-bold">{formatCurrency(acc.value)}</td>
+                </tr>
+              ))}
+              <tr className="bg-pos-surface-low font-black">
+                <td className="px-6 py-3">{t('total')}:</td>
+                <td className="px-6 py-3 text-right text-pos-secondary">{formatCurrency(totalBalance)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Low Stock + Recent Sales */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="lg:col-span-4 bg-pos-surface-lowest rounded-xl p-6 shadow-sm border border-pos-surface-container flex flex-col">
           <h3 className="text-base font-semibold mb-1">{t('lowStockAlert')}</h3>
           <p className="text-xs text-pos-on-surface-variant mb-5">{t('itemsNeedRestock')}</p>
@@ -136,43 +237,46 @@ export default function DashboardScreen({ onNavigate, products, customers, sales
             {t('viewAllInventory')}
           </button>
         </div>
-      </div>
 
-      {/* Recent Sales */}
-      <div className="bg-pos-surface-lowest rounded-xl shadow-sm overflow-hidden border border-pos-surface-container">
-        <div className="px-6 sm:px-8 py-5 flex justify-between items-center bg-pos-surface-low">
-          <h3 className="text-base font-semibold">{t('recentTransactions')}</h3>
-          <button onClick={() => onNavigate('sales')} className="text-sm font-medium text-pos-secondary flex items-center gap-1 hover:underline">
-            {t('viewAll')} <span className="material-symbols-outlined text-base">arrow_forward</span>
-          </button>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="text-[11px] font-bold text-pos-on-surface-variant uppercase tracking-widest bg-pos-surface-low border-t border-pos-surface-container">
-                <th className="px-6 sm:px-8 py-3">{t('invoice')}</th><th className="px-6 sm:px-8 py-3">{t('customer')}</th><th className="px-6 sm:px-8 py-3 hidden sm:table-cell">{t('items')}</th><th className="px-6 sm:px-8 py-3">{t('amount')}</th><th className="px-6 sm:px-8 py-3 hidden md:table-cell">{t('time')}</th><th className="px-6 sm:px-8 py-3 text-right">{t('status')}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-pos-surface-container">
-              {sales.slice(0, 5).map((s) => (
-                <tr key={s.id} className="hover:bg-pos-surface-low transition-colors">
-                  <td className="px-6 sm:px-8 py-4 font-mono text-xs font-bold text-pos-secondary">{s.invoice}</td>
-                  <td className="px-6 sm:px-8 py-4 font-medium text-sm">{s.customer}</td>
-                  <td className="px-6 sm:px-8 py-4 text-sm text-pos-on-surface-variant hidden sm:table-cell">{s.items.map(i => i.name).join(', ')}</td>
-                  <td className="px-6 sm:px-8 py-4 font-bold">{formatCurrency(s.total)}</td>
-                  <td className="px-6 sm:px-8 py-4 text-xs text-pos-on-surface-variant hidden md:table-cell">{s.time}</td>
-                  <td className="px-6 sm:px-8 py-4 text-right">
-                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold ${s.status === 'paid' ? 'bg-pos-tertiary-container text-pos-on-tertiary-container' : s.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-pos-secondary-container text-pos-on-secondary-container'}`}>
-                      {s.status === 'paid' ? t('paid') : s.status === 'pending' ? t('pending') : t('credit')}
-                    </span>
-                  </td>
+        {/* Recent Sales */}
+        <div className="lg:col-span-8 bg-pos-surface-lowest rounded-xl shadow-sm overflow-hidden border border-pos-surface-container">
+          <div className="px-6 py-4 flex justify-between items-center bg-pos-surface-low">
+            <h3 className="text-base font-semibold">{t('recentTransactions')}</h3>
+            <button onClick={() => onNavigate('sales')} className="text-sm font-medium text-pos-secondary flex items-center gap-1 hover:underline">
+              {t('viewAll')} <span className="material-symbols-outlined text-base">arrow_forward</span>
+            </button>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="text-[11px] font-bold text-pos-on-surface-variant uppercase tracking-widest bg-pos-surface-low border-t border-pos-surface-container">
+                  <th className="px-4 py-3">{t('invoice')}</th><th className="px-4 py-3">{t('customer')}</th><th className="px-4 py-3">{t('amount')}</th><th className="px-4 py-3 hidden sm:table-cell">{t('paid')}</th><th className="px-4 py-3 hidden sm:table-cell">{t('due')}</th><th className="px-4 py-3 text-right">{t('status')}</th>
                 </tr>
-              ))}
-              {sales.length === 0 && (
-                <tr><td colSpan={6} className="px-8 py-8 text-center text-pos-on-surface-variant text-sm">{t('noSalesYetDash')}</td></tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-pos-surface-container">
+                {sales.slice(0, 5).map((s) => {
+                  const sdue = s.due ?? 0;
+                  return (
+                    <tr key={s.id} className="hover:bg-pos-surface-low transition-colors">
+                      <td className="px-4 py-3 font-mono text-xs font-bold text-pos-secondary">{s.invoice}</td>
+                      <td className="px-4 py-3 font-medium text-sm">{s.customer}</td>
+                      <td className="px-4 py-3 font-bold">{formatCurrency(s.total)}</td>
+                      <td className="px-4 py-3 text-xs font-semibold text-[hsl(125,60%,35%)] hidden sm:table-cell">{formatCurrency(s.paid ?? s.total)}</td>
+                      <td className={`px-4 py-3 text-xs font-semibold hidden sm:table-cell ${sdue > 0 ? 'text-destructive' : 'text-[hsl(125,60%,35%)]'}`}>{formatCurrency(sdue)}</td>
+                      <td className="px-4 py-3 text-right">
+                        <span className={`px-3 py-1 rounded-full text-[10px] font-bold ${s.status === 'paid' ? 'bg-pos-tertiary-container text-pos-on-tertiary-container' : s.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-pos-secondary-container text-pos-on-secondary-container'}`}>
+                          {s.status === 'paid' ? t('paid') : s.status === 'pending' ? t('pending') : t('credit')}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+                {sales.length === 0 && (
+                  <tr><td colSpan={6} className="px-8 py-8 text-center text-pos-on-surface-variant text-sm">{t('noSalesYetDash')}</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </section>
