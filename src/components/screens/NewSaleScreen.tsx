@@ -134,6 +134,9 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
   const [received, setReceived] = useState('');
   const [delivery, setDelivery] = useState('');
   const [labour, setLabour] = useState('');
+  const [returnAmt, setReturnAmt] = useState('');
+  const [lessAmt, setLessAmt] = useState('');
+  const [paidAmount, setPaidAmount] = useState('');
   const [paidAmount, setPaidAmount] = useState('');
   const [rows, setRows] = useState<NewSaleRow[]>([{ id: Date.now(), productId: '', qty: 1, rate: 0, searchQuery: '', showDropdown: false }]);
   const [showSuggestions, setShowSuggestions] = useState(false);
