@@ -44,17 +44,36 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
   const [newRow, setNewRow] = useState<InlineRow>(emptyRow());
   const nameRef = useRef<HTMLInputElement>(null);
 
+  const [sortField, setSortField] = useState<'name' | 'updated_at' | 'stock' | 'pricePerBox' | 'category' | 'brand'>('updated_at');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+
+  const toggleSort = (field: typeof sortField) => {
+    if (sortField === field) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortField(field); setSortDir('asc'); }
+  };
+
+  const sortIcon = (field: typeof sortField) => sortField === field ? (sortDir === 'asc' ? 'arrow_upward' : 'arrow_downward') : 'unfold_more';
+
   const debouncedSearch = useDebounce(search, 250);
-  const filtered = useMemo(() =>
-    products.filter(p =>
+  const filtered = useMemo(() => {
+    const list = products.filter(p =>
       p.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
       p.batch.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
       (p.barcode || '').toLowerCase().includes(debouncedSearch.toLowerCase()) ||
       (p.category || '').toLowerCase().includes(debouncedSearch.toLowerCase()) ||
       (p.brand || '').toLowerCase().includes(debouncedSearch.toLowerCase())
-    ),
-    [products, debouncedSearch]
-  );
+    );
+    return [...list].sort((a, b) => {
+      let cmp = 0;
+      if (sortField === 'name') cmp = a.name.localeCompare(b.name);
+      else if (sortField === 'stock') cmp = a.stock - b.stock;
+      else if (sortField === 'pricePerBox') cmp = a.pricePerBox - b.pricePerBox;
+      else if (sortField === 'category') cmp = (a.category || '').localeCompare(b.category || '');
+      else if (sortField === 'brand') cmp = (a.brand || '').localeCompare(b.brand || '');
+      else cmp = (a.id || '').localeCompare(b.id || ''); // updated_at fallback
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+  }, [products, debouncedSearch, sortField, sortDir]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginatedProducts = useMemo(() => filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE), [filtered, page]);
@@ -141,59 +160,37 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
 
       {/* ═══ UNIFIED TABLE ═══ */}
       <div className="bg-pos-surface-lowest rounded-xl shadow-sm overflow-hidden border border-pos-surface-container">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[1100px]">
-            <thead>
+        <div className="overflow-auto max-h-[calc(100vh-260px)]">
+          <table className="w-full min-w-[1100px] relative">
+             <thead className="sticky top-0 z-10">
               <tr className="text-[9px] font-bold text-pos-on-surface-variant uppercase tracking-wider bg-pos-surface-low border-b border-pos-surface-container">
                 <th className="px-2 py-2.5 w-8 text-center">#</th>
-                <th className="px-2 py-2.5">{t('productName')}</th>
-                <th className="px-2 py-2.5">{t('categoryLabel')}</th>
-                <th className="px-2 py-2.5">{t('brandLabel')}</th>
+                <th className="px-2 py-2.5 cursor-pointer select-none" onClick={() => toggleSort('name')}>
+                  <span className="inline-flex items-center gap-0.5">{t('productName')} <span className="material-symbols-outlined text-[10px]">{sortIcon('name')}</span></span>
+                </th>
+                <th className="px-2 py-2.5 cursor-pointer select-none" onClick={() => toggleSort('category')}>
+                  <span className="inline-flex items-center gap-0.5">{t('categoryLabel')} <span className="material-symbols-outlined text-[10px]">{sortIcon('category')}</span></span>
+                </th>
+                <th className="px-2 py-2.5 cursor-pointer select-none" onClick={() => toggleSort('brand')}>
+                  <span className="inline-flex items-center gap-0.5">{t('brandLabel')} <span className="material-symbols-outlined text-[10px]">{sortIcon('brand')}</span></span>
+                </th>
                 <th className="px-2 py-2.5">{t('size')}</th>
                 <th className="px-2 py-2.5">Finish</th>
                 <th className="px-2 py-2.5 text-right">{t('buyRateLabel')}</th>
-                <th className="px-2 py-2.5 text-right">{t('salesRateLabel')}</th>
+                <th className="px-2 py-2.5 text-right cursor-pointer select-none" onClick={() => toggleSort('pricePerBox')}>
+                  <span className="inline-flex items-center gap-0.5 justify-end">{t('salesRateLabel')} <span className="material-symbols-outlined text-[10px]">{sortIcon('pricePerBox')}</span></span>
+                </th>
                 <th className="px-2 py-2.5 text-center">Sqft</th>
                 <th className="px-2 py-2.5 text-center">Pcs</th>
-                <th className="px-2 py-2.5 text-center">{t('stock')}</th>
+                <th className="px-2 py-2.5 text-center cursor-pointer select-none" onClick={() => toggleSort('stock')}>
+                  <span className="inline-flex items-center gap-0.5">{t('stock')} <span className="material-symbols-outlined text-[10px]">{sortIcon('stock')}</span></span>
+                </th>
                 <th className="px-2 py-2.5">Batch</th>
                 <th className="px-2 py-2.5 text-center w-16">{t('action')}</th>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-pos-surface-container">
-              {/* Existing products */}
-              {paginatedProducts.map((p, idx) => (
-                <tr key={p.id} className="hover:bg-pos-surface-low transition-colors group">
-                  <td className="px-2 py-2.5 text-center text-[10px] text-muted-foreground font-mono">{page * PAGE_SIZE + idx + 1}</td>
-                  <td className="px-2 py-2.5 font-semibold text-sm">{p.name}</td>
-                  <td className="px-2 py-2.5 text-xs">{p.category || '—'}</td>
-                  <td className="px-2 py-2.5 text-xs">{p.brand || '—'}</td>
-                  <td className="px-2 py-2.5"><span className="px-1.5 py-0.5 bg-pos-secondary-container text-pos-on-secondary-container rounded text-[10px] font-bold">{p.size || '—'}</span></td>
-                  <td className="px-2 py-2.5 text-xs">{p.finish}</td>
-                  <td className="px-2 py-2.5 text-xs text-right">{formatCurrency(p.buyRate || 0)}</td>
-                  <td className="px-2 py-2.5 text-right font-bold text-pos-secondary text-sm">{formatCurrency(p.pricePerBox)}</td>
-                  <td className="px-2 py-2.5 text-xs text-center">{p.sqftPerBox || '—'}</td>
-                  <td className="px-2 py-2.5 text-xs text-center">{p.piecesPerBox || 4}</td>
-                  <td className="px-2 py-2.5 text-center">
-                    <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${p.stock <= 0 ? 'bg-pos-error text-white' : p.stock <= 20 ? 'bg-pos-error-container text-pos-on-error-container' : 'bg-pos-tertiary-container text-pos-on-tertiary-container'}`}>
-                      {p.stock}
-                    </span>
-                  </td>
-                  <td className="px-2 py-2.5 text-[10px] font-mono text-muted-foreground">{p.barcode || p.batch || '—'}</td>
-                  <td className="px-2 py-2.5 text-center">
-                    <div className="flex items-center justify-center gap-0.5 opacity-60 group-hover:opacity-100 transition-opacity">
-                      <button onClick={() => openEdit(p)} className="w-5 h-5 rounded bg-[hsl(125,60%,35%)] text-white flex items-center justify-center" title={t('edit')}><span className="material-symbols-outlined text-xs">edit</span></button>
-                      {onDeleteProduct && <button onClick={() => setShowDeleteConfirm(p.id)} className="w-5 h-5 rounded bg-pos-error text-white flex items-center justify-center" title={t('delete')}><span className="material-symbols-outlined text-xs">delete</span></button>}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {paginatedProducts.length === 0 && !search && (
-                <tr><td colSpan={13} className="px-8 py-6 text-center text-xs text-pos-on-surface-variant">{t('noProducts')}</td></tr>
-              )}
 
-              {/* ═══ NEW ENTRY ROW (always at bottom) ═══ */}
-              <tr className="bg-[hsl(125,40%,96%)] dark:bg-[hsl(125,25%,12%)] border-t-2 border-[hsl(125,50%,70%)] hover:bg-[hsl(125,40%,94%)] dark:hover:bg-[hsl(125,25%,14%)] transition-colors"
+              {/* ═══ NEW ENTRY ROW (sticky at top) ═══ */}
+              <tr className="bg-[hsl(125,40%,96%)] dark:bg-[hsl(125,25%,12%)] border-b-2 border-[hsl(125,50%,70%)] hover:bg-[hsl(125,40%,94%)] dark:hover:bg-[hsl(125,25%,14%)] transition-colors"
                 onKeyDown={handleKeyDown}>
                 <td className="px-2 py-1 text-center">
                   <span className="material-symbols-outlined text-[hsl(125,60%,35%)] text-base">add_circle</span>
@@ -247,6 +244,39 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
                   </button>
                 </td>
               </tr>
+            </thead>
+            <tbody className="divide-y divide-pos-surface-container">
+              {/* Existing products */}
+              {paginatedProducts.map((p, idx) => (
+                <tr key={p.id} className="hover:bg-pos-surface-low transition-colors group">
+                  <td className="px-2 py-2.5 text-center text-[10px] text-muted-foreground font-mono">{page * PAGE_SIZE + idx + 1}</td>
+                  <td className="px-2 py-2.5 font-semibold text-sm">{p.name}</td>
+                  <td className="px-2 py-2.5 text-xs">{p.category || '—'}</td>
+                  <td className="px-2 py-2.5 text-xs">{p.brand || '—'}</td>
+                  <td className="px-2 py-2.5"><span className="px-1.5 py-0.5 bg-pos-secondary-container text-pos-on-secondary-container rounded text-[10px] font-bold">{p.size || '—'}</span></td>
+                  <td className="px-2 py-2.5 text-xs">{p.finish}</td>
+                  <td className="px-2 py-2.5 text-xs text-right">{formatCurrency(p.buyRate || 0)}</td>
+                  <td className="px-2 py-2.5 text-right font-bold text-pos-secondary text-sm">{formatCurrency(p.pricePerBox)}</td>
+                  <td className="px-2 py-2.5 text-xs text-center">{p.sqftPerBox || '—'}</td>
+                  <td className="px-2 py-2.5 text-xs text-center">{p.piecesPerBox || 4}</td>
+                  <td className="px-2 py-2.5 text-center">
+                    <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${p.stock <= 0 ? 'bg-pos-error text-white' : p.stock <= 20 ? 'bg-pos-error-container text-pos-on-error-container' : 'bg-pos-tertiary-container text-pos-on-tertiary-container'}`}>
+                      {p.stock}
+                    </span>
+                  </td>
+                  <td className="px-2 py-2.5 text-[10px] font-mono text-muted-foreground">{p.barcode || p.batch || '—'}</td>
+                  <td className="px-2 py-2.5 text-center">
+                    <div className="flex items-center justify-center gap-0.5 opacity-60 group-hover:opacity-100 transition-opacity">
+                      <button onClick={() => openEdit(p)} className="w-5 h-5 rounded bg-[hsl(125,60%,35%)] text-white flex items-center justify-center" title={t('edit')}><span className="material-symbols-outlined text-xs">edit</span></button>
+                      {onDeleteProduct && <button onClick={() => setShowDeleteConfirm(p.id)} className="w-5 h-5 rounded bg-pos-error text-white flex items-center justify-center" title={t('delete')}><span className="material-symbols-outlined text-xs">delete</span></button>}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {paginatedProducts.length === 0 && !search && (
+                <tr><td colSpan={13} className="px-8 py-6 text-center text-xs text-pos-on-surface-variant">{t('noProducts')}</td></tr>
+              )}
+
             </tbody>
           </table>
         </div>
