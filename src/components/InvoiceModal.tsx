@@ -131,7 +131,11 @@ ${sale.notes ? `<div style="font-size:11px;color:#5a6061;margin-bottom:12px;font
 <div class="summary"><div class="summary-table">
   <div class="summary-row"><span>Subtotal</span><span>${formatCurrency(sale.subtotal)}</span></div>
   ${sale.discount > 0 ? `<div class="summary-row" style="color:#9f403d"><span>Discount</span><span>-${formatCurrency(sale.discount)}</span></div>` : ''}
+  ${(sale.delivery ?? 0) > 0 ? `<div class="summary-row"><span>Delivery</span><span>+${formatCurrency(sale.delivery!)}</span></div>` : ''}
+  ${(sale.labour ?? 0) > 0 ? `<div class="summary-row"><span>Labour</span><span>+${formatCurrency(sale.labour!)}</span></div>` : ''}
   <div class="summary-row total"><span>TOTAL</span><span class="total-amount">${formatCurrency(sale.total)}</span></div>
+  <div class="summary-row" style="font-weight:700;color:#006120"><span>Paid</span><span>${formatCurrency(sale.paid ?? sale.total)}</span></div>
+  ${(sale.due ?? 0) > 0 ? `<div class="summary-row" style="font-weight:700;color:#9f403d"><span>Due</span><span>${formatCurrency(sale.due!)}</span></div>` : ''}
   <div class="summary-row"><span>Status</span><span class="badge badge-${sale.status}">${sale.status.toUpperCase()}</span></div>
 </div></div>
 <div class="footer-area">
