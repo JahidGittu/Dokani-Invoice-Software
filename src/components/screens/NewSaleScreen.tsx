@@ -121,7 +121,7 @@ function ProductPicker({
   );
 }
 
-export default function NewSaleScreen({ products, customers, settings, onSaleComplete, onAutoAddCustomer, getNextInvoiceNumber: getNextInvNum }: NewSaleScreenProps) {
+export default function NewSaleScreen({ products, customers, settings, onSaleComplete, onAutoAddCustomer }: NewSaleScreenProps) {
   const { t } = useI18n();
   const [customerName, setCustomerName] = useState('');
   const [phone, setPhone] = useState('');
