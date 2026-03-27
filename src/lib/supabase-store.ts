@@ -91,7 +91,7 @@ export function useSupabaseCustomers() {
     if (error) { console.error('Fetch customers error:', error); return; }
     setCustomers((data || []).map(c => ({
       id: c.id, name: c.name, initials: c.initials, phone: c.phone,
-      address: c.address, totalSpent: Number(c.total_spent),
+      address: c.address, totalSpent: Number(c.total_spent), totalDue: 0,
       lastOrder: c.last_order || '', color: c.color as Customer['color'],
     })));
   }, [user]);
