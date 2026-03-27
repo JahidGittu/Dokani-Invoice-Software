@@ -382,9 +382,9 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
           </button>
         </div>
 
-        <div className="flex gap-4 flex-col lg:flex-row">
-          {/* ── LEFT: Main form ── */}
-          <div className="flex-1 space-y-4">
+        <div className="flex flex-col gap-4">
+          {/* ── Main form ── */}
+          <div className="space-y-4">
             {/* Top fields: Date + Customer */}
             <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container p-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
