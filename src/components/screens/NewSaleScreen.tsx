@@ -659,11 +659,38 @@ ${sale.discount > 0 ? `<div class="row"><span>Discount</span><span>-${formatCurr
                 </div>
               </div>
               {discountVal > 0 && <div className="flex justify-between text-destructive text-xs"><span>{t('discount')}</span><span>-{formatCurrency(discountVal)}</span></div>}
+              
+              {/* Delivery */}
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-muted-foreground">{t('delivery')}</span>
+                <input type="number" value={delivery} onChange={e => setDelivery(e.target.value)} placeholder="0"
+                  className="w-20 bg-muted/30 border border-border rounded text-xs py-1 px-1.5 text-right outline-none focus:ring-1 focus:ring-ring" />
+              </div>
+              {/* Labour */}
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-muted-foreground">{t('labour')}</span>
+                <input type="number" value={labour} onChange={e => setLabour(e.target.value)} placeholder="0"
+                  className="w-20 bg-muted/30 border border-border rounded text-xs py-1 px-1.5 text-right outline-none focus:ring-1 focus:ring-ring" />
+              </div>
+
               <div className="h-[2px] bg-foreground" />
               <div className="flex justify-between text-xl font-black">
                 <span>{t('total')}</span>
                 <span className="text-primary">{formatCurrency(total)}</span>
               </div>
+
+              {/* Paid */}
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-muted-foreground font-bold">{t('paid')}</span>
+                <input type="number" value={paidAmount} onChange={e => setPaidAmount(e.target.value)} placeholder="0"
+                  className="w-20 bg-[hsl(125,100%,95%)] border border-[hsl(125,60%,70%)] rounded text-xs py-1 px-1.5 text-right outline-none focus:ring-1 focus:ring-[hsl(125,60%,50%)] font-bold" />
+              </div>
+              {/* Due */}
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-destructive font-bold">{t('due')}</span>
+                <span className={`font-bold text-sm ${dueVal > 0 ? 'text-destructive' : 'text-[hsl(125,60%,35%)]'}`}>{formatCurrency(dueVal)}</span>
+              </div>
+
               <div className="flex justify-between items-center text-xs">
                 <span className="text-muted-foreground">{t('amountReceived')}</span>
                 <input type="number" value={received} onChange={e => setReceived(e.target.value)} placeholder="0"
