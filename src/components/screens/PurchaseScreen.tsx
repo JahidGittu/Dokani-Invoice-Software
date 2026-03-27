@@ -236,83 +236,82 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
             <div className="relative">
               <input ref={searchRef} value={productSearch} onChange={e => setProductSearch(e.target.value)}
                 className="w-full bg-pos-surface-lowest border-2 border-pos-secondary/30 rounded-xl text-sm py-3 pl-11 pr-4 outline-none focus:border-pos-secondary transition-colors"
-                placeholder="Search product (name, barcode, batch)..." />
+                placeholder="Search the Product..." />
               <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-pos-on-surface-variant">search</span>
-
-              {filteredProducts.length > 0 && (
-                <div className="absolute left-0 top-full mt-1 w-full bg-popover border border-border rounded-xl shadow-xl z-50 max-h-[250px] overflow-y-auto">
-                  {filteredProducts.map(p => {
-                    const alreadyAdded = items.some(i => i.productId === p.id);
-                    return (
-                      <button key={p.id} onClick={() => !alreadyAdded && addProductToItems(p)} disabled={alreadyAdded}
-                        className={`w-full text-left px-4 py-2.5 flex items-center justify-between border-b border-border/50 last:border-0 transition-colors ${alreadyAdded ? 'opacity-40 cursor-not-allowed' : 'hover:bg-accent'}`}>
-                        <div>
-                          <span className="font-semibold text-sm">{p.name}</span>
-                          <span className="text-xs text-muted-foreground ml-2">({p.barcode || p.batch || '—'})</span>
-                        </div>
-                        <div className="text-right flex items-center gap-3">
-                          <span className="text-xs text-muted-foreground">Stock: {p.stock}</span>
-                          <span className="text-xs font-bold text-pos-secondary">৳{p.buyRate || 0}</span>
-                          {alreadyAdded && <span className="text-[10px] text-muted-foreground">(Added)</span>}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
             </div>
 
-            {/* Items table */}
+            {/* All products table with checkbox */}
             <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container overflow-hidden">
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
                 <table className="w-full min-w-[700px]">
-                  <thead>
+                  <thead className="sticky top-0 z-10">
                     <tr className="text-[10px] font-bold text-white uppercase tracking-wider bg-[hsl(230,45%,35%)]">
-                      <th className="px-2 py-2.5 w-8"><span className="material-symbols-outlined text-sm">delete</span></th>
+                      <th className="px-2 py-2.5 w-8"><span className="material-symbols-outlined text-sm">check_box</span></th>
                       <th className="px-3 py-2.5">Barcode</th>
                       <th className="px-3 py-2.5">Product Name</th>
                       <th className="px-3 py-2.5 text-center">Stock</th>
                       <th className="px-3 py-2.5 text-center">Carton</th>
                       <th className="px-3 py-2.5 text-center">Piece</th>
                       <th className="px-3 py-2.5 text-center">Sqft/Qty</th>
-                      <th className="px-3 py-2.5 text-right">Buy Rate</th>
+                      <th className="px-3 py-2.5 text-right">Buy</th>
                       <th className="px-3 py-2.5 text-right">Sub Total</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-pos-surface-container">
-                    {items.map(item => (
-                      <tr key={item.id} className="bg-[hsl(45,100%,96%)] dark:bg-[hsl(45,20%,12%)] hover:bg-[hsl(45,100%,93%)] transition-colors">
-                        <td className="px-2 py-2 text-center">
-                          <button onClick={() => removeItem(item.id)} className="text-pos-error hover:text-pos-error/80">
-                            <span className="material-symbols-outlined text-sm">close</span>
-                          </button>
-                        </td>
-                        <td className="px-3 py-2 text-sm font-mono">{item.barcode || '—'}</td>
-                        <td className="px-3 py-2 text-sm font-medium">{item.name}</td>
-                        <td className="px-3 py-2 text-center">
-                          <span className={`text-sm ${item.stock <= 0 ? 'text-pos-error font-bold' : ''}`}>{item.stock}</span>
-                        </td>
-                        <td className="px-1 py-1">
-                          <input type="number" min={0} value={item.carton} onChange={e => updateItem(item.id, 'carton', parseInt(e.target.value) || 0)}
-                            className="w-16 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-center outline-none focus:border-pos-secondary mx-auto block" />
-                        </td>
-                        <td className="px-1 py-1">
-                          <input type="number" min={0} value={item.piece} onChange={e => updateItem(item.id, 'piece', parseInt(e.target.value) || 0)}
-                            className="w-14 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-center outline-none focus:border-pos-secondary mx-auto block" />
-                        </td>
-                        <td className="px-1 py-1">
-                          <input type="number" min={0} value={item.sqftQty} onChange={e => updateItem(item.id, 'sqftQty', parseFloat(e.target.value) || 0)}
-                            className="w-16 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-center outline-none focus:border-pos-secondary mx-auto block" />
-                        </td>
-                        <td className="px-1 py-1">
-                          <input type="number" value={item.buyRate} onChange={e => updateItem(item.id, 'buyRate', parseFloat(e.target.value) || 0)}
-                            className="w-20 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-right outline-none focus:border-pos-secondary ml-auto block" />
-                        </td>
-                        <td className="px-3 py-2 text-right font-bold text-sm">{formatCurrency(item.subTotal)}</td>
-                      </tr>
-                    ))}
-                    {items.length === 0 && (
-                      <tr><td colSpan={9} className="px-8 py-8 text-center text-sm text-pos-on-surface-variant">Search and add products above</td></tr>
+                    {displayProducts.map(p => {
+                      const item = items.find(i => i.productId === p.id);
+                      const isSelected = !!item;
+                      return (
+                        <tr key={p.id} className={`transition-colors ${isSelected ? 'bg-[hsl(45,100%,96%)] dark:bg-[hsl(45,20%,12%)]' : 'hover:bg-muted/30'}`}>
+                          <td className="px-2 py-2 text-center">
+                            <input type="checkbox" checked={isSelected}
+                              onChange={() => isSelected ? removeItem(item!.id) : addProductToItems(p)}
+                              className="w-4 h-4 rounded border-pos-surface-container accent-pos-secondary cursor-pointer" />
+                          </td>
+                          <td className="px-3 py-2 text-sm font-mono">{p.barcode || p.batch || '—'}</td>
+                          <td className="px-3 py-2 text-sm font-medium">{p.name}</td>
+                          <td className="px-3 py-2 text-center">
+                            <span className={`text-sm ${p.stock <= 0 ? 'text-pos-error font-bold' : ''}`}>{p.stock}</span>
+                          </td>
+                          {isSelected ? (
+                            <>
+                              <td className="px-1 py-1">
+                                <input type="number" min={0} value={item!.carton} onChange={e => updateItem(item!.id, 'carton', parseInt(e.target.value) || 0)}
+                                  className="w-16 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-center outline-none focus:border-pos-secondary mx-auto block" />
+                              </td>
+                              <td className="px-1 py-1">
+                                <input type="number" min={0} value={item!.piece} onChange={e => updateItem(item!.id, 'piece', parseInt(e.target.value) || 0)}
+                                  className="w-14 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-center outline-none focus:border-pos-secondary mx-auto block" />
+                              </td>
+                              <td className="px-1 py-1">
+                                <input type="number" min={0} value={item!.sqftQty} onChange={e => updateItem(item!.id, 'sqftQty', parseFloat(e.target.value) || 0)}
+                                  className="w-16 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-center outline-none focus:border-pos-secondary mx-auto block" />
+                              </td>
+                              <td className="px-1 py-1">
+                                <input type="number" value={item!.buyRate} onChange={e => updateItem(item!.id, 'buyRate', parseFloat(e.target.value) || 0)}
+                                  className="w-20 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-right outline-none focus:border-pos-secondary ml-auto block" />
+                              </td>
+                              <td className="px-3 py-2 text-right font-bold text-sm">{formatCurrency(item!.subTotal)}</td>
+                            </>
+                          ) : (
+                            <>
+                              <td className="px-3 py-2 text-center text-sm text-muted-foreground">0</td>
+                              <td className="px-3 py-2 text-center text-sm text-muted-foreground">0</td>
+                              <td className="px-3 py-2 text-center text-sm text-muted-foreground">0</td>
+                              <td className="px-3 py-2 text-right text-sm text-muted-foreground">{p.buyRate || 0}</td>
+                              <td className="px-3 py-2 text-right text-sm text-muted-foreground">0.00</td>
+                            </>
+                          )}
+                        </tr>
+                      );
+                    })}
+                    {displayProducts.length === 0 && (
+                      <tr><td colSpan={9} className="px-8 py-8 text-center text-sm text-pos-on-surface-variant">No products found</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
                     )}
                   </tbody>
                 </table>
