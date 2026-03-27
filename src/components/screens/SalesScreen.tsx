@@ -129,49 +129,16 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
     );
   }, [products, debouncedProductSearch]);
 
-  const selectSearchProduct = (p: Product) => {
-    setSelectedProductId(p.id);
-    setProductSearch(p.name);
-    setManualRate(String(p.pricePerBox));
-    setManualCarton('0');
-    setManualPiece('0');
-    setManualSqft('0');
-  };
-
-  const addProductToItems = () => {
-    const product = products.find(p => p.id === selectedProductId);
-    if (!product) { toast.error('প্রোডাক্ট সিলেক্ট করুন'); return; }
-    const carton = parseInt(manualCarton) || 0;
-    const piece = parseInt(manualPiece) || 0;
-    const sqftQty = parseFloat(manualSqft) || 0;
-    const rate = parseFloat(manualRate) || product.pricePerBox;
-    if (carton === 0 && piece === 0) { toast.error('Carton বা Piece দিন'); return; }
-
-    const piecesPerBox = product.piecesPerBox || 4;
-    const pricePerPiece = piecesPerBox > 0 ? rate / piecesPerBox : 0;
-    const subTotal = (carton * rate) + (piece * pricePerPiece);
-
-    // Check if already exists
-    const existing = items.find(i => i.productId === product.id);
-    if (existing) {
-      setItems(prev => prev.map(i => i.productId === product.id ? {
-        ...i, carton: i.carton + carton, piece: i.piece + piece,
-        sqftQty: i.sqftQty + sqftQty, subTotal: i.subTotal + subTotal,
-      } : i));
-    } else {
-      setItems(prev => [...prev, {
-        id: Date.now(), productId: product.id, barcode: product.barcode || product.batch || '',
-        name: product.name, stock: product.stock, itemType: 'Sale',
-        carton, piece, sqftQty, salesRate: rate, subTotal,
-      }]);
+  const addProductToItems = (product: Product) => {
+    if (items.find(i => i.productId === product.id)) {
+      toast.error('Already added');
+      return;
     }
-    setProductSearch('');
-    setSelectedProductId('');
-    setManualCarton('0');
-    setManualPiece('0');
-    setManualSqft('0');
-    setManualRate('');
-    searchRef.current?.focus();
+    setItems(prev => [...prev, {
+      id: Date.now(), productId: product.id, barcode: product.barcode || product.batch || '',
+      name: product.name, stock: product.stock, itemType: 'Sale',
+      carton: 1, piece: 0, sqftQty: 0, salesRate: product.pricePerBox, subTotal: product.pricePerBox,
+    }]);
   };
 
   const removeItem = (id: number) => setItems(prev => prev.filter(i => i.id !== id));
