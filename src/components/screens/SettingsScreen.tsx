@@ -66,15 +66,42 @@ export default function SettingsScreen({ settings, onUpdateSettings }: SettingsS
     setClearChecks({ products: val, customers: val, sales: val, settings: val, counter: val });
   };
 
-  const handleSelectiveClear = () => {
+  const handleSelectiveClear = async () => {
     const anyChecked = Object.values(clearChecks).some(Boolean);
     if (!anyChecked) { toast.error(t('noItemSelected')); return; }
 
+    // Clear localStorage
     if (clearChecks.products) localStorage.removeItem('tilepos_products');
     if (clearChecks.customers) localStorage.removeItem('tilepos_customers');
     if (clearChecks.sales) localStorage.removeItem('tilepos_sales');
     if (clearChecks.settings) localStorage.removeItem('tilepos_settings');
     if (clearChecks.counter) localStorage.removeItem('tilepos_inv_counter');
+
+    // Also clear from Supabase if logged in
+    if (user) {
+      try {
+        if (clearChecks.sales) {
+          // Delete sale_items first (FK dependency)
+          const { data: userSales } = await supabase.from('sales').select('id').eq('user_id', user.id);
+          if (userSales && userSales.length > 0) {
+            const saleIds = userSales.map(s => s.id);
+            await supabase.from('sale_items').delete().in('sale_id', saleIds);
+          }
+          await supabase.from('sales').delete().eq('user_id', user.id);
+        }
+        if (clearChecks.products) {
+          await supabase.from('products').delete().eq('user_id', user.id);
+        }
+        if (clearChecks.customers) {
+          await supabase.from('customers').delete().eq('user_id', user.id);
+        }
+        if (clearChecks.settings) {
+          await supabase.from('company_settings').delete().eq('user_id', user.id);
+        }
+      } catch (err) {
+        console.error('Clear data error:', err);
+      }
+    }
 
     toast.success(t('selectedDataCleared'));
     setShowClearModal(false);
