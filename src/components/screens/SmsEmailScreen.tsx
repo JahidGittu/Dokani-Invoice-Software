@@ -3,8 +3,17 @@ import { useI18n } from "@/lib/i18n";
 import { type Customer } from "@/lib/store";
 import { toast } from "sonner";
 
+interface Contact {
+  id: string;
+  name: string;
+  phone: string;
+  type: 'customer' | 'supplier' | 'staff';
+}
+
 interface SmsEmailScreenProps {
   customers: Customer[];
+  suppliers?: { id: string; name: string; phone: string }[];
+  staffs?: { id: string; name: string; phone: string }[];
 }
 
 export default function SmsEmailScreen({ customers }: SmsEmailScreenProps) {
