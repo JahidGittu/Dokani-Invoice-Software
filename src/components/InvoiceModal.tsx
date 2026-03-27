@@ -457,9 +457,27 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
                   <span>{t('discount')}</span><span>-{formatCurrency(sale.discount)}</span>
                 </div>
               )}
+              {(sale.delivery ?? 0) > 0 && (
+                <div className="flex justify-between text-xs text-pos-on-surface-variant">
+                  <span>{t('delivery')}</span><span>+{formatCurrency(sale.delivery!)}</span>
+                </div>
+              )}
+              {(sale.labour ?? 0) > 0 && (
+                <div className="flex justify-between text-xs text-pos-on-surface-variant">
+                  <span>{t('labour')}</span><span>+{formatCurrency(sale.labour!)}</span>
+                </div>
+              )}
               <div className="flex justify-between font-black text-base pt-1 border-t-2 border-pos-on-surface">
                 <span>{t('total')}</span><span className="text-pos-secondary">{formatCurrency(sale.total)}</span>
               </div>
+              <div className="flex justify-between text-xs font-bold text-[hsl(125,60%,35%)]">
+                <span>{t('paid')}</span><span>{formatCurrency(sale.paid ?? sale.total)}</span>
+              </div>
+              {(sale.due ?? 0) > 0 && (
+                <div className="flex justify-between text-xs font-bold text-pos-error">
+                  <span>{t('due')}</span><span>{formatCurrency(sale.due!)}</span>
+                </div>
+              )}
               <div className="flex justify-between text-[10px] text-pos-on-surface-variant">
                 <span>{t('status')}</span>
                 <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${statusBadgeClass}`}>{sale.status}</span>
