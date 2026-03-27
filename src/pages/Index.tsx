@@ -70,7 +70,7 @@ export default function Index() {
 
   const renderScreen = () => {
     switch (activeScreen) {
-      case 'dashboard': return <DashboardScreen onNavigate={setActiveScreen} products={products} customers={customers} sales={sales} />;
+      case 'dashboard': return <DashboardScreen onNavigate={setActiveScreen} products={products} customers={customers} sales={sales} suppliers={suppliers} purchases={purchases} />;
       case 'products': return <ProductsScreen products={products} onAddProduct={addProduct} onUpdateProduct={updateProduct} onDeleteProduct={deleteProduct} />;
       case 'sales': return <SalesScreen products={products} customers={customers} sales={sales} onSaleComplete={handleSaleComplete} onDeleteSale={deleteSale} companyName={settings.name} companyPhone={settings.phone} companyAddress={settings.address} onNavigate={setActiveScreen} />;
       case 'new-sale': return <NewSaleScreen products={products} customers={customers} settings={settings} onSaleComplete={handleSaleComplete} onAutoAddCustomer={handleAutoAddCustomer} />;
