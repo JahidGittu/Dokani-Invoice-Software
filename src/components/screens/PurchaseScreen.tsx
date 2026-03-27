@@ -1,6 +1,8 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useRef, useCallback } from "react";
+import { useDebounce } from "@/hooks/useDebounce";
 import { useI18n } from "@/lib/i18n";
 import { formatCurrency, getNextPurchaseNumber, type Product, type Supplier, type PurchaseRecord, type PurchaseItem } from "@/lib/store";
+import ComboInput from "@/components/ComboInput";
 import { toast } from "sonner";
 
 interface PurchaseScreenProps {
@@ -13,219 +15,326 @@ interface PurchaseScreenProps {
   onUpdateSupplierDue: (name: string, dueAmount: number) => void;
 }
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 20;
+
+interface NewPurchaseRow {
+  key: number;
+  supplierName: string;
+  productName: string;
+  productId: string;
+  qty: string;
+  rate: string;
+  paid: string;
+  remark: string;
+}
+
+const emptyRow = (): NewPurchaseRow => ({
+  key: Date.now() + Math.random(),
+  supplierName: '', productName: '', productId: '', qty: '1', rate: '', paid: '', remark: '',
+});
+
+type SortField = 'date' | 'supplierName' | 'payable' | 'due';
 
 export default function PurchaseScreen({ products, suppliers, purchases, onAddPurchase, onDeletePurchase, onAddStock, onUpdateSupplierDue }: PurchaseScreenProps) {
   const { t } = useI18n();
-  const [showForm, setShowForm] = useState(false);
-  const [supplierName, setSupplierName] = useState('');
-  const [discount, setDiscount] = useState('');
-  const [delivery, setDelivery] = useState('');
-  const [paid, setPaid] = useState('');
-  const [remark, setRemark] = useState('');
-  const [rows, setRows] = useState<{ id: number; productId: string; qty: number; rate: number }[]>([{ id: Date.now(), productId: '', qty: 1, rate: 0 }]);
+  const [search, setSearch] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [page, setPage] = useState(0);
+  const [viewId, setViewId] = useState<string | null>(null);
 
-  const totalPages = Math.max(1, Math.ceil(purchases.length / PAGE_SIZE));
-  const paginatedPurchases = useMemo(() => purchases.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE), [purchases, page]);
+  // Inline editing
+  const [editingCell, setEditingCell] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState('');
+  const editRef = useRef<HTMLInputElement>(null);
 
-  const addRow = () => setRows(prev => [...prev, { id: Date.now(), productId: '', qty: 1, rate: 0 }]);
-  const removeRow = (id: number) => setRows(prev => prev.length <= 1 ? prev : prev.filter(r => r.id !== id));
-  const updateRow = (id: number, field: string, value: string | number) => {
-    setRows(prev => prev.map(r => r.id === id ? { ...r, [field]: value } : r));
+  // New entry row
+  const [newRow, setNewRow] = useState<NewPurchaseRow>(emptyRow());
+  const supplierRef = useRef<HTMLInputElement>(null);
+
+  // Sort
+  const [sortField, setSortField] = useState<SortField>('date');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+  const toggleSort = (field: SortField) => {
+    if (sortField === field) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortField(field); setSortDir('asc'); }
   };
-  const selectProduct = (rowId: number, productId: string) => {
-    const p = products.find(x => x.id === productId);
-    if (p) setRows(prev => prev.map(r => r.id === rowId ? { ...r, productId, rate: p.buyRate || p.pricePerBox } : r));
-  };
+  const sortIcon = (field: SortField) => sortField === field ? (sortDir === 'asc' ? 'arrow_upward' : 'arrow_downward') : 'unfold_more';
 
-  const subtotal = rows.reduce((sum, r) => sum + r.qty * r.rate, 0);
-  const discountVal = parseFloat(discount) || 0;
-  const deliveryVal = parseFloat(delivery) || 0;
-  const payable = Math.max(0, subtotal - discountVal + deliveryVal);
-  const paidVal = parseFloat(paid) || 0;
-  const dueVal = Math.max(0, payable - paidVal);
-
-  const handleSave = () => {
-    const items = rows.filter(r => r.productId && r.qty > 0).map(r => {
-      const p = products.find(x => x.id === r.productId);
-      return { productId: r.productId, name: p?.name || '', barcode: p?.barcode || '', carton: r.qty, piece: 0, sqftQty: 0, buyRate: r.rate, subTotal: r.qty * r.rate } as PurchaseItem;
+  const debouncedSearch = useDebounce(search, 250);
+  const filtered = useMemo(() => {
+    const list = purchases.filter(p =>
+      p.invoice.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      p.supplierName.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      p.remark.toLowerCase().includes(debouncedSearch.toLowerCase())
+    );
+    return [...list].sort((a, b) => {
+      let cmp = 0;
+      if (sortField === 'date') cmp = new Date(a.date).getTime() - new Date(b.date).getTime();
+      else if (sortField === 'supplierName') cmp = a.supplierName.localeCompare(b.supplierName);
+      else if (sortField === 'payable') cmp = a.payable - b.payable;
+      else if (sortField === 'due') cmp = a.due - b.due;
+      return sortDir === 'asc' ? cmp : -cmp;
     });
-    if (!items.length) { toast.error(t('addAtLeastOneItem')); return; }
-    if (!supplierName.trim()) { toast.error('Select a supplier'); return; }
+  }, [purchases, debouncedSearch, sortField, sortDir]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const paginated = useMemo(() => filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE), [filtered, page]);
+
+  // ── New row save ──
+  const isRowComplete = (r: NewPurchaseRow) => !!(r.supplierName && r.productId && r.rate);
+
+  const autoSaveRow = useCallback(() => {
+    if (!isRowComplete(newRow)) { toast.error('Supplier, Product ও Rate দিন'); return; }
+    const product = products.find(p => p.id === newRow.productId);
+    const qty = parseInt(newRow.qty) || 1;
+    const rate = parseFloat(newRow.rate) || 0;
+    const total = qty * rate;
+    const paidVal = parseFloat(newRow.paid) || 0;
+    const due = Math.max(0, total - paidVal);
+
+    const item: PurchaseItem = {
+      productId: newRow.productId, name: product?.name || newRow.productName,
+      barcode: product?.barcode || '', carton: qty, piece: 0, sqftQty: 0,
+      buyRate: rate, subTotal: total,
+    };
 
     const purchase: PurchaseRecord = {
-      id: crypto.randomUUID(), invoice: getNextPurchaseNumber(), supplierName,
-      date: new Date().toISOString(), items, total: subtotal, discount: discountVal,
-      delivery: deliveryVal, payable, paid: paidVal, due: dueVal, remark,
+      id: crypto.randomUUID(), invoice: getNextPurchaseNumber(),
+      supplierName: newRow.supplierName, date: new Date().toISOString(),
+      items: [item], total, discount: 0, delivery: 0, payable: total,
+      paid: paidVal, due, remark: newRow.remark,
     };
+
     onAddPurchase(purchase);
-    onAddStock(items.map(i => ({ productId: i.productId, qty: i.carton })));
-    if (dueVal > 0) onUpdateSupplierDue(supplierName, dueVal);
-    toast.success(t('purchaseSaved'));
-    resetForm();
+    onAddStock([{ productId: newRow.productId, qty }]);
+    if (due > 0) onUpdateSupplierDue(newRow.supplierName, due);
+    toast.success(`✓ Purchase saved — ${product?.name}`);
+    setNewRow(emptyRow());
+    setTimeout(() => supplierRef.current?.focus(), 50);
+  }, [newRow, products, onAddPurchase, onAddStock, onUpdateSupplierDue]);
+
+  const updateNewRow = (field: keyof NewPurchaseRow, value: string) => {
+    setNewRow(prev => ({ ...prev, [field]: value }));
   };
 
-  const resetForm = () => {
-    setSupplierName(''); setDiscount(''); setDelivery(''); setPaid(''); setRemark('');
-    setRows([{ id: Date.now(), productId: '', qty: 1, rate: 0 }]);
-    setShowForm(false);
+  const selectNewProduct = (productId: string) => {
+    const p = products.find(x => x.id === productId);
+    if (p) {
+      setNewRow(prev => ({ ...prev, productId, productName: p.name, rate: String(p.buyRate || p.pricePerBox) }));
+    }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') { e.preventDefault(); autoSaveRow(); }
+  };
+
+  // ── Delete ──
   const confirmDelete = () => {
     if (showDeleteConfirm) { onDeletePurchase(showDeleteConfirm); toast.success(t('purchaseDeleted')); }
     setShowDeleteConfirm(null);
   };
 
+  const inputCls = "w-full bg-transparent border-none text-xs py-1.5 px-1.5 outline-none focus:bg-[hsl(var(--accent))] transition-colors placeholder:text-muted-foreground/40";
+
+  // ── View details modal ──
+  const viewPurchase = purchases.find(p => p.id === viewId);
+
   return (
-    <section className="p-4 sm:p-8 max-w-7xl mx-auto space-y-8">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+    <section className="p-4 sm:p-6 max-w-[1600px] mx-auto space-y-5">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
-          <span className="text-xs text-pos-on-surface-variant uppercase tracking-widest block mb-2">{t('purchase')}</span>
-          <h2 className="text-3xl sm:text-5xl font-bold text-pos-on-surface leading-tight tracking-tighter">{t('purchaseHistory')}</h2>
+          <span className="text-xs text-pos-on-surface-variant uppercase tracking-widest block mb-1">{t('purchase')}</span>
+          <h2 className="text-2xl sm:text-4xl font-bold text-pos-on-surface leading-tight tracking-tighter">{t('purchaseHistory')} <span className="text-lg font-normal text-pos-on-surface-variant">({purchases.length})</span></h2>
         </div>
-        <button onClick={() => setShowForm(true)} className="px-6 py-3 bg-gradient-to-b from-pos-secondary to-pos-secondary-dim text-white rounded-lg font-medium flex items-center gap-2 shadow-lg hover:-translate-y-1 transition-transform">
-          <span className="material-symbols-outlined text-lg">add</span>{t('addPurchase')}
-        </button>
+        <div className="relative w-full sm:w-auto">
+          <input value={search} onChange={(e) => { setSearch(e.target.value); setPage(0); }} className="w-full sm:w-56 bg-pos-surface-high border-none rounded-lg text-xs py-2.5 pl-9 pr-4 focus:ring-2 focus:ring-pos-secondary outline-none" placeholder="Search purchases..." />
+          <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-pos-on-surface-variant text-base">search</span>
+        </div>
       </div>
 
-      {/* Add Purchase Form */}
-      {showForm && (
-        <div className="bg-pos-surface-lowest rounded-xl shadow-sm border border-pos-surface-container p-6 space-y-4">
-          <h3 className="text-lg font-bold">{t('addPurchase')}</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-[10px] font-bold text-pos-on-surface-variant uppercase mb-1">{t('supplierLabel')}</label>
-              <select value={supplierName} onChange={e => setSupplierName(e.target.value)} className="w-full bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2 px-3 outline-none">
-                <option value="">{t('supplierLabel')}...</option>
-                {suppliers.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="block text-[10px] font-bold text-pos-on-surface-variant uppercase mb-1">{t('discount')}</label>
-              <input type="number" value={discount} onChange={e => setDiscount(e.target.value)} placeholder="0" className="w-full bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2 px-3 outline-none" />
-            </div>
-            <div>
-              <label className="block text-[10px] font-bold text-pos-on-surface-variant uppercase mb-1">{t('delivery')}</label>
-              <input type="number" value={delivery} onChange={e => setDelivery(e.target.value)} placeholder="0" className="w-full bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2 px-3 outline-none" />
-            </div>
-          </div>
-
-          {/* Items */}
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead><tr className="text-[11px] font-bold text-pos-on-surface-variant uppercase bg-pos-surface-low">
-                <th className="px-3 py-2">{t('products')}</th><th className="px-3 py-2 text-center">{t('qty')}</th><th className="px-3 py-2 text-right">{t('rate')}</th><th className="px-3 py-2 text-right">{t('total')}</th><th className="px-3 py-2"></th>
-              </tr></thead>
-              <tbody>{rows.map(row => (
-                <tr key={row.id} className="border-b border-pos-surface-container">
-                  <td className="px-3 py-2">
-                    <select value={row.productId} onChange={e => selectProduct(row.id, e.target.value)} className="w-full bg-transparent border-b border-border text-sm py-1 outline-none">
-                      <option value="">{t('products')}...</option>
-                      {products.map(p => <option key={p.id} value={p.id}>{p.name} ({p.size})</option>)}
-                    </select>
-                  </td>
-                  <td className="px-3 py-2"><input type="number" min={1} value={row.qty} onChange={e => updateRow(row.id, 'qty', parseInt(e.target.value) || 0)} className="w-16 bg-transparent border-b border-border text-sm py-1 text-center outline-none" /></td>
-                  <td className="px-3 py-2"><input type="number" value={row.rate} onChange={e => updateRow(row.id, 'rate', parseFloat(e.target.value) || 0)} className="w-20 bg-transparent border-b border-border text-sm py-1 text-right outline-none" /></td>
-                  <td className="px-3 py-2 text-right font-bold">{formatCurrency(row.qty * row.rate)}</td>
-                  <td className="px-3 py-2"><button onClick={() => removeRow(row.id)} className="text-pos-error"><span className="material-symbols-outlined text-sm">close</span></button></td>
-                </tr>
-              ))}</tbody>
-            </table>
-          </div>
-          <button onClick={addRow} className="text-xs text-pos-secondary font-bold flex items-center gap-1 hover:underline">
-            <span className="material-symbols-outlined text-sm">add</span>{t('addItem')}
-          </button>
-
-          {/* Summary */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-between">
-            <div className="flex-1">
-              <label className="block text-[10px] font-bold text-pos-on-surface-variant uppercase mb-1">{t('notes')}</label>
-              <textarea value={remark} onChange={e => setRemark(e.target.value)} rows={2} className="w-full bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2 px-3 outline-none resize-none" />
-            </div>
-            <div className="w-full sm:w-56 space-y-2 text-sm">
-              <div className="flex justify-between"><span className="text-pos-on-surface-variant">{t('subtotal')}</span><span className="font-semibold">{formatCurrency(subtotal)}</span></div>
-              {discountVal > 0 && <div className="flex justify-between text-pos-error text-xs"><span>{t('discount')}</span><span>-{formatCurrency(discountVal)}</span></div>}
-              {deliveryVal > 0 && <div className="flex justify-between text-xs"><span>{t('delivery')}</span><span>+{formatCurrency(deliveryVal)}</span></div>}
-              <div className="h-[2px] bg-pos-on-surface" />
-              <div className="flex justify-between font-black text-lg"><span>Payable</span><span className="text-pos-secondary">{formatCurrency(payable)}</span></div>
-              <div className="flex justify-between items-center text-xs">
-                <span className="font-bold text-[hsl(125,60%,35%)]">{t('paid')}</span>
-                <input type="number" value={paid} onChange={e => setPaid(e.target.value)} placeholder="0" className="w-20 bg-[hsl(125,100%,95%)] border border-[hsl(125,60%,70%)] rounded text-xs py-1 px-1.5 text-right outline-none font-bold" />
-              </div>
-              <div className="flex justify-between text-xs">
-                <span className={`font-bold ${dueVal > 0 ? 'text-destructive' : 'text-[hsl(125,60%,35%)]'}`}>{t('due')}</span>
-                <span className={`font-bold ${dueVal > 0 ? 'text-destructive' : 'text-[hsl(125,60%,35%)]'}`}>{formatCurrency(dueVal)}</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex gap-3 justify-end">
-            <button onClick={resetForm} className="px-6 py-2 bg-pos-surface-container text-pos-on-surface-variant rounded-lg font-semibold text-sm">{t('cancel')}</button>
-            <button onClick={handleSave} className="px-6 py-2 bg-pos-secondary text-white rounded-lg font-semibold text-sm">{t('saveSale')}</button>
-          </div>
-        </div>
-      )}
-
-      {/* Purchase History */}
+      {/* ═══ UNIFIED TABLE ═══ */}
       <div className="bg-pos-surface-lowest rounded-xl shadow-sm overflow-hidden border border-pos-surface-container">
-        <div className="px-4 sm:px-8 py-5 bg-pos-surface-low">
-          <h3 className="text-base font-semibold">{t('purchaseHistory')} <span className="text-pos-on-surface-variant font-normal text-sm">({purchases.length})</span></h3>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead><tr className="text-[11px] font-bold text-pos-on-surface-variant uppercase tracking-widest bg-pos-surface-low border-t border-pos-surface-container">
-              <th className="px-4 sm:px-6 py-3">{t('invoice')} #</th>
-              <th className="px-4 sm:px-6 py-3">{t('date')}</th>
-              <th className="px-4 sm:px-6 py-3">{t('supplierLabel')}</th>
-              <th className="px-4 sm:px-6 py-3 hidden sm:table-cell">QTY/SQFTQTY</th>
-              <th className="px-4 sm:px-6 py-3">{t('total')}</th>
-              <th className="px-4 sm:px-6 py-3">{t('paid')}</th>
-              <th className="px-4 sm:px-6 py-3">{t('due')}</th>
-              <th className="px-4 sm:px-6 py-3 text-right">{t('actions')}</th>
-            </tr></thead>
+        <div className="overflow-auto max-h-[calc(100vh-260px)]">
+          <table className="w-full min-w-[900px] relative">
+            <thead className="sticky top-0 z-10">
+              <tr className="text-[9px] font-bold text-pos-on-surface-variant uppercase tracking-wider bg-pos-surface-low border-b border-pos-surface-container">
+                <th className="px-2 py-2.5 w-8 text-center">#</th>
+                <th className="px-2 py-2.5">{t('invoice')}</th>
+                <th className="px-2 py-2.5 cursor-pointer select-none" onClick={() => toggleSort('date')}>
+                  <span className="inline-flex items-center gap-0.5">{t('date')} <span className="material-symbols-outlined text-[10px]">{sortIcon('date')}</span></span>
+                </th>
+                <th className="px-2 py-2.5 cursor-pointer select-none" onClick={() => toggleSort('supplierName')}>
+                  <span className="inline-flex items-center gap-0.5">{t('supplierLabel')} <span className="material-symbols-outlined text-[10px]">{sortIcon('supplierName')}</span></span>
+                </th>
+                <th className="px-2 py-2.5">{t('products')}</th>
+                <th className="px-2 py-2.5 text-center">{t('qty')}</th>
+                <th className="px-2 py-2.5 text-right">{t('rate')}</th>
+                <th className="px-2 py-2.5 text-right cursor-pointer select-none" onClick={() => toggleSort('payable')}>
+                  <span className="inline-flex items-center gap-0.5 justify-end">{t('total')} <span className="material-symbols-outlined text-[10px]">{sortIcon('payable')}</span></span>
+                </th>
+                <th className="px-2 py-2.5 text-right">{t('paid')}</th>
+                <th className="px-2 py-2.5 text-right cursor-pointer select-none" onClick={() => toggleSort('due')}>
+                  <span className="inline-flex items-center gap-0.5 justify-end">{t('due')} <span className="material-symbols-outlined text-[10px]">{sortIcon('due')}</span></span>
+                </th>
+                <th className="px-2 py-2.5">Remark</th>
+                <th className="px-2 py-2.5 text-center w-16">{t('action')}</th>
+              </tr>
+
+              {/* ═══ NEW ENTRY ROW ═══ */}
+              <tr className="bg-[hsl(210,40%,96%)] dark:bg-[hsl(210,25%,12%)] border-b-2 border-[hsl(210,50%,70%)] hover:bg-[hsl(210,40%,94%)] dark:hover:bg-[hsl(210,25%,14%)] transition-colors"
+                onKeyDown={handleKeyDown}>
+                <td className="px-2 py-1 text-center">
+                  <span className="material-symbols-outlined text-[hsl(210,60%,45%)] text-base">add_circle</span>
+                </td>
+                <td className="px-2 py-1 text-[10px] text-muted-foreground font-mono">Auto</td>
+                <td className="px-2 py-1 text-[10px] text-muted-foreground">Today</td>
+                <td className="px-0 py-1 border-r border-[hsl(210,30%,80%)]">
+                  <ComboInput
+                    value={newRow.supplierName}
+                    onChange={v => updateNewRow('supplierName', v)}
+                    options={suppliers.map(s => s.name)}
+                    placeholder="Supplier..."
+                    className={inputCls}
+                  />
+                </td>
+                <td className="px-0 py-1 border-r border-[hsl(210,30%,80%)]">
+                  <select value={newRow.productId} onChange={e => selectNewProduct(e.target.value)}
+                    className="w-full bg-transparent border-none text-xs py-1.5 px-1 outline-none focus:bg-[hsl(var(--accent))]">
+                    <option value="">Product...</option>
+                    {products.map(p => <option key={p.id} value={p.id}>{p.name} ({p.size})</option>)}
+                  </select>
+                </td>
+                <td className="px-0 py-1 border-r border-[hsl(210,30%,80%)]">
+                  <input type="number" value={newRow.qty} onChange={e => updateNewRow('qty', e.target.value)} className={`${inputCls} text-center`} placeholder="1" />
+                </td>
+                <td className="px-0 py-1 border-r border-[hsl(210,30%,80%)]">
+                  <input type="number" value={newRow.rate} onChange={e => updateNewRow('rate', e.target.value)} className={`${inputCls} text-right`} placeholder="৳ Rate" />
+                </td>
+                <td className="px-2 py-1 text-right text-xs font-bold text-pos-secondary">
+                  {formatCurrency((parseInt(newRow.qty) || 0) * (parseFloat(newRow.rate) || 0))}
+                </td>
+                <td className="px-0 py-1 border-r border-[hsl(210,30%,80%)] bg-[hsl(125,100%,95%)] dark:bg-[hsl(125,30%,12%)]">
+                  <input type="number" value={newRow.paid} onChange={e => updateNewRow('paid', e.target.value)} className={`${inputCls} text-right font-bold`} placeholder="৳ Paid" />
+                </td>
+                <td className="px-2 py-1 text-right text-xs font-bold">
+                  <span className={`${(((parseInt(newRow.qty) || 0) * (parseFloat(newRow.rate) || 0)) - (parseFloat(newRow.paid) || 0)) > 0 ? 'text-destructive' : 'text-[hsl(125,60%,35%)]'}`}>
+                    {formatCurrency(Math.max(0, ((parseInt(newRow.qty) || 0) * (parseFloat(newRow.rate) || 0)) - (parseFloat(newRow.paid) || 0)))}
+                  </span>
+                </td>
+                <td className="px-0 py-1 border-r border-[hsl(210,30%,80%)]">
+                  <input value={newRow.remark} onChange={e => updateNewRow('remark', e.target.value)} className={inputCls} placeholder="Note..." />
+                </td>
+                <td className="px-2 py-1 text-center">
+                  <button onClick={autoSaveRow} disabled={!isRowComplete(newRow)}
+                    className="w-7 h-7 rounded-lg bg-[hsl(210,60%,45%)] text-white flex items-center justify-center disabled:opacity-30 hover:bg-[hsl(210,60%,38%)] transition-colors mx-auto"
+                    title="Save (Enter)">
+                    <span className="material-symbols-outlined text-sm">check</span>
+                  </button>
+                </td>
+              </tr>
+            </thead>
+
             <tbody className="divide-y divide-pos-surface-container">
-              {paginatedPurchases.length > 0 ? paginatedPurchases.map(p => {
+              {paginated.map((p, idx) => {
                 const totalQty = p.items.reduce((s, i) => s + (i.carton || 0), 0);
+                const productNames = p.items.map(i => i.name).join(', ');
+                const avgRate = p.items.length ? p.items.reduce((s, i) => s + i.buyRate, 0) / p.items.length : 0;
                 return (
-                <tr key={p.id} className="hover:bg-pos-surface-low transition-colors">
-                  <td className="px-4 sm:px-6 py-4 text-xs font-bold text-pos-secondary">{p.invoice}</td>
-                  <td className="px-4 sm:px-6 py-4 text-xs text-pos-on-surface-variant">{(() => { try { return new Date(p.date).toLocaleDateString('en-GB'); } catch { return p.date; } })()}</td>
-                  <td className="px-4 sm:px-6 py-4 text-sm">{p.supplierName}</td>
-                  <td className="px-4 sm:px-6 py-4 text-xs hidden sm:table-cell">{totalQty}</td>
-                  <td className="px-4 sm:px-6 py-4 font-bold">{formatCurrency(p.payable)}</td>
-                  <td className="px-4 sm:px-6 py-4 text-xs font-semibold text-[hsl(125,60%,35%)]">{formatCurrency(p.paid)}</td>
-                  <td className={`px-4 sm:px-6 py-4 text-xs font-semibold ${p.due > 0 ? 'text-destructive' : 'text-[hsl(125,60%,35%)]'}`}>{formatCurrency(p.due)}</td>
-                  <td className="px-4 sm:px-6 py-4 text-right flex justify-end gap-1">
-                    <button className="w-7 h-7 rounded bg-[hsl(125,60%,35%)] text-white flex items-center justify-center text-xs" title="View"><span className="material-symbols-outlined text-sm">visibility</span></button>
-                    <button className="w-7 h-7 rounded bg-pos-secondary text-white flex items-center justify-center text-xs" title="Edit"><span className="material-symbols-outlined text-sm">edit</span></button>
-                    <button onClick={() => setShowDeleteConfirm(p.id)} className="w-7 h-7 rounded bg-pos-error text-white flex items-center justify-center text-xs" title="Delete"><span className="material-symbols-outlined text-sm">delete</span></button>
-                  </td>
-                </tr>
-              )}) : (
-                <tr><td colSpan={8} className="px-8 py-8 text-center text-xs text-pos-on-surface-variant">{t('noSalesYet')}</td></tr>
+                  <tr key={p.id} className="hover:bg-pos-surface-low transition-colors group">
+                    <td className="px-2 py-2.5 text-center text-[10px] text-muted-foreground font-mono">{page * PAGE_SIZE + idx + 1}</td>
+                    <td className="px-2 py-2.5 text-xs font-bold text-pos-secondary">{p.invoice}</td>
+                    <td className="px-2 py-2.5 text-xs text-pos-on-surface-variant">{(() => { try { return new Date(p.date).toLocaleDateString('en-GB'); } catch { return p.date; } })()}</td>
+                    <td className="px-2 py-2.5 text-sm font-semibold">{p.supplierName}</td>
+                    <td className="px-2 py-2.5 text-xs max-w-[150px] truncate" title={productNames}>{productNames || '—'}</td>
+                    <td className="px-2 py-2.5 text-xs text-center">{totalQty}</td>
+                    <td className="px-2 py-2.5 text-xs text-right">{formatCurrency(avgRate)}</td>
+                    <td className="px-2 py-2.5 text-right font-bold text-sm">{formatCurrency(p.payable)}</td>
+                    <td className="px-2 py-2.5 text-right text-xs font-semibold text-[hsl(125,60%,35%)]">{formatCurrency(p.paid)}</td>
+                    <td className={`px-2 py-2.5 text-right text-xs font-semibold ${p.due > 0 ? 'text-destructive' : 'text-[hsl(125,60%,35%)]'}`}>{formatCurrency(p.due)}</td>
+                    <td className="px-2 py-2.5 text-[10px] text-muted-foreground truncate max-w-[100px]" title={p.remark}>{p.remark || '—'}</td>
+                    <td className="px-2 py-2.5 text-center">
+                      <div className="flex items-center justify-center gap-0.5 opacity-60 group-hover:opacity-100 transition-opacity">
+                        <button onClick={() => setViewId(p.id)} className="w-5 h-5 rounded bg-[hsl(210,60%,45%)] text-white flex items-center justify-center" title="View">
+                          <span className="material-symbols-outlined text-xs">visibility</span>
+                        </button>
+                        <button onClick={() => setShowDeleteConfirm(p.id)} className="w-5 h-5 rounded bg-pos-error text-white flex items-center justify-center" title={t('delete')}>
+                          <span className="material-symbols-outlined text-xs">delete</span>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+              {paginated.length === 0 && (
+                <tr><td colSpan={12} className="px-8 py-6 text-center text-xs text-pos-on-surface-variant">{t('noSalesYet')}</td></tr>
               )}
             </tbody>
           </table>
         </div>
-        {purchases.length > PAGE_SIZE && (
-          <div className="px-6 py-3 bg-pos-surface-low border-t border-pos-surface-container flex justify-between items-center">
-            <span className="text-xs text-pos-on-surface-variant">{t('page')} {page + 1} {t('of')} {totalPages}</span>
-            <div className="flex gap-2">
-              <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0} className="px-3 py-1 text-xs font-semibold bg-pos-surface-container rounded-lg disabled:opacity-40">{t('prev')}</button>
-              <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={page >= totalPages - 1} className="px-3 py-1 text-xs font-semibold bg-pos-surface-container rounded-lg disabled:opacity-40">{t('next')}</button>
+
+        {/* Pagination */}
+        {filtered.length > PAGE_SIZE && (
+          <div className="px-4 py-2.5 bg-pos-surface-low border-t border-pos-surface-container flex justify-between items-center">
+            <span className="text-xs text-pos-on-surface-variant">{t('showing')} {page * PAGE_SIZE + 1}-{Math.min((page + 1) * PAGE_SIZE, filtered.length)} {t('of')} {filtered.length}</span>
+            <div className="flex gap-1.5">
+              <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0} className="px-2.5 py-1 text-xs font-semibold bg-pos-surface-container rounded-lg disabled:opacity-40">{t('prev')}</button>
+              {Array.from({ length: totalPages }, (_, i) => (
+                <button key={i} onClick={() => setPage(i)} className={`w-7 h-7 text-xs font-bold rounded-lg ${page === i ? 'bg-pos-secondary text-white' : 'bg-pos-surface-container text-pos-on-surface-variant hover:bg-pos-surface-high'}`}>{i + 1}</button>
+              )).slice(Math.max(0, page - 2), page + 3)}
+              <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={page >= totalPages - 1} className="px-2.5 py-1 text-xs font-semibold bg-pos-surface-container rounded-lg disabled:opacity-40">{t('next')}</button>
             </div>
           </div>
         )}
+
+        {/* Hint bar */}
+        <div className="px-4 py-2 bg-pos-surface-low border-t border-pos-surface-container flex items-center gap-4 text-[10px] text-muted-foreground">
+          <span><kbd className="px-1 py-0.5 bg-pos-surface-container rounded text-[9px] font-mono">Enter</kbd> সেভ ও নতুন রো</span>
+          <span>Supplier, Product ও Rate বাধ্যতামূলক</span>
+        </div>
       </div>
+
+      {/* View Detail Modal */}
+      {viewPurchase && (
+        <div className="fixed inset-0 bg-black/35 flex items-center justify-center z-[1000]" onClick={() => setViewId(null)}>
+          <div className="bg-pos-surface-lowest rounded-xl w-[95vw] max-w-[500px] shadow-2xl p-6" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-bold">Purchase #{viewPurchase.invoice}</h3>
+              <button onClick={() => setViewId(null)} className="text-pos-on-surface-variant hover:text-pos-on-surface"><span className="material-symbols-outlined">close</span></button>
+            </div>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between"><span className="text-muted-foreground">Supplier</span><span className="font-semibold">{viewPurchase.supplierName}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Date</span><span>{new Date(viewPurchase.date).toLocaleDateString('en-GB')}</span></div>
+              <div className="border-t border-pos-surface-container pt-2 mt-2">
+                {viewPurchase.items.map((item, i) => (
+                  <div key={i} className="flex justify-between py-1">
+                    <span>{item.name} × {item.carton}</span>
+                    <span className="font-bold">{formatCurrency(item.subTotal)}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="border-t border-pos-surface-container pt-2 space-y-1">
+                <div className="flex justify-between font-bold text-lg"><span>Total</span><span className="text-pos-secondary">{formatCurrency(viewPurchase.payable)}</span></div>
+                <div className="flex justify-between text-xs"><span className="text-[hsl(125,60%,35%)]">Paid</span><span>{formatCurrency(viewPurchase.paid)}</span></div>
+                <div className="flex justify-between text-xs"><span className={viewPurchase.due > 0 ? 'text-destructive' : 'text-[hsl(125,60%,35%)]'}>Due</span><span>{formatCurrency(viewPurchase.due)}</span></div>
+              </div>
+              {viewPurchase.remark && <p className="text-xs text-muted-foreground mt-2">Note: {viewPurchase.remark}</p>}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Delete Confirm */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/35 flex items-center justify-center z-[1000]" onClick={() => setShowDeleteConfirm(null)}>
           <div className="bg-pos-surface-lowest rounded-xl w-[360px] shadow-2xl p-7" onClick={e => e.stopPropagation()}>
-            <h3 className="text-lg font-bold mb-4">{t('purchaseDeleted')}</h3>
-            <p className="text-sm text-pos-on-surface-variant mb-6">Are you sure?</p>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-pos-error-container flex items-center justify-center">
+                <span className="material-symbols-outlined text-pos-on-error-container">delete</span>
+              </div>
+              <h3 className="text-lg font-bold">Delete Purchase</h3>
+            </div>
+            <p className="text-sm text-pos-on-surface-variant mb-6">Are you sure you want to delete this purchase?</p>
             <div className="flex gap-3">
               <button onClick={() => setShowDeleteConfirm(null)} className="flex-1 py-2.5 bg-pos-surface-container text-pos-on-surface-variant rounded-lg font-semibold text-sm">{t('cancel')}</button>
               <button onClick={confirmDelete} className="flex-1 py-2.5 bg-pos-error text-white rounded-lg font-semibold text-sm">{t('delete')}</button>
