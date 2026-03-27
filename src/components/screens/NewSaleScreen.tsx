@@ -20,6 +20,8 @@ interface NewSaleRow {
   rate: number;
   searchQuery: string;
   showDropdown: boolean;
+  carton: number;
+  piece: number;
 }
 
 interface NewSaleScreenProps {
