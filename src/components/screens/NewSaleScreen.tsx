@@ -759,111 +759,166 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
           </button>
         </div>
 
-        {/* ── Summary & Payment ── */}
-        <div className="px-8 sm:px-12 pb-6">
-          <div className="flex flex-col sm:flex-row gap-6">
-            {/* Left: Payment & Notes */}
+        {/* ── Payment & Status Row ── */}
+        <div className="px-8 sm:px-12 pb-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div>
+              <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1">{t('paymentMethod')}</label>
+              <select value={payment} onChange={e => setPayment(e.target.value)}
+                className="w-full bg-muted/30 border border-border rounded text-xs py-1.5 px-2 outline-none focus:ring-1 focus:ring-ring">
+                <option value="cash">{t('cash')}</option>
+                <option value="bkash">{t('bkash')}</option>
+                <option value="nagad">{t('nagad')}</option>
+                <option value="card">{t('card')}</option>
+                <option value="credit">{t('creditDue')}</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1">{t('status')}</label>
+              <select value={status} onChange={e => setStatus(e.target.value)}
+                className="w-full bg-muted/30 border border-border rounded text-xs py-1.5 px-2 outline-none focus:ring-1 focus:ring-ring">
+                <option value="paid">{t('paid')}</option>
+                <option value="pending">{t('pending')}</option>
+                <option value="credit">{t('credit')}</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1">{t('discount')}</label>
+              <div className="flex gap-1">
+                <input type="number" value={discount} onChange={e => setDiscount(e.target.value)} placeholder="0"
+                  className="w-full bg-muted/30 border border-border rounded text-xs py-1.5 px-2 text-right outline-none focus:ring-1 focus:ring-ring" />
+                <select value={discountType} onChange={e => setDiscountType(e.target.value as 'flat' | 'percent')}
+                  className="bg-muted/30 border border-border rounded text-[10px] py-1 px-1 outline-none">
+                  <option value="flat">৳</option><option value="percent">%</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1">{t('notes')}</label>
+              <input value={notes} onChange={e => setNotes(e.target.value)}
+                className="w-full bg-muted/30 border border-border rounded text-xs py-1.5 px-2 outline-none focus:ring-1 focus:ring-ring" placeholder="..." />
+            </div>
+          </div>
+        </div>
+
+        {/* ── Bottom 2-Column: Due Box (Left) + Totals (Right) ── */}
+        <div className="px-8 sm:px-12 pb-4">
+          <div className="flex flex-col sm:flex-row gap-5">
+            {/* LEFT COLUMN: Due Box + Remark + Quantity + In Word */}
             <div className="flex-1 space-y-3">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1">{t('paymentMethod')}</label>
-                  <select value={payment} onChange={e => setPayment(e.target.value)}
-                    className="w-full bg-muted/30 border border-border rounded-lg text-sm py-2 px-2 outline-none focus:ring-2 focus:ring-ring">
-                    <option value="cash">{t('cash')}</option>
-                    <option value="bkash">{t('bkash')}</option>
-                    <option value="nagad">{t('nagad')}</option>
-                    <option value="card">{t('card')}</option>
-                    <option value="credit">{t('creditDue')}</option>
-                  </select>
+              {/* Due Box */}
+              <div className="border-2 border-foreground rounded p-3 space-y-1.5 text-xs">
+                <div className="flex justify-between">
+                  <span className="font-semibold">Due In This Bill:</span>
+                  <span className="font-black min-w-[80px] text-right">{Math.round(dueVal)}/-</span>
                 </div>
-                <div>
-                  <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1">{t('status')}</label>
-                  <select value={status} onChange={e => setStatus(e.target.value)}
-                    className="w-full bg-muted/30 border border-border rounded-lg text-sm py-2 px-2 outline-none focus:ring-2 focus:ring-ring">
-                    <option value="paid">{t('paid')}</option>
-                    <option value="pending">{t('pending')}</option>
-                    <option value="credit">{t('credit')}</option>
-                  </select>
+                <div className="flex justify-between">
+                  <span className="font-semibold">Previous Dues:</span>
+                  <span className="font-black min-w-[80px] text-right">0/-</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-semibold">Balance:</span>
+                  <span className="font-black min-w-[80px] text-right">{Math.round(balanceVal)}/-</span>
                 </div>
               </div>
-              <div>
-                <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1">{t('notes')}</label>
-                <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2}
-                  className="w-full bg-muted/30 border border-border rounded-lg text-sm py-2 px-2 outline-none resize-none focus:ring-2 focus:ring-ring" placeholder="..." />
+
+              {/* Remark */}
+              <div className="text-xs">
+                <span className="font-bold">Remark:</span> <span className="text-muted-foreground">{notes || ''}</span>
+              </div>
+
+              {/* Total Quantity */}
+              <div className="text-xs">
+                <span className="font-bold">Total Quantity:</span>{' '}
+                <span>{rows.reduce((sum, r) => {
+                  const product = products.find(p => p.id === r.productId);
+                  const sqftPerBox = product?.sqftPerBox || 0;
+                  const piecesPerBox = product?.piecesPerBox || 4;
+                  const sqftPerPiece = piecesPerBox > 0 ? sqftPerBox / piecesPerBox : 0;
+                  return sum + (r.carton * sqftPerBox) + (r.piece * sqftPerPiece);
+                }, 0).toFixed(1)}</span>
+              </div>
+
+              {/* In Word */}
+              <div className="text-xs">
+                <span className="font-bold">In Word:</span>{' '}
+                <span className="text-primary font-bold">{numberToWords(total)}</span>
               </div>
             </div>
 
-            {/* Right: Totals */}
-            <div className="w-full sm:w-64 space-y-2 text-sm">
-              <div className="flex justify-between"><span className="text-muted-foreground">{t('subtotal')}</span><span className="font-semibold">{formatCurrency(subtotal)}</span></div>
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">{t('discount')}</span>
-                <div className="flex gap-1 items-center">
-                  <input type="number" value={discount} onChange={e => setDiscount(e.target.value)} placeholder="0"
-                    className="w-14 bg-muted/30 border border-border rounded text-xs py-1 px-1.5 text-right outline-none focus:ring-1 focus:ring-ring" />
-                  <select value={discountType} onChange={e => setDiscountType(e.target.value as 'flat' | 'percent')}
-                    className="bg-muted/30 border border-border rounded text-[10px] py-1 px-1 outline-none">
-                    <option value="flat">৳</option><option value="percent">%</option>
-                  </select>
+            {/* RIGHT COLUMN: Total, Labour, PAYABLE, Paid */}
+            <div className="w-full sm:w-56 space-y-1.5 text-xs">
+              <div className="flex justify-between py-0.5">
+                <span className="text-muted-foreground">{t('subtotal')}</span>
+                <span className="font-semibold">{Math.round(subtotal)}</span>
+              </div>
+              {discountVal > 0 && (
+                <div className="flex justify-between py-0.5 text-destructive">
+                  <span>{t('discount')}</span>
+                  <span>-{Math.round(discountVal)}</span>
                 </div>
-              </div>
-              {discountVal > 0 && <div className="flex justify-between text-destructive text-xs"><span>{t('discount')}</span><span>-{formatCurrency(discountVal)}</span></div>}
-              
-              {/* Return */}
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-muted-foreground">Return</span>
-                <input type="number" value={returnAmt} onChange={e => setReturnAmt(e.target.value)} placeholder="0"
-                  className="w-20 bg-muted/30 border border-border rounded text-xs py-1 px-1.5 text-right outline-none focus:ring-1 focus:ring-ring" />
-              </div>
-              {/* Less */}
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-muted-foreground">Less</span>
-                <input type="number" value={lessAmt} onChange={e => setLessAmt(e.target.value)} placeholder="0"
-                  className="w-20 bg-muted/30 border border-border rounded text-xs py-1 px-1.5 text-right outline-none focus:ring-1 focus:ring-ring" />
-              </div>
+              )}
+              {returnVal > 0 && (
+                <div className="flex justify-between py-0.5">
+                  <span className="text-muted-foreground">Return</span>
+                  <span>-{Math.round(returnVal)}</span>
+                </div>
+              )}
+              {lessVal > 0 && (
+                <div className="flex justify-between py-0.5">
+                  <span className="text-muted-foreground">Less</span>
+                  <span>-{Math.round(lessVal)}</span>
+                </div>
+              )}
+              {deliveryVal > 0 && (
+                <div className="flex justify-between py-0.5">
+                  <span className="text-muted-foreground">{t('delivery')}</span>
+                  <span>+{Math.round(deliveryVal)}</span>
+                </div>
+              )}
 
-              {/* Delivery */}
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-muted-foreground">{t('delivery')}</span>
-                <input type="number" value={delivery} onChange={e => setDelivery(e.target.value)} placeholder="0"
-                  className="w-20 bg-muted/30 border border-border rounded text-xs py-1 px-1.5 text-right outline-none focus:ring-1 focus:ring-ring" />
-              </div>
-              {/* Labour */}
-              <div className="flex justify-between items-center text-xs">
+              {/* Labour input */}
+              <div className="flex justify-between items-center py-0.5">
                 <span className="text-muted-foreground">{t('labour')}</span>
                 <input type="number" value={labour} onChange={e => setLabour(e.target.value)} placeholder="0"
                   className="w-20 bg-muted/30 border border-border rounded text-xs py-1 px-1.5 text-right outline-none focus:ring-1 focus:ring-ring" />
               </div>
 
-              <div className="h-[2px] bg-foreground" />
-              <div className="flex justify-between text-xl font-black">
-                <span>{t('total')}</span>
-                <span className="text-primary">{formatCurrency(total)}</span>
+              {/* PAYABLE - prominent */}
+              <div className="flex justify-between items-center py-2 border-t-2 border-b-2 border-foreground my-1">
+                <span className="text-lg font-black">PAYABLE:</span>
+                <span className="text-lg font-black text-primary">{Math.round(total)}</span>
               </div>
 
-              {/* Paid */}
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-muted-foreground font-bold">{t('paid')}</span>
+              {/* Paid input */}
+              <div className="flex justify-between items-center py-0.5">
+                <span className="font-bold">{t('paid')}</span>
                 <input type="number" value={paidAmount} onChange={e => setPaidAmount(e.target.value)} placeholder="0"
                   className="w-20 bg-[hsl(125,100%,95%)] border border-[hsl(125,60%,70%)] rounded text-xs py-1 px-1.5 text-right outline-none focus:ring-1 focus:ring-[hsl(125,60%,50%)] font-bold" />
               </div>
-              {/* Due */}
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-destructive font-bold">{t('due')}</span>
-                <span className={`font-bold text-sm ${dueVal > 0 ? 'text-destructive' : 'text-[hsl(125,60%,35%)]'}`}>{formatCurrency(dueVal)}</span>
-              </div>
-              {/* Balance */}
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-primary font-bold">Balance</span>
-                <span className={`font-bold text-sm ${balanceVal > 0 ? 'text-destructive' : 'text-[hsl(125,60%,35%)]'}`}>{formatCurrency(balanceVal)}</span>
-              </div>
 
-              <div className="flex justify-between items-center text-xs">
+              {/* Return / Less / Delivery / Received inputs */}
+              <div className="flex justify-between items-center py-0.5">
+                <span className="text-muted-foreground">Return</span>
+                <input type="number" value={returnAmt} onChange={e => setReturnAmt(e.target.value)} placeholder="0"
+                  className="w-20 bg-muted/30 border border-border rounded text-xs py-1 px-1.5 text-right outline-none focus:ring-1 focus:ring-ring" />
+              </div>
+              <div className="flex justify-between items-center py-0.5">
+                <span className="text-muted-foreground">Less</span>
+                <input type="number" value={lessAmt} onChange={e => setLessAmt(e.target.value)} placeholder="0"
+                  className="w-20 bg-muted/30 border border-border rounded text-xs py-1 px-1.5 text-right outline-none focus:ring-1 focus:ring-ring" />
+              </div>
+              <div className="flex justify-between items-center py-0.5">
+                <span className="text-muted-foreground">{t('delivery')}</span>
+                <input type="number" value={delivery} onChange={e => setDelivery(e.target.value)} placeholder="0"
+                  className="w-20 bg-muted/30 border border-border rounded text-xs py-1 px-1.5 text-right outline-none focus:ring-1 focus:ring-ring" />
+              </div>
+              <div className="flex justify-between items-center py-0.5">
                 <span className="text-muted-foreground">{t('amountReceived')}</span>
                 <input type="number" value={received} onChange={e => setReceived(e.target.value)} placeholder="0"
                   className="w-20 bg-muted/30 border border-border rounded text-xs py-1 px-1.5 text-right outline-none focus:ring-1 focus:ring-ring" />
               </div>
-              {change > 0 && <div className="flex justify-between text-xs font-bold text-[hsl(var(--pos-tertiary))]"><span>{t('change')}</span><span>{formatCurrency(change)}</span></div>}
+              {change > 0 && <div className="flex justify-between text-xs font-bold text-[hsl(142,70%,35%)]"><span>{t('change')}</span><span>{formatCurrency(change)}</span></div>}
               <div className="flex justify-end">
                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${statusBadgeClass}`}>
                   {statusLabels[status] || status}
@@ -873,10 +928,26 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
           </div>
         </div>
 
-        {/* ── Footer: Terms ── */}
-        <div className="px-8 sm:px-12 py-3 bg-muted/20 border-t border-border text-[9px] text-muted-foreground mt-auto">
-          <span className="font-bold text-foreground text-[10px]">{t('termsAndConditions')}</span>
-          <span className="ml-2">• {t('goodsOnceDelivered')} • {t('priceSubjectToChange')} • {t('paymentDueWithin')}</span>
+        {/* ── Signatures ── */}
+        <div className="px-8 sm:px-12 pb-2">
+          <div className="flex justify-between mt-12 pt-2">
+            <div className="text-center min-w-[150px]">
+              <div className="border-t border-muted-foreground pt-1.5 text-xs font-bold text-primary">Customer Signature</div>
+            </div>
+            <div className="text-center min-w-[150px]">
+              <div className="border-t border-muted-foreground pt-1.5 text-xs font-bold text-primary">Authorized Signature</div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Disclaimer & Footer ── */}
+        <div className="px-8 sm:px-12 py-3 border-t border-border mt-auto">
+          <div className="text-center text-[11px] font-bold text-destructive mb-1">
+            বিক্রিত মাল ১ মাসের মধ্যে ফেরত নেওয়া হয়। চায়না/ইন্ডিয়ান মাল ফেরত নেওয়া হয় না।
+          </div>
+          <div className="text-center text-[9px] text-muted-foreground">
+            SOFTWARE: {settings.name} | Printing @: {new Date().toLocaleString()}
+          </div>
         </div>
       </div>
 
