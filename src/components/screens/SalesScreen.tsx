@@ -271,12 +271,15 @@ export default function SalesScreen({ products, customers, sales, onSaleComplete
           if (!sale) return null;
           return (
             <div className="fixed inset-0 z-[999]" onClick={() => setOpenMenuId(null)}>
-              <div className="fixed z-[1000]" style={{ top: (() => {
+              <div className="fixed z-[1000]" style={(() => {
                 const btn = document.querySelector(`[data-sale-id="${openMenuId}"]`) as HTMLElement;
-                if (!btn) return '50%';
+                if (!btn) return { top: '50%', right: '2rem' };
                 const rect = btn.getBoundingClientRect();
-                return `${rect.bottom + 4}px`;
-              })(), right: '2rem' }}
+                const menuHeight = 140;
+                const spaceBelow = window.innerHeight - rect.bottom;
+                const top = spaceBelow < menuHeight ? rect.top - menuHeight - 4 : rect.bottom + 4;
+                return { top: `${top}px`, right: `${window.innerWidth - rect.right}px` };
+              })()}
                 onClick={e => e.stopPropagation()}>
                 <div className="bg-card border border-border rounded-lg shadow-xl min-w-[140px] py-1">
                   <button onClick={() => { reopenInvoice(sale); setOpenMenuId(null); }} className="w-full text-left px-4 py-2.5 text-xs hover:bg-accent flex items-center gap-2 transition-colors"><span className="material-symbols-outlined text-sm text-pos-secondary">visibility</span>{t('view')}</button>
