@@ -8,6 +8,8 @@ const navItems = [
   { id: 'new-sale', icon: 'receipt_long', labelKey: 'newSaleEntry' as const },
   { id: 'products', icon: 'inventory_2', labelKey: 'products' as const },
   { id: 'sales', icon: 'point_of_sale', labelKey: 'salesPOS' as const },
+  { id: 'purchases', icon: 'shopping_cart', labelKey: 'purchases' as const },
+  { id: 'suppliers', icon: 'local_shipping', labelKey: 'suppliers' as const },
   { id: 'inventory', icon: 'layers', labelKey: 'inventory' as const },
   { id: 'customers', icon: 'group', labelKey: 'customers' as const },
   { id: 'reports', icon: 'assessment', labelKey: 'reports' as const },

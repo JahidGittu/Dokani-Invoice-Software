@@ -458,9 +458,14 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
     doc.setFontSize(9); doc.setTextColor(90, 96, 97); doc.text('Subtotal', totalsX, y);
     doc.setTextColor(45, 52, 53); doc.text(formatCurrency(sale.subtotal), pw - 15, y, { align: 'right' }); y += 5;
     if (sale.discount > 0) { doc.setTextColor(159, 64, 61); doc.text('Discount', totalsX, y); doc.text(`-${formatCurrency(sale.discount)}`, pw - 15, y, { align: 'right' }); y += 5; }
+    if ((sale.delivery ?? 0) > 0) { doc.setTextColor(90, 96, 97); doc.text('Delivery', totalsX, y); doc.setTextColor(45, 52, 53); doc.text(`+${formatCurrency(sale.delivery!)}`, pw - 15, y, { align: 'right' }); y += 5; }
+    if ((sale.labour ?? 0) > 0) { doc.setTextColor(90, 96, 97); doc.text('Labour', totalsX, y); doc.setTextColor(45, 52, 53); doc.text(`+${formatCurrency(sale.labour!)}`, pw - 15, y, { align: 'right' }); y += 5; }
     doc.setDrawColor(45, 52, 53); doc.setLineWidth(0.5); doc.line(totalsX - 5, y, pw - 15, y); y += 6;
     doc.setFontSize(14); doc.setFont('helvetica', 'bold'); doc.text('TOTAL', totalsX, y);
     doc.setTextColor(0, 92, 193); doc.text(formatCurrency(sale.total), pw - 15, y, { align: 'right' }); y += 6;
+    doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(0, 97, 32); doc.text('Paid', totalsX, y);
+    doc.text(formatCurrency(sale.paid ?? sale.total), pw - 15, y, { align: 'right' }); y += 5;
+    if ((sale.due ?? 0) > 0) { doc.setTextColor(159, 64, 61); doc.text('Due', totalsX, y); doc.text(formatCurrency(sale.due!), pw - 15, y, { align: 'right' }); y += 5; }
     doc.setFontSize(8); doc.setTextColor(45, 52, 53); doc.setFont('helvetica', 'normal');
     doc.text(`Status: ${sale.status.toUpperCase()}`, totalsX, y); y += 12;
 
