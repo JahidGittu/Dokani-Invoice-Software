@@ -27,6 +27,9 @@ export function useSupabaseProducts() {
       stock: p.stock,
       batch: p.batch,
       barcode: p.barcode || '',
+      category: (p as any).category || '',
+      brand: (p as any).brand || '',
+      buyRate: Number((p as any).buy_rate) || 0,
     })));
     setLoading(false);
   }, [user]);
