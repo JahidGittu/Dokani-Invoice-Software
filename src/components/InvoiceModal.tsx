@@ -173,7 +173,11 @@ ${sale.items.map(item => `
 <div class="line"></div>
 <div class="row"><span>Subtotal</span><span>${formatCurrency(sale.subtotal)}</span></div>
 ${sale.discount > 0 ? `<div class="row"><span>Discount</span><span>-${formatCurrency(sale.discount)}</span></div>` : ''}
+${(sale.delivery ?? 0) > 0 ? `<div class="row"><span>Delivery</span><span>+${formatCurrency(sale.delivery!)}</span></div>` : ''}
+${(sale.labour ?? 0) > 0 ? `<div class="row"><span>Labour</span><span>+${formatCurrency(sale.labour!)}</span></div>` : ''}
 <div class="row total-line"><span>TOTAL</span><span>${formatCurrency(sale.total)}</span></div>
+<div class="row"><span>Paid</span><span>${formatCurrency(sale.paid ?? sale.total)}</span></div>
+${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><span>${formatCurrency(sale.due!)}</span></div>` : ''}
 <div class="row" style="font-size:10px"><span>Payment: ${sale.paymentMethod.toUpperCase()}</span><span>${sale.status.toUpperCase()}</span></div>
 <div class="line"></div>
 <div class="center" style="font-size:9px;margin-top:4px">Thank you! Visit again.</div>
