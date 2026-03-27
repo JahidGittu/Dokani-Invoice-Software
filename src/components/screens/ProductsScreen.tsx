@@ -202,23 +202,16 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
                     className={`${inputCls} font-semibold`} placeholder="নাম লিখুন..." autoFocus />
                 </td>
                 <td className="px-0 py-1 border-r border-[hsl(125,30%,80%)]">
-                  <select value={newRow.category} onChange={e => updateNewRow('category', e.target.value)} className={selectCls}>
-                    {PRODUCT_CATEGORIES.map(c => <option key={c}>{c}</option>)}
-                  </select>
+                  <ComboInput value={newRow.category} onChange={v => updateNewRow('category', v)} options={getOptions('category')} onAddNew={v => addOption('category', v)} placeholder="Category" className={inputCls} />
                 </td>
                 <td className="px-0 py-1 border-r border-[hsl(125,30%,80%)]">
-                  <select value={newRow.brand} onChange={e => updateNewRow('brand', e.target.value)} className={selectCls}>
-                    <option value="">—</option>
-                    {PRODUCT_BRANDS.map(b => <option key={b}>{b}</option>)}
-                  </select>
+                  <ComboInput value={newRow.brand} onChange={v => updateNewRow('brand', v)} options={getOptions('brand')} onAddNew={v => addOption('brand', v)} placeholder="Brand" className={inputCls} />
                 </td>
                 <td className="px-0 py-1 border-r border-[hsl(125,30%,80%)]">
-                  <input value={newRow.size} onChange={e => updateNewRow('size', e.target.value)} className={inputCls} placeholder="60×60" />
+                  <ComboInput value={newRow.size} onChange={v => updateNewRow('size', v)} options={getOptions('size')} onAddNew={v => addOption('size', v)} placeholder="60×60" className={inputCls} />
                 </td>
                 <td className="px-0 py-1 border-r border-[hsl(125,30%,80%)]">
-                  <select value={newRow.finish} onChange={e => updateNewRow('finish', e.target.value)} className={selectCls}>
-                    {FINISHES.map(f => <option key={f}>{f}</option>)}
-                  </select>
+                  <ComboInput value={newRow.finish} onChange={v => updateNewRow('finish', v)} options={getOptions('finish')} onAddNew={v => addOption('finish', v)} placeholder="Finish" className={inputCls} />
                 </td>
                 <td className="px-0 py-1 border-r border-[hsl(125,30%,80%)]">
                   <input type="number" value={newRow.buyRate} onChange={e => updateNewRow('buyRate', e.target.value)} className={`${inputCls} text-right`} placeholder="৳ Buy" />
