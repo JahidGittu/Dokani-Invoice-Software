@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useI18n } from "@/lib/i18n";
 import { formatCurrency, getNextInvoiceNumber, downloadCSV, type CartItem, type Product, type SaleRecord, type Customer } from "@/lib/store";
 import { toast } from "sonner";
 import InvoiceModal from "@/components/InvoiceModal";
@@ -19,6 +20,7 @@ interface SalesScreenProps {
 const PAGE_SIZE = 10;
 
 export default function SalesScreen({ products, customers, sales, onSaleComplete, onDeleteSale, companyName, companyPhone, companyAddress, onNavigate }: SalesScreenProps) {
+  const { t } = useI18n();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
@@ -38,39 +40,34 @@ export default function SalesScreen({ products, customers, sales, onSaleComplete
       p.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
       p.size.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
       p.batch.toLowerCase().includes(debouncedSearch.toLowerCase())
-    ),
-    [products, debouncedSearch]
-  );
+    ), [products, debouncedSearch]);
 
   const customerSuggestions = useMemo(() =>
-    customerName.length >= 1
-      ? customers.filter(c => c.name.toLowerCase().includes(customerName.toLowerCase())).slice(0, 5)
-      : [],
-    [customerName, customers]
-  );
+    customerName.length >= 1 ? customers.filter(c => c.name.toLowerCase().includes(customerName.toLowerCase())).slice(0, 5) : [],
+    [customerName, customers]);
 
   const totalPages = Math.max(1, Math.ceil(sales.length / PAGE_SIZE));
   const paginatedSales = useMemo(() => sales.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE), [sales, page]);
 
   const addToCart = useCallback((product: Product) => {
-    if (product.stock <= 0) { toast.error(`${product.name} out of stock!`); return; }
+    if (product.stock <= 0) { toast.error(`${product.name} ${t('outOfStockMsg')}`); return; }
     setCart(prev => {
       const existing = prev.find(c => c.product.id === product.id);
       if (existing) {
-        if (existing.qty >= product.stock) { toast.error(`Only ${product.stock} boxes available!`); return prev; }
+        if (existing.qty >= product.stock) { toast.error(`${t('onlyInStock')} ${product.stock} ${t('onlyBoxesAvail')}`); return prev; }
         return prev.map(c => c.product.id === product.id ? { ...c, qty: c.qty + 1 } : c);
       }
       return [...prev, { product, qty: 1 }];
     });
-    toast.success(`${product.name} added!`);
-  }, []);
+    toast.success(`${product.name} ${t('addedToCart')}`);
+  }, [t]);
 
   const changeQty = (index: number, delta: number) => {
     setCart(prev => {
       const updated = [...prev];
       const newQty = updated[index].qty + delta;
       if (newQty <= 0) { updated.splice(index, 1); return updated; }
-      if (newQty > updated[index].product.stock) { toast.error(`Only ${updated[index].product.stock} boxes in stock!`); return prev; }
+      if (newQty > updated[index].product.stock) { toast.error(`${t('onlyInStock')} ${updated[index].product.stock} ${t('onlyBoxesAvail')}`); return prev; }
       updated[index] = { ...updated[index], qty: newQty };
       return updated;
     });
@@ -81,61 +78,54 @@ export default function SalesScreen({ products, customers, sales, onSaleComplete
   const total = Math.max(0, subtotal - discountValue);
 
   const handleCheckout = () => {
-    if (!cart.length) { toast.error('Cart is empty!'); return; }
+    if (!cart.length) { toast.error(t('cartEmpty')); return; }
     const inv = getNextInvoiceNumber();
     const now = new Date();
     const sale: SaleRecord = {
-      id: crypto.randomUUID(),
-      invoice: inv,
-      customer: customerName || 'Walk-in Customer',
-      phone: customerPhone,
+      id: crypto.randomUUID(), invoice: inv, customer: customerName || t('walkInCustomer'), phone: customerPhone,
       items: cart.map(c => ({ productId: c.product.id, name: c.product.name, detail: `${c.product.size} · ${c.product.finish}`, qty: c.qty, price: c.product.pricePerBox })),
-      subtotal, discount: discountValue, discountType, total,
-      paymentMethod: 'cash', notes: '', status: 'paid',
-      date: now.toISOString(),
-      time: now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
+      subtotal, discount: discountValue, discountType, total, paymentMethod: 'cash', notes: '', status: 'paid',
+      date: now.toISOString(), time: now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
     };
     onSaleComplete(sale, cart.map(c => ({ productId: c.product.id, qty: c.qty })));
-    setViewSale(sale);
-    setShowInvoice(true);
+    setViewSale(sale); setShowInvoice(true);
     setCart([]); setCustomerName(''); setCustomerPhone(''); setDiscount('');
-    toast.success(`Sale ${inv} completed!`);
+    toast.success(`${t('saleCompleted')} ${inv}`);
   };
 
   const reopenInvoice = (s: SaleRecord) => { setViewSale(s); setShowInvoice(true); };
 
   const confirmDeleteSale = () => {
-    if (showDeleteConfirm) { onDeleteSale(showDeleteConfirm); toast.success('Sale deleted.'); }
+    if (showDeleteConfirm) { onDeleteSale(showDeleteConfirm); toast.success(t('saleDeleted')); }
     setShowDeleteConfirm(null);
   };
 
   const exportSalesCSV = () => {
-    const rows = [['Invoice','Customer','Phone','Items','Subtotal','Discount','Total','Payment','Status','Date'],
-      ...sales.map(s => [s.invoice, s.customer, s.phone||'', String(s.items.length), String(s.subtotal), String(s.discount), String(s.total), s.paymentMethod, s.status, s.date])
+    const rows = [[t('invoice'), t('customer'), t('phoneLabel'), t('items'), t('subtotal'), t('discount'), t('total'), t('payment'), t('status'), t('date')],
+      ...sales.map(s => [s.invoice, s.customer, s.phone || '', String(s.items.length), String(s.subtotal), String(s.discount), String(s.total), s.paymentMethod, s.status, s.date])
     ];
     downloadCSV(rows, 'sales_export.csv');
-    toast.success('CSV exported!');
+    toast.success(t('csvExported'));
   };
 
   return (
     <section className="p-4 sm:p-8 max-w-7xl mx-auto space-y-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
         <div>
-          <span className="text-xs text-pos-on-surface-variant uppercase tracking-widest block mb-2">Point of Sale</span>
-          <h2 className="text-3xl sm:text-5xl font-bold text-pos-on-surface leading-tight tracking-tighter">Sales / POS</h2>
+          <span className="text-xs text-pos-on-surface-variant uppercase tracking-widest block mb-2">{t('pointOfSale')}</span>
+          <h2 className="text-3xl sm:text-5xl font-bold text-pos-on-surface leading-tight tracking-tighter">{t('salesPOS')}</h2>
         </div>
         <button onClick={() => onNavigate('new-sale')} className="px-6 py-3 bg-gradient-to-b from-pos-secondary to-pos-secondary-dim text-white rounded-lg font-medium flex items-center gap-2 shadow-lg hover:-translate-y-1 transition-transform">
-          <span className="material-symbols-outlined text-lg">receipt_long</span>New Sale Entry
+          <span className="material-symbols-outlined text-lg">receipt_long</span>{t('newSaleEntryBtn')}
         </button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Product Grid */}
         <div className="lg:col-span-7 space-y-4">
           <div className="relative">
             <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
               className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-3 pl-10 focus:ring-2 focus:ring-pos-secondary outline-none"
-              placeholder="Search by name, size, batch..." />
+              placeholder={t('searchByName')} />
             <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-pos-on-surface-variant">search</span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -146,28 +136,26 @@ export default function SalesScreen({ products, customers, sales, onSaleComplete
                 <div className="text-xs text-pos-on-surface-variant mb-3">{p.size} · {p.finish}</div>
                 <div className="flex justify-between items-end">
                   <div className="text-lg font-black text-pos-secondary">{formatCurrency(p.pricePerBox)}</div>
-                  <div className={`text-[10px] font-bold ${p.stock <= 20 ? 'text-pos-error' : 'text-pos-on-surface-variant'}`}>{p.stock} boxes</div>
+                  <div className={`text-[10px] font-bold ${p.stock <= 20 ? 'text-pos-error' : 'text-pos-on-surface-variant'}`}>{p.stock} {t('boxes')}</div>
                 </div>
               </div>
             )) : (
-              <div className="text-xs text-pos-on-surface-variant col-span-2 py-4">No products found. <button onClick={() => onNavigate('products')} className="text-pos-secondary underline">Add products first.</button></div>
+              <div className="text-xs text-pos-on-surface-variant col-span-2 py-4">{t('noProducts')} <button onClick={() => onNavigate('products')} className="text-pos-secondary underline">{t('addProduct')}</button></div>
             )}
           </div>
         </div>
 
-        {/* Cart */}
         <div className="lg:col-span-5">
           <div className="bg-pos-surface-lowest rounded-xl shadow-sm border border-pos-surface-container sticky top-24">
             <div className="px-5 py-4 border-b border-pos-surface-container flex justify-between items-center">
-              <h3 className="font-semibold">Current Cart <span className="text-pos-on-surface-variant font-normal text-sm">({cart.length})</span></h3>
-              {cart.length > 0 && <button onClick={() => setCart([])} className="text-xs text-pos-error hover:underline">Clear</button>}
+              <h3 className="font-semibold">{t('currentCart')} <span className="text-pos-on-surface-variant font-normal text-sm">({cart.length})</span></h3>
+              {cart.length > 0 && <button onClick={() => setCart([])} className="text-xs text-pos-error hover:underline">{t('clear')}</button>}
             </div>
-            {/* Customer in POS */}
             <div className="px-5 pt-4 relative">
               <input value={customerName} onChange={e => { setCustomerName(e.target.value); setShowSuggestions(true); }}
                 onFocus={() => setShowSuggestions(true)} onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                 className="w-full bg-pos-surface-high border-none rounded-lg text-xs py-2 pl-8 focus:ring-2 focus:ring-pos-secondary outline-none"
-                placeholder="Customer name (optional)" />
+                placeholder={t('customerName')} />
               <span className="material-symbols-outlined absolute left-7 top-1/2 mt-2 -translate-y-1/2 text-pos-on-surface-variant text-base">person</span>
               {showSuggestions && customerSuggestions.length > 0 && (
                 <div className="absolute left-5 right-5 bg-pos-surface-lowest border border-pos-surface-container rounded-lg shadow-xl z-10 mt-1 max-h-[160px] overflow-y-auto">
@@ -182,7 +170,7 @@ export default function SalesScreen({ products, customers, sales, onSaleComplete
               {cart.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-32 text-pos-on-surface-variant">
                   <span className="material-symbols-outlined text-3xl mb-2">shopping_cart</span>
-                  <span className="text-xs">Click a product to add</span>
+                  <span className="text-xs">{t('clickToAdd')}</span>
                 </div>
               ) : cart.map((c, i) => (
                 <div key={c.product.id} className="flex items-center gap-2 rounded-lg p-2 hover:bg-pos-surface-low transition-colors">
@@ -200,74 +188,64 @@ export default function SalesScreen({ products, customers, sales, onSaleComplete
               ))}
             </div>
             <div className="px-5 pb-4 space-y-3 border-t border-pos-surface-container pt-4">
-              <div className="flex justify-between text-xs text-pos-on-surface-variant">
-                <span>Subtotal</span><span>{formatCurrency(subtotal)}</span>
-              </div>
+              <div className="flex justify-between text-xs text-pos-on-surface-variant"><span>{t('subtotal')}</span><span>{formatCurrency(subtotal)}</span></div>
               <div className="flex justify-between items-center text-xs text-pos-on-surface-variant">
-                <span>Discount</span>
+                <span>{t('discount')}</span>
                 <div className="flex gap-1 items-center">
-                  <input type="number" value={discount} onChange={e => setDiscount(e.target.value)} placeholder="0"
-                    className="w-16 bg-pos-surface-high border-none rounded text-xs py-1 px-2 outline-none text-right" />
-                  <select value={discountType} onChange={e => setDiscountType(e.target.value as 'flat' | 'percent')}
-                    className="bg-pos-surface-high border-none rounded text-xs py-1 px-1 outline-none">
+                  <input type="number" value={discount} onChange={e => setDiscount(e.target.value)} placeholder="0" className="w-16 bg-pos-surface-high border-none rounded text-xs py-1 px-2 outline-none text-right" />
+                  <select value={discountType} onChange={e => setDiscountType(e.target.value as 'flat' | 'percent')} className="bg-pos-surface-high border-none rounded text-xs py-1 px-1 outline-none">
                     <option value="flat">৳</option><option value="percent">%</option>
                   </select>
                 </div>
               </div>
-              <div className="flex justify-between font-black text-base">
-                <span>Total</span><span className="text-pos-secondary">{formatCurrency(total)}</span>
-              </div>
-              <button onClick={handleCheckout}
-                className="w-full py-3 bg-gradient-to-b from-pos-secondary to-pos-secondary-dim text-white rounded-lg font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
-                disabled={!cart.length}>
-                <span className="material-symbols-outlined text-base">receipt</span>Checkout & Invoice
+              <div className="flex justify-between font-black text-base"><span>{t('total')}</span><span className="text-pos-secondary">{formatCurrency(total)}</span></div>
+              <button onClick={handleCheckout} className="w-full py-3 bg-gradient-to-b from-pos-secondary to-pos-secondary-dim text-white rounded-lg font-semibold flex items-center justify-center gap-2 disabled:opacity-50" disabled={!cart.length}>
+                <span className="material-symbols-outlined text-base">receipt</span>{t('checkoutInvoice')}
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Sales History with Pagination */}
+      {/* Sales History */}
       <div className="bg-pos-surface-lowest rounded-xl shadow-sm overflow-hidden border border-pos-surface-container">
         <div className="px-4 sm:px-8 py-5 flex justify-between items-center bg-pos-surface-low">
-          <h3 className="text-base font-semibold">Sales History <span className="text-pos-on-surface-variant font-normal text-sm">({sales.length})</span></h3>
+          <h3 className="text-base font-semibold">{t('salesHistory')} <span className="text-pos-on-surface-variant font-normal text-sm">({sales.length})</span></h3>
           <button onClick={exportSalesCSV} className="text-sm font-medium text-pos-secondary flex items-center gap-1 hover:underline">
-            <span className="material-symbols-outlined text-base">download</span>Export
+            <span className="material-symbols-outlined text-base">download</span>{t('export')}
           </button>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead><tr className="text-[11px] font-bold text-pos-on-surface-variant uppercase tracking-widest bg-pos-surface-low border-t border-pos-surface-container">
-              <th className="px-4 sm:px-6 py-3">Invoice</th><th className="px-4 sm:px-6 py-3">Customer</th><th className="px-4 sm:px-6 py-3 hidden sm:table-cell">Items</th><th className="px-4 sm:px-6 py-3">Amount</th><th className="px-4 sm:px-6 py-3 hidden md:table-cell">Payment</th><th className="px-4 sm:px-6 py-3 hidden lg:table-cell">Date</th><th className="px-4 sm:px-6 py-3 text-right">Actions</th>
+              <th className="px-4 sm:px-6 py-3">{t('invoice')}</th><th className="px-4 sm:px-6 py-3">{t('customer')}</th><th className="px-4 sm:px-6 py-3 hidden sm:table-cell">{t('items')}</th><th className="px-4 sm:px-6 py-3">{t('amount')}</th><th className="px-4 sm:px-6 py-3 hidden md:table-cell">{t('payment')}</th><th className="px-4 sm:px-6 py-3 hidden lg:table-cell">{t('date')}</th><th className="px-4 sm:px-6 py-3 text-right">{t('actions')}</th>
             </tr></thead>
             <tbody className="divide-y divide-pos-surface-container">
               {paginatedSales.length > 0 ? paginatedSales.map(s => (
                 <tr key={s.id} className="hover:bg-pos-surface-low transition-colors">
                   <td className="px-4 sm:px-6 py-4 text-xs font-bold text-pos-secondary">{s.invoice}</td>
                   <td className="px-4 sm:px-6 py-4 text-sm">{s.customer}</td>
-                  <td className="px-4 sm:px-6 py-4 text-xs hidden sm:table-cell">{s.items.length} item(s)</td>
+                  <td className="px-4 sm:px-6 py-4 text-xs hidden sm:table-cell">{s.items.length} {t('itemCount')}</td>
                   <td className="px-4 sm:px-6 py-4 font-bold">{formatCurrency(s.total)}</td>
                   <td className="px-4 sm:px-6 py-4 text-xs capitalize hidden md:table-cell">{s.paymentMethod}</td>
                   <td className="px-4 sm:px-6 py-4 text-xs text-pos-on-surface-variant hidden lg:table-cell">{(() => { try { return new Date(s.date).toLocaleDateString('en-GB'); } catch { return s.date; } })()}</td>
                   <td className="px-4 sm:px-6 py-4 text-right flex justify-end gap-2">
-                    <button onClick={() => reopenInvoice(s)} className="text-pos-secondary text-xs hover:underline">View</button>
-                    <button onClick={() => setShowDeleteConfirm(s.id)} className="text-pos-error text-xs hover:underline">Delete</button>
+                    <button onClick={() => reopenInvoice(s)} className="text-pos-secondary text-xs hover:underline">{t('view')}</button>
+                    <button onClick={() => setShowDeleteConfirm(s.id)} className="text-pos-error text-xs hover:underline">{t('delete')}</button>
                   </td>
                 </tr>
               )) : (
-                <tr><td colSpan={7} className="px-8 py-8 text-center text-xs text-pos-on-surface-variant">No sales recorded yet.</td></tr>
+                <tr><td colSpan={7} className="px-8 py-8 text-center text-xs text-pos-on-surface-variant">{t('noSalesYet')}</td></tr>
               )}
             </tbody>
           </table>
         </div>
         {sales.length > PAGE_SIZE && (
           <div className="px-6 py-3 bg-pos-surface-low border-t border-pos-surface-container flex justify-between items-center">
-            <span className="text-xs text-pos-on-surface-variant">Page {page + 1} of {totalPages}</span>
+            <span className="text-xs text-pos-on-surface-variant">{t('page')} {page + 1} {t('of')} {totalPages}</span>
             <div className="flex gap-2">
-              <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0}
-                className="px-3 py-1 text-xs font-semibold bg-pos-surface-container rounded-lg disabled:opacity-40">← Prev</button>
-              <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={page >= totalPages - 1}
-                className="px-3 py-1 text-xs font-semibold bg-pos-surface-container rounded-lg disabled:opacity-40">Next →</button>
+              <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0} className="px-3 py-1 text-xs font-semibold bg-pos-surface-container rounded-lg disabled:opacity-40">{t('prev')}</button>
+              <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={page >= totalPages - 1} className="px-3 py-1 text-xs font-semibold bg-pos-surface-container rounded-lg disabled:opacity-40">{t('next')}</button>
             </div>
           </div>
         )}
@@ -277,7 +255,6 @@ export default function SalesScreen({ products, customers, sales, onSaleComplete
         <InvoiceModal sale={viewSale} companyName={companyName} companyPhone={companyPhone} companyAddress={companyAddress} onClose={() => setShowInvoice(false)} />
       )}
 
-      {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/35 flex items-center justify-center z-[1000]" onClick={() => setShowDeleteConfirm(null)}>
           <div className="bg-pos-surface-lowest rounded-xl w-[360px] shadow-2xl p-7" onClick={e => e.stopPropagation()}>
@@ -285,12 +262,12 @@ export default function SalesScreen({ products, customers, sales, onSaleComplete
               <div className="w-10 h-10 rounded-full bg-pos-error-container flex items-center justify-center">
                 <span className="material-symbols-outlined text-pos-on-error-container">delete</span>
               </div>
-              <h3 className="text-lg font-bold">Delete Sale?</h3>
+              <h3 className="text-lg font-bold">{t('deleteSale')}</h3>
             </div>
-            <p className="text-sm text-pos-on-surface-variant mb-6">This sale record will be permanently deleted.</p>
+            <p className="text-sm text-pos-on-surface-variant mb-6">{t('deleteSaleMsg')}</p>
             <div className="flex gap-3">
-              <button onClick={() => setShowDeleteConfirm(null)} className="flex-1 py-2.5 bg-pos-surface-container text-pos-on-surface-variant rounded-lg font-semibold text-sm">Cancel</button>
-              <button onClick={confirmDeleteSale} className="flex-1 py-2.5 bg-pos-error text-white rounded-lg font-semibold text-sm">Delete</button>
+              <button onClick={() => setShowDeleteConfirm(null)} className="flex-1 py-2.5 bg-pos-surface-container text-pos-on-surface-variant rounded-lg font-semibold text-sm">{t('cancel')}</button>
+              <button onClick={confirmDeleteSale} className="flex-1 py-2.5 bg-pos-error text-white rounded-lg font-semibold text-sm">{t('delete')}</button>
             </div>
           </div>
         </div>
