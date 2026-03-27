@@ -186,7 +186,7 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
       return;
     }
     const p = products.find(x => x.id === productId);
-    if (p) setRows(prev => prev.map(r => r.id === rowId ? { ...r, productId, rate: p.pricePerBox, qty: 1, carton: 1, piece: 0 } : r));
+    if (p) setRows(prev => prev.map(r => r.id === rowId ? { ...r, productId, rate: p.pricePerBox, qty: 1, carton: 1, piece: 0, sqftInput: '' } : r));
   };
 
   const handleBarcode = (e: React.KeyboardEvent) => {
@@ -200,9 +200,9 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
       } else {
         const emptyRow = rows.find(r => !r.productId);
         if (emptyRow) {
-          setRows(prev => prev.map(r => r.id === emptyRow.id ? { ...r, productId: found.id, rate: found.pricePerBox, qty: 1, carton: 1, piece: 0, searchQuery: '' } : r));
+          setRows(prev => prev.map(r => r.id === emptyRow.id ? { ...r, productId: found.id, rate: found.pricePerBox, qty: 1, carton: 1, piece: 0, sqftInput: '', searchQuery: '' } : r));
         } else {
-          setRows(prev => [...prev, { id: Date.now(), productId: found.id, qty: 1, rate: found.pricePerBox, searchQuery: '', showDropdown: false, carton: 1, piece: 0 }]);
+          setRows(prev => [...prev, { id: Date.now(), productId: found.id, qty: 1, rate: found.pricePerBox, searchQuery: '', showDropdown: false, carton: 1, piece: 0, sqftInput: '' }]);
         }
       }
       toast.success(`${found.name} ${t('addedToCart')}`);
