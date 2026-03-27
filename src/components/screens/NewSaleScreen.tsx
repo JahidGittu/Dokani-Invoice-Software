@@ -580,10 +580,36 @@ ${sale.discount > 0 ? `<div class="row"><span>Discount</span><span>-${formatCurr
             })}
           </div>
 
-          <button onClick={addRow}
-            className="mt-3 w-full py-2 border-2 border-dashed border-border rounded-lg text-xs text-muted-foreground hover:border-primary hover:text-primary transition-colors flex items-center justify-center gap-1">
-            <span className="material-symbols-outlined text-sm">add</span>{t('addItem')}
-          </button>
+          {/* Add item + Scan button row */}
+          <div className="mt-3 flex gap-2">
+            <button onClick={() => {
+              const input = document.createElement('div');
+              // Show barcode scan popup
+              setShowBarcodePopup(true);
+            }}
+              className="py-2 px-4 bg-primary/10 text-primary border-2 border-dashed border-primary/40 rounded-lg text-xs font-bold hover:bg-primary/20 transition-colors flex items-center gap-1.5 shrink-0">
+              <span className="material-symbols-outlined text-base">qr_code_scanner</span>{t('scan')}
+            </button>
+            <button onClick={addRow}
+              className="flex-1 py-2 border-2 border-dashed border-border rounded-lg text-xs text-muted-foreground hover:border-primary hover:text-primary transition-colors flex items-center justify-center gap-1">
+              <span className="material-symbols-outlined text-sm">add</span>{t('addItem')}
+            </button>
+          </div>
+
+          {/* Barcode scan popup */}
+          {showBarcodePopup && (
+            <div className="mt-2 flex gap-2 items-center bg-muted/40 border border-border rounded-lg px-3 py-2 animate-in slide-in-from-top-2">
+              <span className="material-symbols-outlined text-primary text-lg">qr_code_scanner</span>
+              <input ref={barcodeRef} value={barcodeInput} onChange={e => setBarcodeInput(e.target.value)}
+                onKeyDown={e => { handleBarcode(e); if (e.key === 'Enter') setShowBarcodePopup(false); }}
+                autoFocus
+                className="flex-1 bg-transparent text-sm py-1 outline-none placeholder:text-muted-foreground/50"
+                placeholder={t('scanOrType')} />
+              <button onClick={() => setShowBarcodePopup(false)} className="text-muted-foreground hover:text-foreground">
+                <span className="material-symbols-outlined text-sm">close</span>
+              </button>
+            </div>
+          )}
         </div>
 
         {/* ── Summary & Payment ── */}
