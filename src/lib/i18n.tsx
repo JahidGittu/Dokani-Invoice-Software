@@ -375,6 +375,8 @@ const translations = {
   main: { en: 'Main', bn: 'মূল' },
   accounts: { en: 'Accounts', bn: 'হিসাব' },
   misc: { en: 'Misc', bn: 'অন্যান্য' },
+  staffs: { en: 'Staffs', bn: 'কর্মচারী' },
+  smsEmail: { en: 'SMS & Email', bn: 'এসএমএস ও ইমেইল' },
 } as const;
 
 export type TranslationKey = keyof typeof translations;
