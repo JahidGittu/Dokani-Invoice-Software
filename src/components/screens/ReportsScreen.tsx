@@ -219,7 +219,7 @@ export default function ReportsScreen({ sales = [], products = [], customers = [
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm">
                   <thead><tr className="text-[11px] font-bold text-pos-on-surface-variant uppercase bg-pos-surface-low">
-                    <th className="px-4 py-2">{t('products')}</th><th className="px-4 py-2">{t('category')}</th><th className="px-4 py-2 text-center">{t('stock')}</th><th className="px-4 py-2 text-right">Buy Rate</th><th className="px-4 py-2 text-right">Sale Rate</th>
+                    <th className="px-4 py-2">{t('products')}</th><th className="px-4 py-2">Category</th><th className="px-4 py-2 text-center">{t('stock')}</th><th className="px-4 py-2 text-right">Buy Rate</th><th className="px-4 py-2 text-right">Sale Rate</th>
                   </tr></thead>
                   <tbody className="divide-y divide-pos-surface-container">
                     {products.map(p => (

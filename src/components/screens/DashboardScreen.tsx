@@ -106,7 +106,7 @@ export default function DashboardScreen({ onNavigate, products, customers, sales
           </div>
           <div className="space-y-1 text-sm">
             <div className="flex justify-between"><span>{t('totalCustomers')}:</span><span className="font-bold">{customers.length}</span></div>
-            <div className="flex justify-between"><span>{t('totalSuppliers')}:</span><span className="font-bold">{suppliers.length}</span></div>
+            <div className="flex justify-between"><span>{t('suppliers')}:</span><span className="font-bold">{suppliers.length}</span></div>
             <div className="flex justify-between"><span>{t('totalProducts')}:</span><span className="font-bold">{products.length}</span></div>
           </div>
         </div>
