@@ -208,9 +208,6 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
   const balanceVal = dueVal; // balance = previous dues + current due (simplified)
   const receivedNum = parseFloat(received) || 0;
   const change = receivedNum > 0 && receivedNum >= total ? receivedNum - total : 0;
-  const dueVal = Math.max(0, total - paidVal);
-  const receivedNum = parseFloat(received) || 0;
-  const change = receivedNum > 0 && receivedNum >= total ? receivedNum - total : 0;
 
   const today = new Date();
   const dateStr = today.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
