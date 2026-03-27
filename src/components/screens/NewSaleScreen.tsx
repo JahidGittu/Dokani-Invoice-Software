@@ -700,6 +700,96 @@ ${sale.discount > 0 ? `<div class="row"><span>Discount</span><span>-${formatCurr
           </button>
         </div>
       </div>
+
+      {/* ── Scan Modal ── */}
+      {showScanModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setShowScanModal(false)}>
+          <div className="bg-card rounded-2xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden animate-in zoom-in-95" onClick={e => e.stopPropagation()}>
+            <div className="px-6 pt-6 pb-4 text-center">
+              <div className={`w-20 h-20 mx-auto rounded-2xl flex items-center justify-center mb-4 transition-colors ${
+                scanStatus === 'waiting' ? 'bg-primary/10' : scanStatus === 'found' ? 'bg-[hsl(142,70%,90%)]' : 'bg-destructive/10'
+              }`}>
+                <span className={`material-symbols-outlined text-4xl ${
+                  scanStatus === 'waiting' ? 'text-primary animate-pulse' : scanStatus === 'found' ? 'text-[hsl(142,70%,35%)]' : 'text-destructive'
+                }`}>
+                  {scanStatus === 'waiting' ? 'qr_code_scanner' : scanStatus === 'found' ? 'check_circle' : 'error'}
+                </span>
+              </div>
+              <h3 className="text-lg font-bold text-foreground">
+                {scanStatus === 'waiting' ? t('scanOrType') : scanStatus === 'found' ? t('addedToCart') : t('productNotFound')}
+              </h3>
+              {scanStatus === 'waiting' && (
+                <p className="text-xs text-muted-foreground mt-1">{t('scanBarcodeHint')}</p>
+              )}
+            </div>
+
+            {scanStatus === 'waiting' && (
+              <div className="px-6 pb-4">
+                <div className="flex items-center gap-2 bg-muted/40 border-2 border-primary/30 rounded-xl px-4 py-3 focus-within:border-primary transition-colors">
+                  <span className="material-symbols-outlined text-primary text-lg">qr_code_scanner</span>
+                  <input
+                    ref={barcodeRef}
+                    value={barcodeInput}
+                    onChange={e => setBarcodeInput(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key !== 'Enter' || !barcodeInput.trim()) return;
+                      const q = barcodeInput.trim().toLowerCase();
+                      const found = products.find(p => p.batch.toLowerCase() === q || p.name.toLowerCase() === q || p.id === q);
+                      if (found) {
+                        setScanStatus('found');
+                        setScanResult(found);
+                        const existingRow = rows.find(r => r.productId === found.id);
+                        if (existingRow) {
+                          updateRow(existingRow.id, 'qty', existingRow.qty + 1);
+                        } else {
+                          const emptyRow = rows.find(r => !r.productId);
+                          if (emptyRow) {
+                            setRows(prev => prev.map(r => r.id === emptyRow.id ? { ...r, productId: found.id, rate: found.pricePerBox, qty: 1, searchQuery: '' } : r));
+                          } else {
+                            setRows(prev => [...prev, { id: Date.now(), productId: found.id, qty: 1, rate: found.pricePerBox, searchQuery: '', showDropdown: false }]);
+                          }
+                        }
+                        setTimeout(() => { setShowScanModal(false); toast.success(`${found.name} ${t('addedToCart')}`); }, 1200);
+                      } else {
+                        setScanStatus('notfound');
+                        setTimeout(() => { setScanStatus('waiting'); setBarcodeInput(''); }, 1500);
+                      }
+                    }}
+                    autoFocus
+                    className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground/50"
+                    placeholder={t('scanOrType')}
+                  />
+                </div>
+              </div>
+            )}
+
+            {scanStatus === 'found' && scanResult && (
+              <div className="px-6 pb-4">
+                <div className="bg-muted/30 rounded-xl p-4 flex items-center gap-3">
+                  <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center text-primary font-bold text-sm">
+                    {scanResult.name.slice(0, 2).toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold text-sm truncate">{scanResult.name}</div>
+                    <div className="text-[10px] text-muted-foreground">{scanResult.size} · {scanResult.finish}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-bold text-primary">৳{scanResult.pricePerBox}</div>
+                    <div className="text-[10px] text-muted-foreground">{scanResult.stock} {t('boxes')}</div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="px-6 pb-6">
+              <button onClick={() => setShowScanModal(false)}
+                className="w-full py-2.5 rounded-xl bg-muted text-foreground text-sm font-semibold hover:bg-muted/80 transition-colors">
+                {t('close')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
