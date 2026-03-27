@@ -245,7 +245,8 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
   const resetForm = () => {
     setCustomerName(''); setPhone(''); setAddress(''); setNotes('');
     setDiscount(''); setReceived(''); setPayment('cash'); setStatus('paid');
-    setDelivery(''); setLabour(''); setPaidAmount('');
+    setDelivery(''); setLabour(''); setPaidAmount(''); setReturnAmt(''); setLessAmt('');
+    setRows([{ id: Date.now(), productId: '', qty: 1, rate: 0, searchQuery: '', showDropdown: false }]);
     setRows([{ id: Date.now(), productId: '', qty: 1, rate: 0, searchQuery: '', showDropdown: false }]);
   };
 
