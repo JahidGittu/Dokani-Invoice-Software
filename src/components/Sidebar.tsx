@@ -47,7 +47,7 @@ export default function Sidebar({ activeScreen, onNavigate, isOpen, onClose, pro
               <p className="text-[10px] text-pos-on-surface-variant">Lite Edition · Offline</p>
             </div>
           </div>
-          <button className="lg:hidden text-slate-500 hover:text-slate-900" onClick={onClose}>
+          <button className="lg:hidden text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white" onClick={onClose}>
             <span className="material-symbols-outlined">close</span>
           </button>
         </div>
