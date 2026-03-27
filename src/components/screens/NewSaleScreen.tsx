@@ -229,9 +229,10 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
   const bizInfoLine = [settings.phone, settings.address].filter(Boolean).join(' · ');
 
   const collectSaleData = (): { sale: SaleRecord; deductions: { productId: string; qty: number }[] } | null => {
-    const items = rows.filter(r => r.productId && r.qty > 0 && r.rate > 0).map(r => {
+    const items = rows.filter(r => r.productId && r.carton > 0 && r.rate > 0).map(r => {
       const p = products.find(x => x.id === r.productId);
-      return { productId: r.productId, name: p?.name || 'Custom Item', detail: p ? `${p.size} · ${p.finish}` : '', qty: r.qty, price: r.rate, stock: p?.stock ?? 999, carton: r.carton, piece: r.piece, sqftQty: r.qty * (p?.sqftPerBox || 1), category: p?.category || '', itemType: 'Sale' as const };
+      const ctn = r.carton;
+      return { productId: r.productId, name: p?.name || 'Custom Item', detail: p ? `${p.size} · ${p.finish}` : '', qty: ctn, price: r.rate, stock: p?.stock ?? 999, carton: ctn, piece: r.piece, sqftQty: ctn * (p?.sqftPerBox || 1), category: p?.category || '', itemType: 'Sale' as const };
     });
     if (!items.length) { toast.error(t('addAtLeastOneItem')); return null; }
     const overStock = items.find(i => i.qty > i.stock);
