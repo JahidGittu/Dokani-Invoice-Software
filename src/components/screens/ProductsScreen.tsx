@@ -14,7 +14,6 @@ interface ProductsScreenProps {
 }
 
 const PAGE_SIZE = 20;
-const FINISHES = ['Glossy', 'Matte', 'Lappato', 'Rustic', 'Carving'];
 
 interface InlineRow {
   key: number;
