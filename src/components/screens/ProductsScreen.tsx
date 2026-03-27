@@ -1,12 +1,54 @@
 import { useState } from "react";
-import { products, formatCurrency } from "@/lib/data";
+import { type Product, formatCurrency } from "@/lib/store";
 import { toast } from "sonner";
 
-export default function ProductsScreen() {
+interface ProductsScreenProps {
+  products: Product[];
+  onAddProduct: (p: Omit<Product, 'id'>) => void;
+  onUpdateProduct: (id: string, updates: Partial<Product>) => void;
+}
+
+export default function ProductsScreen({ products, onAddProduct, onUpdateProduct }: ProductsScreenProps) {
   const [search, setSearch] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [form, setForm] = useState({ name: '', size: '', finish: 'Glossy', pricePerBox: '', sqftPerBox: '', stock: '', batch: '' });
 
   const filtered = products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
+
+  const resetForm = () => setForm({ name: '', size: '', finish: 'Glossy', pricePerBox: '', sqftPerBox: '', stock: '', batch: '' });
+
+  const handleSave = () => {
+    if (!form.name || !form.pricePerBox) { toast.error('Name and price required!'); return; }
+    if (editId) {
+      onUpdateProduct(editId, {
+        name: form.name, size: form.size, finish: form.finish,
+        pricePerBox: parseFloat(form.pricePerBox), sqftPerBox: parseFloat(form.sqftPerBox),
+        stock: parseInt(form.stock), batch: form.batch,
+      });
+      toast.success('Product updated!');
+    } else {
+      onAddProduct({
+        name: form.name, size: form.size, finish: form.finish,
+        pricePerBox: parseFloat(form.pricePerBox), sqftPerBox: parseFloat(form.sqftPerBox) || 0,
+        stock: parseInt(form.stock) || 0, batch: form.batch,
+      });
+      toast.success('Product added!');
+    }
+    setShowAddModal(false);
+    setEditId(null);
+    resetForm();
+  };
+
+  const openEdit = (p: Product) => {
+    setForm({
+      name: p.name, size: p.size, finish: p.finish,
+      pricePerBox: String(p.pricePerBox), sqftPerBox: String(p.sqftPerBox),
+      stock: String(p.stock), batch: p.batch,
+    });
+    setEditId(p.id);
+    setShowAddModal(true);
+  };
 
   return (
     <section className="p-8 max-w-7xl mx-auto space-y-8">
@@ -15,7 +57,7 @@ export default function ProductsScreen() {
           <span className="text-xs text-pos-on-surface-variant uppercase tracking-widest block mb-2">Stock Management</span>
           <h2 className="text-5xl font-bold text-pos-on-surface leading-tight tracking-tighter">Products</h2>
         </div>
-        <button onClick={() => setShowAddModal(true)} className="px-6 py-3 bg-gradient-to-b from-pos-secondary to-pos-secondary-dim text-white rounded-lg font-medium flex items-center gap-2 shadow-lg hover:-translate-y-1 transition-transform">
+        <button onClick={() => { resetForm(); setEditId(null); setShowAddModal(true); }} className="px-6 py-3 bg-gradient-to-b from-pos-secondary to-pos-secondary-dim text-white rounded-lg font-medium flex items-center gap-2 shadow-lg hover:-translate-y-1 transition-transform">
           <span className="material-symbols-outlined text-lg">add</span>Add Product
         </button>
       </div>
@@ -49,7 +91,7 @@ export default function ProductsScreen() {
                 </td>
                 <td className="px-8 py-4 text-xs text-pos-on-surface-variant font-mono">{p.batch}</td>
                 <td className="px-8 py-4 text-right">
-                  <button onClick={() => toast(`Edit mode: ${p.name}`)} className="text-pos-secondary text-xs font-semibold hover:underline">Edit</button>
+                  <button onClick={() => openEdit(p)} className="text-pos-secondary text-xs font-semibold hover:underline">Edit</button>
                 </td>
               </tr>
             ))}
@@ -57,26 +99,25 @@ export default function ProductsScreen() {
         </table>
       </div>
 
-      {/* Add Product Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black/35 flex items-center justify-center z-[1000]" onClick={() => setShowAddModal(false)}>
+        <div className="fixed inset-0 bg-black/35 flex items-center justify-center z-[1000]" onClick={() => { setShowAddModal(false); setEditId(null); }}>
           <div className="bg-pos-surface-lowest rounded-xl w-[480px] shadow-2xl p-7" onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-lg font-bold">Add New Product</h3>
-              <button onClick={() => setShowAddModal(false)} className="text-pos-on-surface-variant hover:text-pos-on-surface"><span className="material-symbols-outlined">close</span></button>
+              <h3 className="text-lg font-bold">{editId ? 'Edit Product' : 'Add New Product'}</h3>
+              <button onClick={() => { setShowAddModal(false); setEditId(null); }} className="text-pos-on-surface-variant hover:text-pos-on-surface"><span className="material-symbols-outlined">close</span></button>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="col-span-2"><label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">Product Name</label><input className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" placeholder="e.g. Royal Marble" /></div>
-              <div><label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">Size</label><input className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" placeholder="24×24" /></div>
-              <div><label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">Finish</label><select className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none"><option>Glossy</option><option>Matte</option><option>Lappato</option></select></div>
-              <div><label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">Price / Box (৳)</label><input type="number" className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" placeholder="1200" /></div>
-              <div><label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">Sqft / Box</label><input type="number" className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" placeholder="9.2" /></div>
-              <div><label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">Stock (Boxes)</label><input type="number" className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" placeholder="100" /></div>
-              <div><label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">Batch No.</label><input className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" placeholder="BT-2501" /></div>
+              <div className="col-span-2"><label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">Product Name</label><input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" placeholder="e.g. Royal Marble" /></div>
+              <div><label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">Size</label><input value={form.size} onChange={e => setForm(f => ({ ...f, size: e.target.value }))} className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" placeholder="24×24" /></div>
+              <div><label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">Finish</label><select value={form.finish} onChange={e => setForm(f => ({ ...f, finish: e.target.value }))} className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none"><option>Glossy</option><option>Matte</option><option>Lappato</option></select></div>
+              <div><label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">Price / Box (৳)</label><input value={form.pricePerBox} onChange={e => setForm(f => ({ ...f, pricePerBox: e.target.value }))} type="number" className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" placeholder="1200" /></div>
+              <div><label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">Sqft / Box</label><input value={form.sqftPerBox} onChange={e => setForm(f => ({ ...f, sqftPerBox: e.target.value }))} type="number" className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" placeholder="9.2" /></div>
+              <div><label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">Stock (Boxes)</label><input value={form.stock} onChange={e => setForm(f => ({ ...f, stock: e.target.value }))} type="number" className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" placeholder="100" /></div>
+              <div><label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">Batch No.</label><input value={form.batch} onChange={e => setForm(f => ({ ...f, batch: e.target.value }))} className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" placeholder="BT-2501" /></div>
             </div>
             <div className="flex gap-3 mt-6">
-              <button onClick={() => setShowAddModal(false)} className="flex-1 py-2.5 bg-pos-surface-container text-pos-on-surface-variant rounded-lg font-semibold text-sm">Cancel</button>
-              <button onClick={() => { toast('Product saved successfully!'); setShowAddModal(false); }} className="flex-1 py-2.5 bg-gradient-to-b from-pos-secondary to-pos-secondary-dim text-white rounded-lg font-semibold text-sm">Save Product</button>
+              <button onClick={() => { setShowAddModal(false); setEditId(null); }} className="flex-1 py-2.5 bg-pos-surface-container text-pos-on-surface-variant rounded-lg font-semibold text-sm">Cancel</button>
+              <button onClick={handleSave} className="flex-1 py-2.5 bg-gradient-to-b from-pos-secondary to-pos-secondary-dim text-white rounded-lg font-semibold text-sm">{editId ? 'Update' : 'Save'} Product</button>
             </div>
           </div>
         </div>
