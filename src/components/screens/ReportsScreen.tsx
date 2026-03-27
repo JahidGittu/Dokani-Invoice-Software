@@ -1,6 +1,11 @@
 import { toast } from "sonner";
+import { formatCurrency, type SaleRecord } from "@/lib/store";
 
-export default function ReportsScreen() {
+interface ReportsScreenProps {
+  sales?: SaleRecord[];
+}
+
+export default function ReportsScreen({ sales = [] }: ReportsScreenProps) {
   return (
     <section className="p-8 max-w-7xl mx-auto space-y-12">
       <div className="flex justify-between items-end">

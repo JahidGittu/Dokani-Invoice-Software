@@ -2,6 +2,7 @@ import { type Product } from "@/lib/store";
 
 interface InventoryScreenProps {
   products: Product[];
+  onUpdateProduct?: (id: string, updates: Partial<Product>) => void;
 }
 
 export default function InventoryScreen({ products }: InventoryScreenProps) {

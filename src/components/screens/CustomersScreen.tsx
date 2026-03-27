@@ -5,6 +5,7 @@ import { toast } from "sonner";
 interface CustomersScreenProps {
   customers: Customer[];
   onAddCustomer: (name: string, phone: string, address: string) => void;
+  onDeleteCustomer?: (id: string) => void;
 }
 
 const colorMap: Record<string, string> = {
