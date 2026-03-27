@@ -229,7 +229,7 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
                   <input type="number" value={newRow.stock} onChange={e => updateNewRow('stock', e.target.value)} className={`${inputCls} text-center`} placeholder="qty" />
                 </td>
                 <td className="px-0 py-1 border-r border-[hsl(125,30%,80%)]">
-                  <input value={newRow.batch} onChange={e => updateNewRow('batch', e.target.value)} className={inputCls} placeholder="batch" />
+                  <input value={newRow.batch} onChange={e => updateNewRow('batch', e.target.value)} className={inputCls} placeholder="Bar/Code" />
                 </td>
                 <td className="px-2 py-1 text-center">
                   <button onClick={autoSaveRow} disabled={!isRowComplete(newRow)}
