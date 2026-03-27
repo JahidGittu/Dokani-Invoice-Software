@@ -1,10 +1,11 @@
-import { useState, useCallback, useRef, useMemo } from "react";
+import { useState, useCallback, useRef, useMemo, useEffect } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useI18n } from "@/lib/i18n";
 import { formatCurrency, getNextInvoiceNumber, calcDiscount, numberToWords, type Product, type SaleRecord, type Customer, type CompanySettings } from "@/lib/store";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
+import QRCode from "qrcode";
 
 declare module "jspdf" {
   interface jsPDF {
@@ -237,6 +238,13 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
     if (!items.length) { toast.error(t('addAtLeastOneItem')); return null; }
     const overStock = items.find(i => i.qty > i.stock);
     if (overStock) { toast.error(`${overStock.name}: ${t('qty')} ${overStock.qty} > ${t('stock')} ${overStock.stock}`); return null; }
+    
+    // Validate required fields
+    if (!paidAmount && status !== 'credit') {
+      toast.error('Paid amount is required! / পেইড এমাউন্ট দিন!');
+      return null;
+    }
+
     const inv = getNextInvoiceNumber(settings.invPrefix);
     const now = new Date();
     const autoStatus = paidVal >= total ? 'paid' : paidVal > 0 ? 'pending' : status === 'credit' ? 'credit' : 'pending';
@@ -297,8 +305,9 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
   };
 
   // ─── Print / PDF / Thermal generators ───
-  const generatePrintHTML = (sale: SaleRecord) => {
-    const qrSVG = generateQRSVG(`${sale.invoice}-${sale.total}`);
+  const generatePrintHTML = async (sale: SaleRecord) => {
+    const qrDataURL = await generateQRDataURL(`${sale.invoice}-${sale.total}`);
+    const qrImg = qrDataURL ? `<img src="${qrDataURL}" width="80" height="80" style="image-rendering:pixelated"/>` : '';
     const printDateStr = (() => { try { const d = new Date(sale.date); return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`; } catch { return sale.date; } })();
     const totalQty = sale.items.reduce((s, i) => s + (i.sqftQty ?? i.qty), 0);
     const dueInBill = sale.due ?? 0;
@@ -351,7 +360,7 @@ tbody tr:nth-child(even){background:#fafafa}
     ${settings.phone ? `<div class="sub">Phone# ${settings.phone}</div>` : ''}
     ${settings.email ? `<div class="sub">${settings.email}</div>` : ''}
   </div>
-  <div>${qrSVG}</div>
+  <div>${qrImg}</div>
 </div>
 <div class="bill-title">BILL-INVOICE</div>
 <div class="info-row">
@@ -403,10 +412,11 @@ tbody tr:nth-child(even){background:#fafafa}
 </body></html>`;
   };
 
-  const handlePrintSale = (sale: SaleRecord) => {
+  const handlePrintSale = async (sale: SaleRecord) => {
+    const html = await generatePrintHTML(sale);
     const w = window.open('', '_blank', 'width=800,height=1000');
     if (!w) { toast.error(t('popupBlocked')); return; }
-    w.document.write(generatePrintHTML(sale));
+    w.document.write(html);
     w.document.close();
     w.focus();
     setTimeout(() => w.print(), 500);
@@ -560,7 +570,9 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
               {settings.email && <div className="text-[10px] text-muted-foreground">{settings.email}</div>}
             </div>
             {/* Right: QR Code */}
-            <div className="shrink-0" dangerouslySetInnerHTML={{ __html: generateQRSVG(`NEW-${dateStr}`, 64) }} />
+            <div className="shrink-0">
+              <QRCodeSVG data={`${settings.name}-${settings.phone || ''}-${dateStr}`} size={64} />
+            </div>
           </div>
         </div>
 
@@ -934,19 +946,23 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
   );
 }
 
-function generateQRSVG(data: string, size = 80): string {
-  const hash = data.split('').reduce((acc, char) => ((acc << 5) - acc + char.charCodeAt(0)) | 0, 0);
-  const grid = 11; const cellSize = size / grid;
-  let rects = '';
-  for (let i = 0; i < grid; i++) {
-    for (let j = 0; j < grid; j++) {
-      const isCornerPattern = (i < 3 && j < 3) || (i < 3 && j >= grid - 3) || (i >= grid - 3 && j < 3);
-      const isCornerBorder = (i < 3 && j < 3) ? (i === 0 || i === 2 || j === 0 || j === 2 || (i === 1 && j === 1)) :
-        (i < 3 && j >= grid - 3) ? (i === 0 || i === 2 || j === grid - 1 || j === grid - 3 || (i === 1 && j === grid - 2)) :
-        (i >= grid - 3 && j < 3) ? (i === grid - 1 || i === grid - 3 || j === 0 || j === 2 || (i === grid - 2 && j === 1)) : false;
-      const bit = isCornerPattern ? isCornerBorder : ((hash * (i * grid + j + 1) * 7919) % 100) > 45;
-      if (bit) rects += `<rect x="${j * cellSize}" y="${i * cellSize}" width="${cellSize}" height="${cellSize}" fill="#2d3435"/>`;
-    }
+// Real QR Code component using qrcode library
+function QRCodeSVG({ data, size = 80 }: { data: string; size?: number }) {
+  const [svgUrl, setSvgUrl] = useState('');
+  useEffect(() => {
+    QRCode.toDataURL(data || 'N/A', { width: size, margin: 1, errorCorrectionLevel: 'M' })
+      .then(url => setSvgUrl(url))
+      .catch(() => setSvgUrl(''));
+  }, [data, size]);
+  if (!svgUrl) return <div style={{ width: size, height: size, background: '#f0f0f0', borderRadius: 4 }} />;
+  return <img src={svgUrl} alt="QR Code" width={size} height={size} style={{ imageRendering: 'pixelated' }} />;
+}
+
+// Generate QR code data URL synchronously-ish for print HTML
+async function generateQRDataURL(data: string, size = 80): Promise<string> {
+  try {
+    return await QRCode.toDataURL(data || 'N/A', { width: size, margin: 1, errorCorrectionLevel: 'M' });
+  } catch {
+    return '';
   }
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><rect width="${size}" height="${size}" fill="white"/>${rects}</svg>`;
 }
