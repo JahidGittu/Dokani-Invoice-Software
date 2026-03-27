@@ -58,7 +58,7 @@ export default function Sidebar({ activeScreen, onNavigate, isOpen, onClose, pro
               key={item.id}
               onClick={() => { onNavigate(item.id); onClose(); }}
               className={cn(
-                "w-full flex items-center px-4 py-3 border-l-[3px] border-transparent hover:bg-slate-200 transition-all duration-150 cursor-pointer text-left",
+                "w-full flex items-center px-4 py-3 border-l-[3px] border-transparent hover:bg-slate-200 dark:hover:bg-white/5 transition-all duration-150 cursor-pointer text-left",
                 activeScreen === item.id
                   ? "border-l-pos-secondary bg-pos-surface-high text-slate-900 font-semibold"
                   : "text-slate-500"
