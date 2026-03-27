@@ -11,7 +11,7 @@ interface ReportsScreenProps {
   purchases?: PurchaseRecord[];
 }
 
-type ReportType = 'purchase' | 'sales' | 'stock' | 'payment' | 'customer' | 'supplier' | 'profit' | 'customer_dues' | 'customer_walking' | 'supplier_balance' | 'account';
+type ReportType = 'purchase' | 'sales' | 'stock' | 'payment' | 'general_transaction' | 'customer' | 'supplier' | 'staff' | 'profit' | 'customer_dues' | 'customer_walking' | 'customer_advance' | 'supplier_balance' | 'staff_balance' | 'account';
 
 export default function ReportsScreen({ sales = [], products = [], customers = [], suppliers = [], purchases = [] }: ReportsScreenProps) {
   const { t } = useI18n();
