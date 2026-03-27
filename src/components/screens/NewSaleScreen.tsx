@@ -651,7 +651,6 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
                       <td className="py-2 px-2 text-right">
                         <div className="text-xs font-semibold">{sqftQty > 0 ? `${sqftQty.toFixed(1)} sqft` : '-'}</div>
                       </td>
-                      </td>
                       <td className="py-2 px-2">
                         <input type="number" value={row.rate || ''} onChange={e => updateRow(row.id, 'rate', parseFloat(e.target.value) || 0)}
                           className="w-16 bg-muted/30 border border-border rounded text-xs py-1 text-right outline-none focus:border-primary px-1" />
