@@ -72,6 +72,11 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
   const [address, setAddress] = useState('');
   const [productSearch, setProductSearch] = useState('');
   const [items, setItems] = useState<SaleItemRow[]>([]);
+  const [manualCarton, setManualCarton] = useState(0);
+  const [manualPiece, setManualPiece] = useState(0);
+  const [manualSqft, setManualSqft] = useState(0);
+  const [manualRate, setManualRate] = useState('');
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [discount, setDiscount] = useState('');
   const [discountType, setDiscountType] = useState<'flat' | 'percent'>('percent');
   const [delivery, setDelivery] = useState('');
@@ -124,16 +129,32 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
     );
   }, [products, debouncedProductSearch]);
 
-  const addProductToItems = (product: Product) => {
+  const addProductToItems = (product: Product, carton?: number, piece?: number, sqft?: number, rate?: number) => {
     if (items.find(i => i.productId === product.id)) {
       toast.error('Already added');
       return;
     }
+    const c = carton ?? 1;
+    const pc = piece ?? 0;
+    const sr = rate ?? product.pricePerBox;
+    const piecesPerBox = product.piecesPerBox || 4;
+    const pricePerPiece = piecesPerBox > 0 ? sr / piecesPerBox : 0;
+    const sub = (c * sr) + (pc * pricePerPiece);
     setItems(prev => [...prev, {
       id: Date.now(), productId: product.id, barcode: product.barcode || product.batch || '',
       name: product.name, stock: product.stock, itemType: 'Sale',
-      carton: 1, piece: 0, sqftQty: 0, salesRate: product.pricePerBox, subTotal: product.pricePerBox,
+      carton: c, piece: pc, sqftQty: sqft ?? 0, salesRate: sr, subTotal: sub,
     }]);
+  };
+
+  const manualAddProduct = () => {
+    if (!selectedProductId) { toast.error('Search & select a product first'); return; }
+    const product = products.find(p => p.id === selectedProductId);
+    if (!product) return;
+    addProductToItems(product, manualCarton, manualPiece, manualSqft, parseFloat(manualRate) || product.pricePerBox);
+    setSelectedProductId(null);
+    setProductSearch('');
+    setManualCarton(0); setManualPiece(0); setManualSqft(0); setManualRate('');
   };
 
   const removeItem = (id: number) => setItems(prev => prev.filter(i => i.id !== id));
@@ -326,12 +347,67 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
               </div>
             </div>
 
-            {/* Product search */}
+            {/* Product search with dropdown */}
             <div className="relative">
-              <input ref={searchRef} value={productSearch} onChange={e => setProductSearch(e.target.value)}
-                className="w-full bg-pos-surface-lowest border-2 border-pos-secondary/30 rounded-xl text-sm py-3 pl-11 pr-4 outline-none focus:border-pos-secondary transition-colors"
-                placeholder="Search the Product..." />
-              <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-pos-on-surface-variant">search</span>
+              <div className="flex gap-2 items-center">
+                <div className="relative flex-1">
+                  <input ref={searchRef} value={productSearch} onChange={e => {
+                    setProductSearch(e.target.value);
+                    setSelectedProductId(null);
+                  }}
+                    className="w-full bg-pos-surface-lowest border-2 border-pos-secondary/30 rounded-xl text-sm py-3 pl-11 pr-4 outline-none focus:border-pos-secondary transition-colors"
+                    placeholder="Search the Product..." />
+                  <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-pos-on-surface-variant">search</span>
+                  {/* Search dropdown */}
+                  {productSearch && !selectedProductId && (
+                    <div className="absolute left-0 top-full mt-1 w-full bg-popover border border-border rounded-lg shadow-xl z-50 max-h-[200px] overflow-y-auto">
+                      {displayProducts.length > 0 ? displayProducts.slice(0, 15).map(p => (
+                        <button key={p.id} type="button" onClick={() => {
+                          setSelectedProductId(p.id);
+                          setProductSearch(p.name);
+                          setManualRate(String(p.pricePerBox));
+                        }}
+                          className="w-full text-left px-3 py-2 text-xs hover:bg-accent transition-colors flex justify-between items-center">
+                          <span className="font-medium">{p.name}</span>
+                          <span className="text-muted-foreground text-[10px]">{p.barcode || p.batch || ''} · Stock: {p.stock}</span>
+                        </button>
+                      )) : (
+                        <div className="px-3 py-3 text-xs text-muted-foreground text-center">No products found</div>
+                      )}
+                    </div>
+                  )}
+                </div>
+                <input type="number" value={pageSize} onChange={e => setPageSize(Number(e.target.value) || 10)}
+                  className="w-16 bg-pos-surface-lowest border border-pos-surface-container rounded-lg text-sm py-3 px-2 text-center outline-none" title="Entries" />
+              </div>
+            </div>
+
+            {/* Manual entry row: Carton, Piece, Sqft/Qty, Sales Rate, Add */}
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-1 bg-pos-surface-lowest border border-pos-surface-container rounded-lg px-2 py-2">
+                <span className="text-[10px] font-bold text-pos-on-surface-variant uppercase">Carton</span>
+                <input type="number" min={0} value={manualCarton} onChange={e => setManualCarton(parseInt(e.target.value) || 0)}
+                  className="w-14 bg-transparent text-sm text-center outline-none" />
+              </div>
+              <div className="flex items-center gap-1 bg-pos-surface-lowest border border-pos-surface-container rounded-lg px-2 py-2">
+                <span className="text-[10px] font-bold text-pos-on-surface-variant uppercase">Piece</span>
+                <input type="number" min={0} value={manualPiece} onChange={e => setManualPiece(parseInt(e.target.value) || 0)}
+                  className="w-14 bg-transparent text-sm text-center outline-none" />
+              </div>
+              <div className="flex items-center gap-1 bg-pos-surface-lowest border border-pos-surface-container rounded-lg px-2 py-2 flex-1 min-w-[120px]">
+                <span className="text-[10px] font-bold text-pos-on-surface-variant uppercase">Sqft./Qty.</span>
+                <input type="number" min={0} value={manualSqft} onChange={e => setManualSqft(parseFloat(e.target.value) || 0)}
+                  className="w-full bg-transparent text-sm text-center outline-none" />
+              </div>
+              <div className="flex items-center gap-1 bg-pos-surface-lowest border border-pos-surface-container rounded-lg px-2 py-2">
+                <span className="text-[10px] font-bold text-pos-on-surface-variant uppercase">Sales Rate</span>
+                <input type="number" value={manualRate} onChange={e => setManualRate(e.target.value)} placeholder="Sales Rate"
+                  className="w-20 bg-transparent text-sm text-center outline-none" />
+              </div>
+              <button onClick={manualAddProduct}
+                className="px-6 py-2.5 bg-pos-error text-white rounded-lg font-bold text-sm hover:bg-pos-error/90 transition-colors">
+                Add
+              </button>
             </div>
 
             {/* All products table with checkbox */}
@@ -340,7 +416,7 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
                 <table className="w-full min-w-[700px]">
                   <thead className="sticky top-0 z-10">
                     <tr className="text-[10px] font-bold text-white uppercase tracking-wider bg-[hsl(230,45%,35%)]">
-                      <th className="px-2 py-2.5 w-8"><span className="material-symbols-outlined text-sm">check_box</span></th>
+                      <th className="px-2 py-2.5 w-8"><span className="material-symbols-outlined text-sm">delete</span></th>
                       <th className="px-3 py-2.5">Type</th>
                       <th className="px-3 py-2.5">Barcode</th>
                       <th className="px-3 py-2.5">Description</th>
@@ -352,58 +428,37 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-pos-surface-container">
-                    {displayProducts.map(p => {
-                      const item = items.find(i => i.productId === p.id);
-                      const isSelected = !!item;
-                      return (
-                        <tr key={p.id} className={`transition-colors ${isSelected ? 'bg-[hsl(45,100%,96%)] dark:bg-[hsl(45,20%,12%)]' : 'hover:bg-muted/30'}`}>
-                          <td className="px-2 py-2 text-center">
-                            <input type="checkbox" checked={isSelected}
-                              onChange={() => isSelected ? removeItem(item!.id) : addProductToItems(p)}
-                              className="w-4 h-4 rounded border-pos-surface-container accent-pos-secondary cursor-pointer" />
-                          </td>
-                          {isSelected ? (
-                            <>
-                              <td className="px-1 py-1">
-                                <select value={item!.itemType} onChange={e => updateItem(item!.id, 'itemType', e.target.value)}
-                                  className="bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-xs py-1.5 px-1 outline-none">
-                                  <option>Sale</option><option>Return</option>
-                                </select>
-                              </td>
-                              <td className="px-3 py-2 text-sm font-mono">{item!.barcode || '—'}</td>
-                              <td className="px-3 py-2 text-sm font-medium">{item!.name}</td>
-                              <td className="px-1 py-1">
-                                <input type="number" min={0} value={item!.carton} onChange={e => updateItem(item!.id, 'carton', parseInt(e.target.value) || 0)}
-                                  className="w-16 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-center outline-none focus:border-pos-secondary mx-auto block" />
-                              </td>
-                              <td className="px-1 py-1">
-                                <input type="number" min={0} value={item!.piece} onChange={e => updateItem(item!.id, 'piece', parseInt(e.target.value) || 0)}
-                                  className="w-14 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-center outline-none focus:border-pos-secondary mx-auto block" />
-                              </td>
-                              <td className="px-3 py-2 text-center text-sm">{item!.sqftQty > 0 ? item!.sqftQty.toFixed(1) : '0'}</td>
-                              <td className="px-1 py-1">
-                                <input type="number" value={item!.salesRate} onChange={e => updateItem(item!.id, 'salesRate', parseFloat(e.target.value) || 0)}
-                                  className="w-20 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-right outline-none focus:border-pos-secondary ml-auto block" />
-                              </td>
-                              <td className="px-3 py-2 text-right font-bold text-sm">{formatCurrency(item!.subTotal)}</td>
-                            </>
-                          ) : (
-                            <>
-                              <td className="px-3 py-2 text-sm text-muted-foreground">Sale</td>
-                              <td className="px-3 py-2 text-sm font-mono text-muted-foreground">{p.barcode || p.batch || '—'}</td>
-                              <td className="px-3 py-2 text-sm text-muted-foreground">{p.name}</td>
-                              <td className="px-3 py-2 text-center text-sm text-muted-foreground">0</td>
-                              <td className="px-3 py-2 text-center text-sm text-muted-foreground">0</td>
-                              <td className="px-3 py-2 text-center text-sm text-muted-foreground">0</td>
-                              <td className="px-3 py-2 text-right text-sm text-muted-foreground">{p.pricePerBox}</td>
-                              <td className="px-3 py-2 text-right text-sm text-muted-foreground">0.00</td>
-                            </>
-                          )}
-                        </tr>
-                      );
-                    })}
-                    {displayProducts.length === 0 && (
-                      <tr><td colSpan={9} className="px-8 py-8 text-center text-sm text-pos-on-surface-variant">No products found</td></tr>
+                    {items.length > 0 ? items.map(item => (
+                      <tr key={item.id} className="bg-[hsl(45,100%,96%)] dark:bg-[hsl(45,20%,12%)]">
+                        <td className="px-2 py-2 text-center">
+                          <input type="checkbox" onChange={() => removeItem(item.id)}
+                            className="w-4 h-4 rounded border-pos-surface-container accent-pos-secondary cursor-pointer" />
+                        </td>
+                        <td className="px-1 py-1">
+                          <select value={item.itemType} onChange={e => updateItem(item.id, 'itemType', e.target.value)}
+                            className="bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-xs py-1.5 px-1 outline-none">
+                            <option>Sale</option><option>Return</option>
+                          </select>
+                        </td>
+                        <td className="px-3 py-2 text-sm font-mono">{item.barcode || '—'}</td>
+                        <td className="px-3 py-2 text-sm font-medium">{item.name}</td>
+                        <td className="px-1 py-1">
+                          <input type="number" min={0} value={item.carton} onChange={e => updateItem(item.id, 'carton', parseInt(e.target.value) || 0)}
+                            className="w-16 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-center outline-none focus:border-pos-secondary mx-auto block" />
+                        </td>
+                        <td className="px-1 py-1">
+                          <input type="number" min={0} value={item.piece} onChange={e => updateItem(item.id, 'piece', parseInt(e.target.value) || 0)}
+                            className="w-14 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-center outline-none focus:border-pos-secondary mx-auto block" />
+                        </td>
+                        <td className="px-3 py-2 text-center text-sm">{item.sqftQty > 0 ? item.sqftQty.toFixed(3) : '0'}</td>
+                        <td className="px-1 py-1">
+                          <input type="number" value={item.salesRate} onChange={e => updateItem(item.id, 'salesRate', parseFloat(e.target.value) || 0)}
+                            className="w-20 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-right outline-none focus:border-pos-secondary ml-auto block" />
+                        </td>
+                        <td className="px-3 py-2 text-right font-bold text-sm">{formatCurrency(item.subTotal)}</td>
+                      </tr>
+                    )) : (
+                      <tr><td colSpan={9} className="px-8 py-8 text-center text-sm text-pos-on-surface-variant">Search and add products above</td></tr>
                     )}
                   </tbody>
                 </table>
