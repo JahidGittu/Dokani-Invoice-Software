@@ -22,7 +22,7 @@ export default function Index() {
   const [activeScreen, setActiveScreen] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { products, addProduct, updateProduct, deleteProduct, deductStock, addStock, setProducts } = useSupabaseProducts();
-  const { customers, addCustomer, deleteCustomer, updateCustomerSpend } = useSupabaseCustomers();
+  const { customers, addCustomer, deleteCustomer, updateCustomerSpend, updateCustomerDue } = useSupabaseCustomers();
   const { sales, addSale, deleteSale } = useSupabaseSales();
   const { suppliers, addSupplier, deleteSupplier, updateSupplierDue } = useSupabaseSuppliers();
   const { purchases, addPurchase, deletePurchase } = useSupabasePurchases();
