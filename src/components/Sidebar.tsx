@@ -43,7 +43,7 @@ export default function Sidebar({ activeScreen, onNavigate, isOpen, onClose, pro
               <span className="material-symbols-outlined text-white text-base">grid_view</span>
             </div>
             <div>
-              <h1 className="text-base font-bold tracking-tighter text-slate-900">TilePOS</h1>
+              <h1 className="text-base font-bold tracking-tighter text-slate-900 dark:text-white">TilePOS</h1>
               <p className="text-[10px] text-pos-on-surface-variant">Lite Edition · Offline</p>
             </div>
           </div>
