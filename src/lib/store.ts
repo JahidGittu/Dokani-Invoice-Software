@@ -8,6 +8,7 @@ export interface Product {
   finish: string;
   pricePerBox: number;
   sqftPerBox: number;
+  piecesPerBox: number;
   stock: number;
   batch: string;
   barcode?: string;
