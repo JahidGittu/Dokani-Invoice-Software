@@ -86,7 +86,7 @@ export default function Index() {
       case 'excel': return <ExcelImportScreen products={products} onImportProducts={handleImportProducts} />;
       case 'transactions': return <TransactionsScreen sales={sales} purchases={purchases} />;
       case 'staffs': return <StaffsScreen />;
-      case 'sms-email': return <SmsEmailScreen customers={customers} />;
+      case 'sms-email': return <SmsEmailScreen customers={customers} suppliers={suppliers} />;
       default: return <DashboardScreen onNavigate={setActiveScreen} products={products} customers={customers} sales={sales} />;
     }
   };
