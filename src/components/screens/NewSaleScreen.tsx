@@ -722,6 +722,11 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
                 <span className="text-destructive font-bold">{t('due')}</span>
                 <span className={`font-bold text-sm ${dueVal > 0 ? 'text-destructive' : 'text-[hsl(125,60%,35%)]'}`}>{formatCurrency(dueVal)}</span>
               </div>
+              {/* Balance */}
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-primary font-bold">Balance</span>
+                <span className={`font-bold text-sm ${balanceVal > 0 ? 'text-destructive' : 'text-[hsl(125,60%,35%)]'}`}>{formatCurrency(balanceVal)}</span>
+              </div>
 
               <div className="flex justify-between items-center text-xs">
                 <span className="text-muted-foreground">{t('amountReceived')}</span>
