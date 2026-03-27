@@ -6,11 +6,12 @@ import { toast } from "sonner";
 interface SettingsScreenProps {
   settings: CompanySettings;
   onUpdateSettings: (s: CompanySettings) => void;
+  onSignOut?: () => Promise<void>;
 }
 
 type ClearOption = 'products' | 'customers' | 'sales' | 'settings' | 'counter';
 
-export default function SettingsScreen({ settings, onUpdateSettings }: SettingsScreenProps) {
+export default function SettingsScreen({ settings, onUpdateSettings, onSignOut }: SettingsScreenProps) {
   const { t } = useI18n();
   const [form, setForm] = useState(settings);
   const [showClearModal, setShowClearModal] = useState(false);
@@ -171,6 +172,12 @@ export default function SettingsScreen({ settings, onUpdateSettings }: SettingsS
       <button onClick={handleSave} className="w-full py-3 bg-gradient-to-b from-pos-secondary to-pos-secondary-dim text-white rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg hover:-translate-y-0.5 transition-transform">
         <span className="material-symbols-outlined">save</span>{t('saveAllSettings')}
       </button>
+
+      {onSignOut && (
+        <button onClick={onSignOut} className="w-full py-3 bg-pos-error-container text-pos-on-error-container rounded-xl font-bold flex items-center justify-center gap-2 hover:-translate-y-0.5 transition-transform">
+          <span className="material-symbols-outlined">logout</span>{t('logout') || 'Logout'}
+        </button>
+      )}
 
       <div className="bg-pos-surface-lowest rounded-xl p-4 sm:p-6 border border-pos-surface-container">
         <h3 className="text-sm font-bold text-pos-on-surface-variant uppercase tracking-widest mb-4">{t('dataManagement')}</h3>

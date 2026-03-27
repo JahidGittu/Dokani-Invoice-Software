@@ -246,6 +246,7 @@ const translations = {
   deleteSelected: { en: 'Delete Selected', bn: 'বাছাইকৃত মুছুন' },
   noItemSelected: { en: 'Select at least one item!', bn: 'অন্তত একটি আইটেম বাছুন!' },
   selectedDataCleared: { en: 'Selected data cleared! Reloading...', bn: 'বাছাইকৃত ডাটা মুছে গেছে! রিলোড হচ্ছে...' },
+  logout: { en: 'Logout', bn: 'লগআউট' },
   googleDriveBackup: { en: 'Google Drive Backup', bn: 'গুগল ড্রাইভ ব্যাকআপ' },
 
   // Search
