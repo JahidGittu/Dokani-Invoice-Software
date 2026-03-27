@@ -135,7 +135,9 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
   const [rows, setRows] = useState<NewSaleRow[]>([{ id: Date.now(), productId: '', qty: 1, rate: 0, searchQuery: '', showDropdown: false }]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [barcodeInput, setBarcodeInput] = useState('');
-  const [showBarcodePopup, setShowBarcodePopup] = useState(false);
+  const [showScanModal, setShowScanModal] = useState(false);
+  const [scanStatus, setScanStatus] = useState<'waiting' | 'found' | 'notfound'>('waiting');
+  const [scanResult, setScanResult] = useState<Product | null>(null);
   const barcodeRef = useRef<HTMLInputElement>(null);
   const invoiceRef = useRef<HTMLDivElement>(null);
 
