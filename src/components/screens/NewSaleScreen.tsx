@@ -560,6 +560,7 @@ ${sale.discount > 0 ? `<div class="row"><span>Discount</span><span>-${formatCurr
                       onUpdateSearch={(q) => updateRow(row.id, 'searchQuery', q)}
                       onToggleDropdown={(show) => updateRow(row.id, 'showDropdown', show)}
                       onRemove={() => removeRow(row.id)}
+                      onToggleScan={() => setShowBarcodePopup(true)}
                       t={t as (key: string) => string}
                     />
                     {product && <div className="text-[10px] text-muted-foreground mt-0.5 pl-1">{product.size} · {product.finish}</div>}
