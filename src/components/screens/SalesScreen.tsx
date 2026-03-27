@@ -347,12 +347,67 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
               </div>
             </div>
 
-            {/* Product search */}
+            {/* Product search with dropdown */}
             <div className="relative">
-              <input ref={searchRef} value={productSearch} onChange={e => setProductSearch(e.target.value)}
-                className="w-full bg-pos-surface-lowest border-2 border-pos-secondary/30 rounded-xl text-sm py-3 pl-11 pr-4 outline-none focus:border-pos-secondary transition-colors"
-                placeholder="Search the Product..." />
-              <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-pos-on-surface-variant">search</span>
+              <div className="flex gap-2 items-center">
+                <div className="relative flex-1">
+                  <input ref={searchRef} value={productSearch} onChange={e => {
+                    setProductSearch(e.target.value);
+                    setSelectedProductId(null);
+                  }}
+                    className="w-full bg-pos-surface-lowest border-2 border-pos-secondary/30 rounded-xl text-sm py-3 pl-11 pr-4 outline-none focus:border-pos-secondary transition-colors"
+                    placeholder="Search the Product..." />
+                  <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-pos-on-surface-variant">search</span>
+                  {/* Search dropdown */}
+                  {productSearch && !selectedProductId && (
+                    <div className="absolute left-0 top-full mt-1 w-full bg-popover border border-border rounded-lg shadow-xl z-50 max-h-[200px] overflow-y-auto">
+                      {displayProducts.length > 0 ? displayProducts.slice(0, 15).map(p => (
+                        <button key={p.id} type="button" onClick={() => {
+                          setSelectedProductId(p.id);
+                          setProductSearch(p.name);
+                          setManualRate(String(p.pricePerBox));
+                        }}
+                          className="w-full text-left px-3 py-2 text-xs hover:bg-accent transition-colors flex justify-between items-center">
+                          <span className="font-medium">{p.name}</span>
+                          <span className="text-muted-foreground text-[10px]">{p.barcode || p.batch || ''} · Stock: {p.stock}</span>
+                        </button>
+                      )) : (
+                        <div className="px-3 py-3 text-xs text-muted-foreground text-center">No products found</div>
+                      )}
+                    </div>
+                  )}
+                </div>
+                <input type="number" value={pageSize} onChange={e => setPageSize(Number(e.target.value) || 10)}
+                  className="w-16 bg-pos-surface-lowest border border-pos-surface-container rounded-lg text-sm py-3 px-2 text-center outline-none" title="Entries" />
+              </div>
+            </div>
+
+            {/* Manual entry row: Carton, Piece, Sqft/Qty, Sales Rate, Add */}
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-1 bg-pos-surface-lowest border border-pos-surface-container rounded-lg px-2 py-2">
+                <span className="text-[10px] font-bold text-pos-on-surface-variant uppercase">Carton</span>
+                <input type="number" min={0} value={manualCarton} onChange={e => setManualCarton(parseInt(e.target.value) || 0)}
+                  className="w-14 bg-transparent text-sm text-center outline-none" />
+              </div>
+              <div className="flex items-center gap-1 bg-pos-surface-lowest border border-pos-surface-container rounded-lg px-2 py-2">
+                <span className="text-[10px] font-bold text-pos-on-surface-variant uppercase">Piece</span>
+                <input type="number" min={0} value={manualPiece} onChange={e => setManualPiece(parseInt(e.target.value) || 0)}
+                  className="w-14 bg-transparent text-sm text-center outline-none" />
+              </div>
+              <div className="flex items-center gap-1 bg-pos-surface-lowest border border-pos-surface-container rounded-lg px-2 py-2 flex-1 min-w-[120px]">
+                <span className="text-[10px] font-bold text-pos-on-surface-variant uppercase">Sqft./Qty.</span>
+                <input type="number" min={0} value={manualSqft} onChange={e => setManualSqft(parseFloat(e.target.value) || 0)}
+                  className="w-full bg-transparent text-sm text-center outline-none" />
+              </div>
+              <div className="flex items-center gap-1 bg-pos-surface-lowest border border-pos-surface-container rounded-lg px-2 py-2">
+                <span className="text-[10px] font-bold text-pos-on-surface-variant uppercase">Sales Rate</span>
+                <input type="number" value={manualRate} onChange={e => setManualRate(e.target.value)} placeholder="Sales Rate"
+                  className="w-20 bg-transparent text-sm text-center outline-none" />
+              </div>
+              <button onClick={manualAddProduct}
+                className="px-6 py-2.5 bg-pos-error text-white rounded-lg font-bold text-sm hover:bg-pos-error/90 transition-colors">
+                Add
+              </button>
             </div>
 
             {/* All products table with checkbox */}
