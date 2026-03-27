@@ -32,6 +32,7 @@ export default function SalesScreen({ products, customers, sales, onSaleComplete
   const [viewSale, setViewSale] = useState<SaleRecord | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [page, setPage] = useState(0);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   const debouncedSearch = useDebounce(searchQuery, 250);
 
