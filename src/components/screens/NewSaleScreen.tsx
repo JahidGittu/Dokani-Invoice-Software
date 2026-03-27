@@ -466,15 +466,6 @@ ${sale.discount > 0 ? `<div class="row"><span>Discount</span><span>-${formatCurr
 
   return (
     <section className="p-4 sm:p-6 max-w-4xl mx-auto">
-      {/* Quick add bar */}
-      <div className="mb-4 flex gap-2 items-center no-print">
-        <div className="relative flex-1">
-          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-lg">qr_code_scanner</span>
-          <input ref={barcodeRef} value={barcodeInput} onChange={e => setBarcodeInput(e.target.value)} onKeyDown={handleBarcode}
-            className="w-full bg-card border border-border rounded-lg text-sm py-2.5 pl-10 pr-3 focus:ring-2 focus:ring-ring outline-none"
-            placeholder={t('scanOrType')} />
-        </div>
-      </div>
 
       {/* ═══════ A4 PAPER INVOICE-FORM ═══════ */}
       <div ref={invoiceRef} className="bg-card rounded-sm border border-border shadow-[0_2px_20px_rgba(0,0,0,0.08)] overflow-hidden mx-auto"
