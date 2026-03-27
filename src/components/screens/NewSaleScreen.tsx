@@ -545,54 +545,71 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
       <div ref={invoiceRef} className="bg-card rounded-sm border border-border shadow-[0_2px_20px_rgba(0,0,0,0.08)] overflow-hidden mx-auto"
         style={{ maxWidth: '210mm', minHeight: '297mm', aspectRatio: '210/297' }}>
 
-        {/* ── Invoice Header ── */}
-        <div className="px-8 sm:px-12 pt-8 sm:pt-10 pb-4 border-b-[3px] border-primary">
-          <div className="flex justify-between items-start">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-black text-base">
-                {settings.name.slice(0, 2).toUpperCase()}
-              </div>
-              <div>
-                <div className="text-xl sm:text-2xl font-black tracking-tight text-foreground">{settings.name}</div>
-                {bizInfoLine && <div className="text-[11px] text-muted-foreground">{bizInfoLine}</div>}
-              </div>
+        {/* ── Invoice Header: Logo | Company Info | QR Code ── */}
+        <div className="px-6 sm:px-10 pt-6 sm:pt-8 pb-3 border-b-2 border-foreground">
+          <div className="flex items-start justify-between">
+            {/* Left: Logo */}
+            <div className="w-16 h-16 bg-primary rounded-xl flex items-center justify-center text-primary-foreground font-black text-xl shrink-0">
+              {settings.name.slice(0, 3).toUpperCase()}
             </div>
-            <div className="text-right">
-              <div className="text-[9px] font-bold text-muted-foreground uppercase tracking-[2px]">INVOICE / CHALLAN</div>
-              <div className="text-primary font-black text-lg tracking-wide">#NEW</div>
-              <div className="text-xs text-muted-foreground">{dateStr} · {timeStr}</div>
+            {/* Center: Company Info */}
+            <div className="flex-1 text-center px-3">
+              <div className="text-2xl sm:text-3xl font-black tracking-wide leading-tight text-foreground">{settings.name.toUpperCase()}</div>
+              {settings.address && <div className="text-[11px] text-muted-foreground mt-0.5">{settings.address}</div>}
+              {settings.phone && <div className="text-[11px] text-muted-foreground">Phone# {settings.phone}</div>}
+              {settings.email && <div className="text-[10px] text-muted-foreground">{settings.email}</div>}
             </div>
+            {/* Right: QR Code */}
+            <div className="shrink-0" dangerouslySetInnerHTML={{ __html: generateQRSVG(`NEW-${dateStr}`, 64) }} />
           </div>
         </div>
 
-        {/* ── Bill To (editable) ── */}
-        <div className="px-8 sm:px-12 py-4 bg-muted/30">
-          <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2">{t('billTo')}</div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="relative">
-              <input value={customerName}
-                onChange={e => { setCustomerName(e.target.value); setShowSuggestions(true); }}
-                onFocus={() => setShowSuggestions(true)}
-                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                className="w-full bg-transparent border-b border-border text-sm font-semibold py-1.5 focus:border-primary outline-none placeholder:text-muted-foreground/50"
-                placeholder={t('customerNameReq')} />
-              {showSuggestions && suggestions.length > 0 && (
-                <div className="absolute top-full left-0 right-0 bg-card border border-border rounded-lg shadow-xl z-10 mt-1 max-h-[160px] overflow-y-auto">
-                  {suggestions.map(c => (
-                    <button key={c.id} onMouseDown={() => selectCustomer(c)}
-                      className="w-full text-left px-3 py-2 text-xs hover:bg-accent transition-colors flex justify-between">
-                      <span className="font-medium">{c.name}</span><span className="text-muted-foreground">{c.phone}</span>
-                    </button>
-                  ))}
+        {/* ── BILL-INVOICE Title ── */}
+        <div className="text-center font-black text-lg tracking-[3px] py-2 underline underline-offset-4">BILL-INVOICE</div>
+
+        {/* ── Editable Customer Fields (hidden inputs inside info area) ── */}
+        <div className="px-6 sm:px-10 pb-3">
+          <div className="flex justify-between text-xs">
+            <div className="space-y-1 flex-1 max-w-[55%]">
+              <div className="flex items-center gap-1">
+                <span className="w-16 text-muted-foreground shrink-0">Name</span><span>:</span>
+                <div className="relative flex-1">
+                  <input value={customerName}
+                    onChange={e => { setCustomerName(e.target.value); setShowSuggestions(true); }}
+                    onFocus={() => setShowSuggestions(true)}
+                    onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                    className="w-full bg-transparent border-b border-border text-sm font-bold py-0.5 focus:border-primary outline-none placeholder:text-muted-foreground/40"
+                    placeholder={t('customerNameReq')} />
+                  {showSuggestions && suggestions.length > 0 && (
+                    <div className="absolute top-full left-0 right-0 bg-card border border-border rounded-lg shadow-xl z-[100] mt-1 max-h-[160px] overflow-y-auto">
+                      {suggestions.map(c => (
+                        <button key={c.id} onMouseDown={() => selectCustomer(c)}
+                          className="w-full text-left px-3 py-2 text-xs hover:bg-accent transition-colors flex justify-between">
+                          <span className="font-medium">{c.name}</span><span className="text-muted-foreground">{c.phone}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="w-16 text-muted-foreground shrink-0">Address</span><span>:</span>
+                <input value={address} onChange={e => setAddress(e.target.value)}
+                  className="flex-1 bg-transparent border-b border-border text-sm font-bold py-0.5 focus:border-primary outline-none placeholder:text-muted-foreground/40"
+                  placeholder="Address (optional)" />
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="w-16 text-muted-foreground shrink-0">Mobile</span><span>:</span>
+                <input value={phone} onChange={e => setPhone(e.target.value)}
+                  className="flex-1 bg-transparent border-b border-border text-sm font-bold py-0.5 focus:border-primary outline-none placeholder:text-muted-foreground/40"
+                  placeholder="Phone (optional)" />
+              </div>
             </div>
-            <input value={phone} onChange={e => setPhone(e.target.value)}
-              className="bg-transparent border-b border-border text-sm py-1.5 focus:border-primary outline-none placeholder:text-muted-foreground/50"
-              placeholder={t('phone')} />
-            <input value={address} onChange={e => setAddress(e.target.value)}
-              className="bg-transparent border-b border-border text-sm py-1.5 focus:border-primary outline-none placeholder:text-muted-foreground/50"
-              placeholder={t('address')} />
+            <div className="text-right space-y-1">
+              <div className="flex gap-1 justify-end"><span className="text-muted-foreground">Invoice#</span><span>:</span><strong className="text-primary">#NEW</strong></div>
+              <div className="flex gap-1 justify-end"><span className="text-muted-foreground">Date</span><span>:</span><strong>{dateStr}</strong></div>
+              <div className="flex gap-1 justify-end"><span className="text-muted-foreground">Sold By</span><span>:</span><strong>{settings.userName || settings.name}</strong></div>
+            </div>
           </div>
         </div>
 
