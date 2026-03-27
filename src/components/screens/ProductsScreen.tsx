@@ -88,24 +88,17 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
     setTimeout(() => editRef.current?.focus(), 30);
   };
 
-  const commitEdit = (productId: string, field: EditableField) => {
+  const commitEdit = useCallback((productId: string, field: EditableField, value: string) => {
     const numericFields = ['buyRate', 'pricePerBox', 'sqftPerBox', 'piecesPerBox', 'stock'];
     const update: Partial<Product> = {};
     if (numericFields.includes(field)) {
-      (update as any)[field] = parseFloat(editValue) || 0;
+      (update as any)[field] = parseFloat(value) || 0;
     } else {
-      (update as any)[field] = editValue;
+      (update as any)[field] = value;
     }
     onUpdateProduct(productId, update);
     setEditingCell(null);
-  };
-
-  const cancelEdit = () => setEditingCell(null);
-
-  const handleCellKeyDown = (e: React.KeyboardEvent, productId: string, field: EditableField) => {
-    if (e.key === 'Enter') { e.preventDefault(); commitEdit(productId, field); }
-    if (e.key === 'Escape') cancelEdit();
-  };
+  }, [onUpdateProduct]);
 
   const confirmDelete = () => {
     if (showDeleteConfirm && onDeleteProduct) { onDeleteProduct(showDeleteConfirm); toast.success(t('productDeleted')); }
@@ -141,7 +134,7 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
   const inputCls = "w-full bg-transparent border-none text-xs py-1.5 px-1.5 outline-none focus:bg-[hsl(var(--accent))] transition-colors placeholder:text-muted-foreground/40";
   const editInputCls = "w-full bg-[hsl(var(--accent))] border border-primary/30 text-xs py-1 px-1.5 outline-none rounded";
 
-  // Render an editable cell
+  // Render an editable cell — auto-save on blur, no buttons
   const renderCell = (p: Product, field: EditableField, display: React.ReactNode, align?: string) => {
     const cellKey = `${p.id}:${field}`;
     const isEditing = editingCell === cellKey;
@@ -152,16 +145,12 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
         <td className="px-0 py-0.5" onClick={e => e.stopPropagation()}>
           <ComboInput
             value={editValue}
-            onChange={v => setEditValue(v)}
+            onChange={v => { setEditValue(v); commitEdit(p.id, field, v); }}
             options={getOptions(field as ComboField)}
             onAddNew={v => addOption(field as ComboField, v)}
             placeholder={field}
             className={editInputCls}
           />
-          <div className="flex gap-0.5 px-1 mt-0.5">
-            <button onClick={() => commitEdit(p.id, field)} className="text-[9px] text-primary font-bold">✓</button>
-            <button onClick={cancelEdit} className="text-[9px] text-muted-foreground">✕</button>
-          </div>
         </td>
       );
     }
@@ -173,8 +162,11 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
             ref={editRef}
             value={editValue}
             onChange={e => setEditValue(e.target.value)}
-            onKeyDown={e => handleCellKeyDown(e, p.id, field)}
-            onBlur={() => commitEdit(p.id, field)}
+            onKeyDown={e => {
+              if (e.key === 'Enter') { e.preventDefault(); commitEdit(p.id, field, editValue); }
+              if (e.key === 'Escape') setEditingCell(null);
+            }}
+            onBlur={() => commitEdit(p.id, field, editValue)}
             type={['buyRate', 'pricePerBox', 'sqftPerBox', 'piecesPerBox', 'stock'].includes(field) ? 'number' : 'text'}
             className={`${editInputCls} ${align || ''}`}
           />
