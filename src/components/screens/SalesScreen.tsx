@@ -416,7 +416,7 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
                 <table className="w-full min-w-[700px]">
                   <thead className="sticky top-0 z-10">
                     <tr className="text-[10px] font-bold text-white uppercase tracking-wider bg-[hsl(230,45%,35%)]">
-                      <th className="px-2 py-2.5 w-8"><span className="material-symbols-outlined text-sm">check_box</span></th>
+                      <th className="px-2 py-2.5 w-8"><span className="material-symbols-outlined text-sm">delete</span></th>
                       <th className="px-3 py-2.5">Type</th>
                       <th className="px-3 py-2.5">Barcode</th>
                       <th className="px-3 py-2.5">Description</th>
@@ -428,9 +428,42 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-pos-surface-container">
-                    {displayProducts.map(p => {
-                      const item = items.find(i => i.productId === p.id);
-                      const isSelected = !!item;
+                    {items.length > 0 ? items.map(item => (
+                      <tr key={item.id} className="bg-[hsl(45,100%,96%)] dark:bg-[hsl(45,20%,12%)]">
+                        <td className="px-2 py-2 text-center">
+                          <input type="checkbox" onChange={() => removeItem(item.id)}
+                            className="w-4 h-4 rounded border-pos-surface-container accent-pos-secondary cursor-pointer" />
+                        </td>
+                        <td className="px-1 py-1">
+                          <select value={item.itemType} onChange={e => updateItem(item.id, 'itemType', e.target.value)}
+                            className="bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-xs py-1.5 px-1 outline-none">
+                            <option>Sale</option><option>Return</option>
+                          </select>
+                        </td>
+                        <td className="px-3 py-2 text-sm font-mono">{item.barcode || '—'}</td>
+                        <td className="px-3 py-2 text-sm font-medium">{item.name}</td>
+                        <td className="px-1 py-1">
+                          <input type="number" min={0} value={item.carton} onChange={e => updateItem(item.id, 'carton', parseInt(e.target.value) || 0)}
+                            className="w-16 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-center outline-none focus:border-pos-secondary mx-auto block" />
+                        </td>
+                        <td className="px-1 py-1">
+                          <input type="number" min={0} value={item.piece} onChange={e => updateItem(item.id, 'piece', parseInt(e.target.value) || 0)}
+                            className="w-14 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-center outline-none focus:border-pos-secondary mx-auto block" />
+                        </td>
+                        <td className="px-3 py-2 text-center text-sm">{item.sqftQty > 0 ? item.sqftQty.toFixed(3) : '0'}</td>
+                        <td className="px-1 py-1">
+                          <input type="number" value={item.salesRate} onChange={e => updateItem(item.id, 'salesRate', parseFloat(e.target.value) || 0)}
+                            className="w-20 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-right outline-none focus:border-pos-secondary ml-auto block" />
+                        </td>
+                        <td className="px-3 py-2 text-right font-bold text-sm">{formatCurrency(item.subTotal)}</td>
+                      </tr>
+                    )) : (
+                      <tr><td colSpan={9} className="px-8 py-8 text-center text-sm text-pos-on-surface-variant">Search and add products above</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
                       return (
                         <tr key={p.id} className={`transition-colors ${isSelected ? 'bg-[hsl(45,100%,96%)] dark:bg-[hsl(45,20%,12%)]' : 'hover:bg-muted/30'}`}>
                           <td className="px-2 py-2 text-center">
