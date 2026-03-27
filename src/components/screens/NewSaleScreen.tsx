@@ -759,48 +759,6 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
           </button>
         </div>
 
-        {/* ── Payment & Status Row ── */}
-        <div className="px-8 sm:px-12 pb-3">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div>
-              <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1">{t('paymentMethod')}</label>
-              <select value={payment} onChange={e => setPayment(e.target.value)}
-                className="w-full bg-muted/30 border border-border rounded text-xs py-1.5 px-2 outline-none focus:ring-1 focus:ring-ring">
-                <option value="cash">{t('cash')}</option>
-                <option value="bkash">{t('bkash')}</option>
-                <option value="nagad">{t('nagad')}</option>
-                <option value="card">{t('card')}</option>
-                <option value="credit">{t('creditDue')}</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1">{t('status')}</label>
-              <select value={status} onChange={e => setStatus(e.target.value)}
-                className="w-full bg-muted/30 border border-border rounded text-xs py-1.5 px-2 outline-none focus:ring-1 focus:ring-ring">
-                <option value="paid">{t('paid')}</option>
-                <option value="pending">{t('pending')}</option>
-                <option value="credit">{t('credit')}</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1">{t('discount')}</label>
-              <div className="flex gap-1">
-                <input type="number" value={discount} onChange={e => setDiscount(e.target.value)} placeholder="0"
-                  className="w-full bg-muted/30 border border-border rounded text-xs py-1.5 px-2 text-right outline-none focus:ring-1 focus:ring-ring" />
-                <select value={discountType} onChange={e => setDiscountType(e.target.value as 'flat' | 'percent')}
-                  className="bg-muted/30 border border-border rounded text-[10px] py-1 px-1 outline-none">
-                  <option value="flat">৳</option><option value="percent">%</option>
-                </select>
-              </div>
-            </div>
-            <div>
-              <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1">{t('notes')}</label>
-              <input value={notes} onChange={e => setNotes(e.target.value)}
-                className="w-full bg-muted/30 border border-border rounded text-xs py-1.5 px-2 outline-none focus:ring-1 focus:ring-ring" placeholder="..." />
-            </div>
-          </div>
-        </div>
-
         {/* ── Bottom 2-Column: Due Box (Left) + Totals (Right) ── */}
         <div className="px-8 sm:px-12 pb-4">
           <div className="flex flex-col sm:flex-row gap-5">
@@ -846,40 +804,16 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
               </div>
             </div>
 
-            {/* RIGHT COLUMN: Total, Labour, PAYABLE, Paid */}
+            {/* RIGHT COLUMN: Total, Labour, PAYABLE, Paid only */}
             <div className="w-full sm:w-56 space-y-1.5 text-xs">
               <div className="flex justify-between py-0.5">
-                <span className="text-muted-foreground">{t('subtotal')}</span>
+                <span className="font-semibold">Total:</span>
                 <span className="font-semibold">{Math.round(subtotal)}</span>
               </div>
-              {discountVal > 0 && (
-                <div className="flex justify-between py-0.5 text-destructive">
-                  <span>{t('discount')}</span>
-                  <span>-{Math.round(discountVal)}</span>
-                </div>
-              )}
-              {returnVal > 0 && (
-                <div className="flex justify-between py-0.5">
-                  <span className="text-muted-foreground">Return</span>
-                  <span>-{Math.round(returnVal)}</span>
-                </div>
-              )}
-              {lessVal > 0 && (
-                <div className="flex justify-between py-0.5">
-                  <span className="text-muted-foreground">Less</span>
-                  <span>-{Math.round(lessVal)}</span>
-                </div>
-              )}
-              {deliveryVal > 0 && (
-                <div className="flex justify-between py-0.5">
-                  <span className="text-muted-foreground">{t('delivery')}</span>
-                  <span>+{Math.round(deliveryVal)}</span>
-                </div>
-              )}
 
               {/* Labour input */}
               <div className="flex justify-between items-center py-0.5">
-                <span className="text-muted-foreground">{t('labour')}</span>
+                <span className="font-semibold">Labour:</span>
                 <input type="number" value={labour} onChange={e => setLabour(e.target.value)} placeholder="0"
                   className="w-20 bg-muted/30 border border-border rounded text-xs py-1 px-1.5 text-right outline-none focus:ring-1 focus:ring-ring" />
               </div>
@@ -892,37 +826,9 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
 
               {/* Paid input */}
               <div className="flex justify-between items-center py-0.5">
-                <span className="font-bold">{t('paid')}</span>
+                <span className="font-bold">Paid:</span>
                 <input type="number" value={paidAmount} onChange={e => setPaidAmount(e.target.value)} placeholder="0"
                   className="w-20 bg-[hsl(125,100%,95%)] border border-[hsl(125,60%,70%)] rounded text-xs py-1 px-1.5 text-right outline-none focus:ring-1 focus:ring-[hsl(125,60%,50%)] font-bold" />
-              </div>
-
-              {/* Return / Less / Delivery / Received inputs */}
-              <div className="flex justify-between items-center py-0.5">
-                <span className="text-muted-foreground">Return</span>
-                <input type="number" value={returnAmt} onChange={e => setReturnAmt(e.target.value)} placeholder="0"
-                  className="w-20 bg-muted/30 border border-border rounded text-xs py-1 px-1.5 text-right outline-none focus:ring-1 focus:ring-ring" />
-              </div>
-              <div className="flex justify-between items-center py-0.5">
-                <span className="text-muted-foreground">Less</span>
-                <input type="number" value={lessAmt} onChange={e => setLessAmt(e.target.value)} placeholder="0"
-                  className="w-20 bg-muted/30 border border-border rounded text-xs py-1 px-1.5 text-right outline-none focus:ring-1 focus:ring-ring" />
-              </div>
-              <div className="flex justify-between items-center py-0.5">
-                <span className="text-muted-foreground">{t('delivery')}</span>
-                <input type="number" value={delivery} onChange={e => setDelivery(e.target.value)} placeholder="0"
-                  className="w-20 bg-muted/30 border border-border rounded text-xs py-1 px-1.5 text-right outline-none focus:ring-1 focus:ring-ring" />
-              </div>
-              <div className="flex justify-between items-center py-0.5">
-                <span className="text-muted-foreground">{t('amountReceived')}</span>
-                <input type="number" value={received} onChange={e => setReceived(e.target.value)} placeholder="0"
-                  className="w-20 bg-muted/30 border border-border rounded text-xs py-1 px-1.5 text-right outline-none focus:ring-1 focus:ring-ring" />
-              </div>
-              {change > 0 && <div className="flex justify-between text-xs font-bold text-[hsl(142,70%,35%)]"><span>{t('change')}</span><span>{formatCurrency(change)}</span></div>}
-              <div className="flex justify-end">
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${statusBadgeClass}`}>
-                  {statusLabels[status] || status}
-                </span>
               </div>
             </div>
           </div>
