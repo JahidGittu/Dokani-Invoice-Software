@@ -93,14 +93,13 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
   // ── Add Purchase helpers ──
   const debouncedProductSearch = useDebounce(productSearch, 200);
   const filteredProducts = useMemo(() => {
-    if (!debouncedProductSearch) return products;
+    if (!debouncedProductSearch) return [];
     return products.filter(p =>
       p.name.toLowerCase().includes(debouncedProductSearch.toLowerCase()) ||
       (p.barcode || '').toLowerCase().includes(debouncedProductSearch.toLowerCase()) ||
       p.batch.toLowerCase().includes(debouncedProductSearch.toLowerCase())
-    );
+    ).slice(0, 8);
   }, [products, debouncedProductSearch]);
-  const [showProductList, setShowProductList] = useState(true);
 
   const addProductToItems = (product: Product) => {
     // Check if already in items
