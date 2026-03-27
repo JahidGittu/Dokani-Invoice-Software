@@ -170,7 +170,7 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
   const handleBarcode = (e: React.KeyboardEvent) => {
     if (e.key !== 'Enter' || !barcodeInput.trim()) return;
     const q = barcodeInput.trim().toLowerCase();
-    const found = products.find(p => p.batch.toLowerCase() === q || p.name.toLowerCase() === q || p.id === q);
+    const found = products.find(p => p.batch.toLowerCase() === q || p.name.toLowerCase().includes(q) || p.id === q);
     if (found) {
       const existingRow = rows.find(r => r.productId === found.id);
       if (existingRow) {
@@ -734,7 +734,7 @@ ${sale.discount > 0 ? `<div class="row"><span>Discount</span><span>-${formatCurr
                     onKeyDown={e => {
                       if (e.key !== 'Enter' || !barcodeInput.trim()) return;
                       const q = barcodeInput.trim().toLowerCase();
-                      const found = products.find(p => p.batch.toLowerCase() === q || p.name.toLowerCase() === q || p.id === q);
+                      const found = products.find(p => p.batch.toLowerCase() === q || p.name.toLowerCase().includes(q) || p.id === q);
                       if (found) {
                         setScanStatus('found');
                         setScanResult(found);
