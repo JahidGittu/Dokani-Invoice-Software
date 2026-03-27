@@ -69,53 +69,53 @@ function ProductPicker({
   };
 
   return (
-    <div className="relative flex items-center gap-1.5">
-      {/* Scan button */}
-      <button
-        onClick={() => onToggleScan?.()}
-        className="shrink-0 w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center hover:bg-primary/20 transition-colors"
-        title={t('scan')}
-      >
-        <span className="material-symbols-outlined text-base">qr_code_scanner</span>
-      </button>
-
+    <div className="relative">
       {selectedProduct ? (
-        <div className="flex-1 bg-muted/40 rounded-lg px-3 py-1.5 flex items-center gap-2 min-w-0">
-          <span className="text-sm font-semibold truncate">{selectedProduct.name}</span>
-          <span className="text-[10px] text-muted-foreground shrink-0">{selectedProduct.size}</span>
+        <div className="flex items-center gap-2 bg-muted/40 rounded-lg px-2 py-1.5">
+          <div className="flex-1 min-w-0">
+            <div className="text-xs font-semibold truncate">{selectedProduct.name} <span className="text-muted-foreground font-normal">({selectedProduct.size})</span></div>
+            <div className="text-[9px] text-muted-foreground">{selectedProduct.category || ''} · {selectedProduct.brand || ''} · ৳{selectedProduct.pricePerBox}</div>
+          </div>
           <button onClick={() => { onSelect(''); onUpdateSearch(''); }}
-            className="ml-auto text-muted-foreground hover:text-destructive shrink-0">
+            className="text-muted-foreground hover:text-destructive shrink-0">
             <span className="material-symbols-outlined text-sm">close</span>
           </button>
         </div>
       ) : (
-        <div className="relative flex-1">
-          <span className="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">search</span>
-          <input
-            value={row.searchQuery}
-            onChange={e => { onUpdateSearch(e.target.value); onToggleDropdown(true); }}
-            onFocus={() => onToggleDropdown(true)}
-            onBlur={() => setTimeout(() => onToggleDropdown(false), 200)}
-            className="w-full bg-transparent border-b border-border text-sm py-1.5 pl-7 pr-2 outline-none focus:border-primary placeholder:text-muted-foreground/50"
-            placeholder={t('searchProductPlaceholder')}
-          />
+        <div className="flex items-center gap-1">
+          <button onClick={() => onToggleScan?.()} className="shrink-0 w-7 h-7 rounded bg-primary/10 text-primary flex items-center justify-center hover:bg-primary/20" title={t('scan')}>
+            <span className="material-symbols-outlined text-sm">qr_code_scanner</span>
+          </button>
+          <div className="relative flex-1">
+            <span className="material-symbols-outlined absolute left-1.5 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">search</span>
+            <input
+              value={row.searchQuery}
+              onChange={e => { onUpdateSearch(e.target.value); onToggleDropdown(true); }}
+              onFocus={() => onToggleDropdown(true)}
+              onBlur={() => setTimeout(() => onToggleDropdown(false), 200)}
+              className="w-full bg-transparent border-b border-border text-xs py-1 pl-6 pr-1 outline-none focus:border-primary placeholder:text-muted-foreground/50"
+              placeholder={t('searchProductPlaceholder')}
+            />
+          </div>
         </div>
       )}
       
       {row.showDropdown && !selectedProduct && (
-        <div className="absolute top-full left-10 right-0 bg-card border border-border rounded-lg shadow-xl z-20 mt-1 max-h-[200px] overflow-y-auto">
+        <div className="absolute top-full left-0 right-0 bg-card border border-border rounded-lg shadow-xl z-50 mt-1 max-h-[240px] overflow-y-auto min-w-[300px]">
           {filtered.length > 0 ? filtered.map(p => (
             <button key={p.id} onMouseDown={() => handleSelect(p)}
               disabled={p.stock <= 0}
-              className={`w-full text-left px-3 py-2 text-xs hover:bg-accent transition-colors flex items-center gap-2 ${p.stock <= 0 ? 'opacity-40 cursor-not-allowed' : ''}`}>
-              <div className="w-8 text-[10px] text-muted-foreground font-mono">{p.barcode || '—'}</div>
-              <div className="flex-1 min-w-0">
-                <div className="font-semibold truncate">{p.name} <span className="text-muted-foreground font-normal">({p.size})</span></div>
-                <div className="text-[10px] text-muted-foreground">{p.category || ''} · {p.brand || ''} · {p.finish}</div>
-              </div>
-              <div className="text-right shrink-0">
-                <div className="font-bold text-primary text-[11px]">৳{p.pricePerBox}</div>
-                <div className={`text-[9px] ${p.stock <= 20 ? 'text-destructive' : 'text-muted-foreground'}`}>{p.stock} {t('boxes')}</div>
+              className={`w-full text-left px-3 py-2 text-xs hover:bg-accent transition-colors border-b border-border/30 ${p.stock <= 0 ? 'opacity-40 cursor-not-allowed' : ''}`}>
+              <div className="flex items-center gap-2">
+                <div className="w-7 text-[10px] text-muted-foreground font-mono shrink-0">{p.barcode || '—'}</div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold truncate">{p.name} <span className="text-muted-foreground font-normal">({p.size})</span></div>
+                  <div className="text-[10px] text-muted-foreground">{p.category || ''} · {p.brand || ''} · {p.finish}</div>
+                </div>
+                <div className="text-right shrink-0">
+                  <div className="font-bold text-primary text-[11px]">৳{p.pricePerBox}</div>
+                  <div className={`text-[9px] ${p.stock <= 20 ? 'text-destructive' : 'text-muted-foreground'}`}>{p.stock} {t('boxes')}</div>
+                </div>
               </div>
             </button>
           )) : (
