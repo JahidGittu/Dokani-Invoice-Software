@@ -66,6 +66,7 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
     setForm({
       name: p.name, size: p.size, finish: p.finish,
       pricePerBox: String(p.pricePerBox), sqftPerBox: String(p.sqftPerBox),
+      piecesPerBox: String(p.piecesPerBox || 4),
       stock: String(p.stock), batch: p.batch,
       barcode: p.barcode || '', category: p.category || 'Wall Tiles',
       brand: p.brand || '', buyRate: String(p.buyRate || 0),

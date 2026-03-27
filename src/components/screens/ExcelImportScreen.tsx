@@ -68,6 +68,7 @@ export default function ExcelImportScreen({ products, onImportProducts }: ExcelI
               pricePerBox: price,
               stock: qty,
               batch: row[bai] || 'Imported',
+              piecesPerBox: 4,
             });
           }
         });
