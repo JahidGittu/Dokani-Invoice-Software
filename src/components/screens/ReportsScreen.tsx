@@ -65,13 +65,17 @@ export default function ReportsScreen({ sales = [], products = [], customers = [
     { id: 'sales', label: 'Sales Report', icon: 'point_of_sale' },
     { id: 'stock', label: 'Stock Report', icon: 'layers' },
     { id: 'payment', label: 'Payment Report', icon: 'payments' },
+    { id: 'general_transaction', label: 'General Transaction', icon: 'receipt_long' },
     { id: 'customer', label: 'Customer Report', icon: 'group' },
     { id: 'supplier', label: 'Supplier Report', icon: 'local_shipping' },
+    { id: 'staff', label: 'Staff Report', icon: 'badge' },
     { id: 'profit', label: 'Profit Reports', icon: 'trending_up' },
     { id: 'customer_dues', label: 'Due Reports', icon: 'warning', children: [
       { id: 'customer_dues', label: 'Customer Dues' },
       { id: 'customer_walking', label: 'Customer Dues (Walking)' },
+      { id: 'customer_advance', label: 'Customer Advance' },
       { id: 'supplier_balance', label: 'Supplier Balance' },
+      { id: 'staff_balance', label: 'Staff Balance' },
     ]},
     { id: 'account', label: 'Account Reports', icon: 'account_balance' },
   ];
