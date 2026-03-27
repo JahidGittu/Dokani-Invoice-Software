@@ -44,17 +44,36 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
   const [newRow, setNewRow] = useState<InlineRow>(emptyRow());
   const nameRef = useRef<HTMLInputElement>(null);
 
+  const [sortField, setSortField] = useState<'name' | 'updated_at' | 'stock' | 'pricePerBox' | 'category' | 'brand'>('updated_at');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+
+  const toggleSort = (field: typeof sortField) => {
+    if (sortField === field) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortField(field); setSortDir('asc'); }
+  };
+
+  const sortIcon = (field: typeof sortField) => sortField === field ? (sortDir === 'asc' ? 'arrow_upward' : 'arrow_downward') : 'unfold_more';
+
   const debouncedSearch = useDebounce(search, 250);
-  const filtered = useMemo(() =>
-    products.filter(p =>
+  const filtered = useMemo(() => {
+    const list = products.filter(p =>
       p.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
       p.batch.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
       (p.barcode || '').toLowerCase().includes(debouncedSearch.toLowerCase()) ||
       (p.category || '').toLowerCase().includes(debouncedSearch.toLowerCase()) ||
       (p.brand || '').toLowerCase().includes(debouncedSearch.toLowerCase())
-    ),
-    [products, debouncedSearch]
-  );
+    );
+    return [...list].sort((a, b) => {
+      let cmp = 0;
+      if (sortField === 'name') cmp = a.name.localeCompare(b.name);
+      else if (sortField === 'stock') cmp = a.stock - b.stock;
+      else if (sortField === 'pricePerBox') cmp = a.pricePerBox - b.pricePerBox;
+      else if (sortField === 'category') cmp = (a.category || '').localeCompare(b.category || '');
+      else if (sortField === 'brand') cmp = (a.brand || '').localeCompare(b.brand || '');
+      else cmp = (a.id || '').localeCompare(b.id || ''); // updated_at fallback
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+  }, [products, debouncedSearch, sortField, sortDir]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginatedProducts = useMemo(() => filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE), [filtered, page]);
