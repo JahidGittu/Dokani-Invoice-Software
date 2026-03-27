@@ -28,7 +28,6 @@ interface NewSaleScreenProps {
   settings: CompanySettings;
   onSaleComplete: (sale: SaleRecord, stockDeductions: { productId: string; qty: number }[]) => void;
   onAutoAddCustomer: (name: string, phone: string, address: string) => void;
-  getNextInvoiceNumber?: () => Promise<string>;
 }
 
 // Searchable Product Picker component
