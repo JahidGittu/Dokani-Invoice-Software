@@ -23,7 +23,9 @@ export default function Index() {
   const handleSaleComplete = useCallback((sale: SaleRecord, stockDeductions: { productId: string; qty: number }[]) => {
     addSale(sale);
     deductStock(stockDeductions);
-    if (sale.customer !== 'Walk-in Customer') {
+    // Check both EN and BN walk-in names to avoid updating spend for anonymous customers
+    const walkInNames = ['Walk-in Customer', 'সরাসরি কাস্টমার'];
+    if (!walkInNames.includes(sale.customer) && sale.customer.trim()) {
       updateCustomerSpend(sale.customer, sale.total);
     }
   }, [addSale, deductStock, updateCustomerSpend]);
