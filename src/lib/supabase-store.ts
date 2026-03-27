@@ -44,7 +44,7 @@ export function useSupabaseProducts() {
       price_per_box: p.pricePerBox, sqft_per_box: p.sqftPerBox,
       stock: p.stock, batch: p.batch, barcode: (p as any).barcode || '',
       category: (p as any).category || '', brand: (p as any).brand || '',
-      buy_rate: (p as any).buyRate || 0,
+      buy_rate: (p as any).buyRate || 0, pieces_per_box: p.piecesPerBox || 4,
     } as any);
     if (error) { toast.error('Failed to add product'); return; }
     fetchProducts();
