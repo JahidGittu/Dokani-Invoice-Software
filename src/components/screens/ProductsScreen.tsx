@@ -277,61 +277,6 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
                 <tr><td colSpan={13} className="px-8 py-6 text-center text-xs text-pos-on-surface-variant">{t('noProducts')}</td></tr>
               )}
 
-              {/* ═══ NEW ENTRY ROW (always at bottom) ═══ */}
-              <tr className="bg-[hsl(125,40%,96%)] dark:bg-[hsl(125,25%,12%)] border-t-2 border-[hsl(125,50%,70%)] hover:bg-[hsl(125,40%,94%)] dark:hover:bg-[hsl(125,25%,14%)] transition-colors"
-                onKeyDown={handleKeyDown}>
-                <td className="px-2 py-1 text-center">
-                  <span className="material-symbols-outlined text-[hsl(125,60%,35%)] text-base">add_circle</span>
-                </td>
-                <td className="px-0 py-1 border-r border-[hsl(125,30%,80%)]">
-                  <input ref={nameRef} value={newRow.name} onChange={e => updateNewRow('name', e.target.value)}
-                    className={`${inputCls} font-semibold`} placeholder="নাম লিখুন..." autoFocus />
-                </td>
-                <td className="px-0 py-1 border-r border-[hsl(125,30%,80%)]">
-                  <select value={newRow.category} onChange={e => updateNewRow('category', e.target.value)} className={selectCls}>
-                    {PRODUCT_CATEGORIES.map(c => <option key={c}>{c}</option>)}
-                  </select>
-                </td>
-                <td className="px-0 py-1 border-r border-[hsl(125,30%,80%)]">
-                  <select value={newRow.brand} onChange={e => updateNewRow('brand', e.target.value)} className={selectCls}>
-                    <option value="">—</option>
-                    {PRODUCT_BRANDS.map(b => <option key={b}>{b}</option>)}
-                  </select>
-                </td>
-                <td className="px-0 py-1 border-r border-[hsl(125,30%,80%)]">
-                  <input value={newRow.size} onChange={e => updateNewRow('size', e.target.value)} className={inputCls} placeholder="60×60" />
-                </td>
-                <td className="px-0 py-1 border-r border-[hsl(125,30%,80%)]">
-                  <select value={newRow.finish} onChange={e => updateNewRow('finish', e.target.value)} className={selectCls}>
-                    {FINISHES.map(f => <option key={f}>{f}</option>)}
-                  </select>
-                </td>
-                <td className="px-0 py-1 border-r border-[hsl(125,30%,80%)]">
-                  <input type="number" value={newRow.buyRate} onChange={e => updateNewRow('buyRate', e.target.value)} className={`${inputCls} text-right`} placeholder="৳ Buy" />
-                </td>
-                <td className="px-0 py-1 border-r border-[hsl(125,30%,80%)] bg-[hsl(54,97%,92%)] dark:bg-[hsl(54,30%,15%)]">
-                  <input type="number" value={newRow.pricePerBox} onChange={e => updateNewRow('pricePerBox', e.target.value)} className={`${inputCls} text-right font-bold`} placeholder="৳ Sale *" />
-                </td>
-                <td className="px-0 py-1 border-r border-[hsl(125,30%,80%)]">
-                  <input type="number" value={newRow.sqftPerBox} onChange={e => updateNewRow('sqftPerBox', e.target.value)} className={`${inputCls} text-center`} placeholder="sqft" />
-                </td>
-                <td className="px-0 py-1 border-r border-[hsl(125,30%,80%)]">
-                  <input type="number" value={newRow.piecesPerBox} onChange={e => updateNewRow('piecesPerBox', e.target.value)} className={`${inputCls} text-center`} placeholder="pcs" />
-                </td>
-                <td className="px-0 py-1 border-r border-[hsl(125,30%,80%)]">
-                  <input type="number" value={newRow.stock} onChange={e => updateNewRow('stock', e.target.value)} className={`${inputCls} text-center`} placeholder="qty" />
-                </td>
-                <td className="px-0 py-1 border-r border-[hsl(125,30%,80%)]">
-                  <input value={newRow.batch} onChange={e => updateNewRow('batch', e.target.value)} className={inputCls} placeholder="batch" />
-                </td>
-                <td className="px-2 py-1 text-center">
-                  <button onClick={autoSaveRow} disabled={!isRowComplete(newRow)}
-                    className="w-7 h-7 rounded-lg bg-[hsl(125,60%,35%)] text-white flex items-center justify-center disabled:opacity-30 hover:bg-[hsl(125,60%,28%)] transition-colors mx-auto"
-                    title="Save (Enter)">
-                    <span className="material-symbols-outlined text-sm">check</span>
-                  </button>
-                </td>
-              </tr>
             </tbody>
           </table>
         </div>
