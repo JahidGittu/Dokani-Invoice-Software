@@ -135,7 +135,7 @@ tbody tr:nth-child(even){background:#fafafa}
     ${companyPhone ? `<div class="company-phone">Phone# ${companyPhone}</div>` : ''}
     ${companyEmail ? `<div class="company-email">${companyEmail}</div>` : ''}
   </div>
-  <div class="header-right">${qrSVG}</div>
+  <div class="header-right">${qrImgTag}</div>
 </div>
 
 <!-- Bill Title -->
