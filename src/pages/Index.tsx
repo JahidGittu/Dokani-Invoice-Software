@@ -33,7 +33,8 @@ export default function Index() {
     deductStock(stockDeductions);
     const walkInNames = ['Walk-in Customer', 'সরাসরি কাস্টমার'];
     if (!walkInNames.includes(sale.customer) && sale.customer.trim()) {
-      updateCustomerSpend(sale.customer, sale.total);
+      const dueAmount = sale.due ?? 0;
+      updateCustomerSpend(sale.customer, sale.total, dueAmount);
     }
   }, [addSale, deductStock, updateCustomerSpend]);
 
