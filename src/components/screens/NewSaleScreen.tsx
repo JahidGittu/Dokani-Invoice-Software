@@ -32,7 +32,7 @@ interface NewSaleScreenProps {
 
 // Searchable Product Picker component
 function ProductPicker({ 
-  products, row, onSelect, onUpdateSearch, onToggleDropdown, onRemove, t 
+  products, row, onSelect, onUpdateSearch, onToggleDropdown, onRemove, onToggleScan, t 
 }: {
   products: Product[];
   row: NewSaleRow;
@@ -40,6 +40,7 @@ function ProductPicker({
   onUpdateSearch: (query: string) => void;
   onToggleDropdown: (show: boolean) => void;
   onRemove: () => void;
+  onToggleScan?: () => void;
   t: (key: string) => string;
 }) {
   const selectedProduct = products.find(p => p.id === row.productId);
