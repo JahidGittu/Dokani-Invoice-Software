@@ -18,6 +18,8 @@ interface NewSaleRow {
   productId: string;
   qty: number;
   rate: number;
+  searchQuery: string;
+  showDropdown: boolean;
 }
 
 interface NewSaleScreenProps {
@@ -26,6 +28,89 @@ interface NewSaleScreenProps {
   settings: CompanySettings;
   onSaleComplete: (sale: SaleRecord, stockDeductions: { productId: string; qty: number }[]) => void;
   onAutoAddCustomer: (name: string, phone: string, address: string) => void;
+}
+
+// Searchable Product Picker component
+function ProductPicker({ 
+  products, row, onSelect, onUpdateSearch, onToggleDropdown, onRemove, t 
+}: {
+  products: Product[];
+  row: NewSaleRow;
+  onSelect: (productId: string) => void;
+  onUpdateSearch: (query: string) => void;
+  onToggleDropdown: (show: boolean) => void;
+  onRemove: () => void;
+  t: (key: string) => string;
+}) {
+  const selectedProduct = products.find(p => p.id === row.productId);
+  const debouncedQuery = useDebounce(row.searchQuery, 150);
+  
+  const filtered = useMemo(() => {
+    if (!debouncedQuery) return products;
+    const q = debouncedQuery.toLowerCase();
+    return products.filter(p =>
+      p.name.toLowerCase().includes(q) ||
+      p.size.toLowerCase().includes(q) ||
+      p.batch.toLowerCase().includes(q) ||
+      String(p.pricePerBox).includes(q)
+    );
+  }, [products, debouncedQuery]);
+
+  const handleSelect = (p: Product) => {
+    onSelect(p.id);
+    onUpdateSearch('');
+    onToggleDropdown(false);
+  };
+
+  return (
+    <div className="relative">
+      {selectedProduct ? (
+        <div className="flex items-center gap-2">
+          <div className="flex-1 bg-muted/40 rounded-lg px-3 py-1.5 flex items-center gap-2 min-w-0">
+            <span className="text-sm font-semibold truncate">{selectedProduct.name}</span>
+            <span className="text-[10px] text-muted-foreground shrink-0">{selectedProduct.size}</span>
+            <button onClick={() => { onSelect(''); onUpdateSearch(''); }}
+              className="ml-auto text-muted-foreground hover:text-destructive shrink-0">
+              <span className="material-symbols-outlined text-sm">close</span>
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="relative">
+          <span className="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">search</span>
+          <input
+            value={row.searchQuery}
+            onChange={e => { onUpdateSearch(e.target.value); onToggleDropdown(true); }}
+            onFocus={() => onToggleDropdown(true)}
+            onBlur={() => setTimeout(() => onToggleDropdown(false), 200)}
+            className="w-full bg-transparent border-b border-border text-sm py-1.5 pl-7 pr-2 outline-none focus:border-primary placeholder:text-muted-foreground/50"
+            placeholder={t('searchProductPlaceholder')}
+          />
+        </div>
+      )}
+      
+      {row.showDropdown && !selectedProduct && (
+        <div className="absolute top-full left-0 right-0 bg-card border border-border rounded-lg shadow-xl z-20 mt-1 max-h-[200px] overflow-y-auto">
+          {filtered.length > 0 ? filtered.map(p => (
+            <button key={p.id} onMouseDown={() => handleSelect(p)}
+              disabled={p.stock <= 0}
+              className={`w-full text-left px-3 py-2 text-xs hover:bg-accent transition-colors flex items-center gap-2 ${p.stock <= 0 ? 'opacity-40 cursor-not-allowed' : ''}`}>
+              <div className="flex-1 min-w-0">
+                <div className="font-semibold truncate">{p.name}</div>
+                <div className="text-[10px] text-muted-foreground">{p.size} · {p.finish} · {p.batch}</div>
+              </div>
+              <div className="text-right shrink-0">
+                <div className="font-bold text-primary text-[11px]">৳{p.pricePerBox}</div>
+                <div className={`text-[9px] ${p.stock <= 20 ? 'text-destructive' : 'text-muted-foreground'}`}>{p.stock} {t('boxes')}</div>
+              </div>
+            </button>
+          )) : (
+            <div className="px-3 py-4 text-xs text-muted-foreground text-center">{t('noProducts')}</div>
+          )}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function NewSaleScreen({ products, customers, settings, onSaleComplete, onAutoAddCustomer }: NewSaleScreenProps) {
@@ -39,7 +124,7 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
   const [discount, setDiscount] = useState('');
   const [discountType, setDiscountType] = useState<'flat' | 'percent'>('flat');
   const [received, setReceived] = useState('');
-  const [rows, setRows] = useState<NewSaleRow[]>([{ id: Date.now(), productId: '', qty: 1, rate: 0 }]);
+  const [rows, setRows] = useState<NewSaleRow[]>([{ id: Date.now(), productId: '', qty: 1, rate: 0, searchQuery: '', showDropdown: false }]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [barcodeInput, setBarcodeInput] = useState('');
   const barcodeRef = useRef<HTMLInputElement>(null);
@@ -57,12 +142,16 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
     setCustomerName(c.name); setPhone(c.phone || ''); setAddress(c.address || ''); setShowSuggestions(false);
   };
 
-  const addRow = () => setRows(prev => [...prev, { id: Date.now(), productId: '', qty: 1, rate: 0 }]);
+  const addRow = () => setRows(prev => [...prev, { id: Date.now(), productId: '', qty: 1, rate: 0, searchQuery: '', showDropdown: false }]);
   const removeRow = (id: number) => setRows(prev => prev.length <= 1 ? prev : prev.filter(r => r.id !== id));
-  const updateRow = (id: number, field: keyof NewSaleRow, value: string | number) => {
+  const updateRow = (id: number, field: keyof NewSaleRow, value: string | number | boolean) => {
     setRows(prev => prev.map(r => r.id === id ? { ...r, [field]: value } : r));
   };
   const selectProduct = (rowId: number, productId: string) => {
+    if (!productId) {
+      setRows(prev => prev.map(r => r.id === rowId ? { ...r, productId: '', rate: 0 } : r));
+      return;
+    }
     const p = products.find(x => x.id === productId);
     if (p) setRows(prev => prev.map(r => r.id === rowId ? { ...r, productId, rate: p.pricePerBox, qty: r.qty || 1 } : r));
   };
@@ -78,14 +167,14 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
       } else {
         const emptyRow = rows.find(r => !r.productId);
         if (emptyRow) {
-          setRows(prev => prev.map(r => r.id === emptyRow.id ? { ...r, productId: found.id, rate: found.pricePerBox, qty: 1 } : r));
+          setRows(prev => prev.map(r => r.id === emptyRow.id ? { ...r, productId: found.id, rate: found.pricePerBox, qty: 1, searchQuery: '' } : r));
         } else {
-          setRows(prev => [...prev, { id: Date.now(), productId: found.id, qty: 1, rate: found.pricePerBox }]);
+          setRows(prev => [...prev, { id: Date.now(), productId: found.id, qty: 1, rate: found.pricePerBox, searchQuery: '', showDropdown: false }]);
         }
       }
-      toast.success(`${found.name} added!`);
+      toast.success(`${found.name} ${t('addedToCart')}`);
     } else {
-      toast.error('Product not found!');
+      toast.error(t('productNotFound'));
     }
     setBarcodeInput('');
   };
@@ -107,11 +196,11 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
       const p = products.find(x => x.id === r.productId);
       return { productId: r.productId, name: p?.name || 'Custom Item', detail: p ? `${p.size} · ${p.finish}` : '', qty: r.qty, price: r.rate };
     });
-    if (!items.length) { toast.error('Add at least one item!'); return null; }
+    if (!items.length) { toast.error(t('addAtLeastOneItem')); return null; }
     const inv = getNextInvoiceNumber(settings.invPrefix);
     const now = new Date();
     const sale: SaleRecord = {
-      id: crypto.randomUUID(), invoice: inv, customer: customerName || 'Walk-in Customer',
+      id: crypto.randomUUID(), invoice: inv, customer: customerName || t('walkInCustomer'),
       phone, address, items, subtotal, discount: discountVal, discountType, total,
       paymentMethod: payment, notes, status: status as SaleRecord['status'],
       date: now.toISOString(), time: now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
@@ -121,7 +210,7 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
 
   const commitSale = (sale: SaleRecord, deductions: { productId: string; qty: number }[]) => {
     onSaleComplete(sale, deductions);
-    if (sale.customer !== 'Walk-in Customer' && !customers.find(c => c.name === sale.customer)) {
+    if (sale.customer !== t('walkInCustomer') && !customers.find(c => c.name === sale.customer)) {
       onAutoAddCustomer(sale.customer, sale.phone, sale.address || '');
     }
   };
@@ -129,13 +218,12 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
   const resetForm = () => {
     setCustomerName(''); setPhone(''); setAddress(''); setNotes('');
     setDiscount(''); setReceived(''); setPayment('cash'); setStatus('paid');
-    setRows([{ id: Date.now(), productId: '', qty: 1, rate: 0 }]);
+    setRows([{ id: Date.now(), productId: '', qty: 1, rate: 0, searchQuery: '', showDropdown: false }]);
   };
 
   const handleSaveAndPrint = () => {
     const data = collectSaleData(); if (!data) return;
     commitSale(data.sale, data.deductions);
-    // Print the invoice
     handlePrintSale(data.sale);
     resetForm();
     toast.success(t('saleSaved'));
@@ -170,7 +258,8 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
     return `<!DOCTYPE html><html><head><title>${sale.invoice}</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Inter','Segoe UI',Arial,sans-serif;padding:40px;color:#2d3435;font-size:13px;max-width:700px;margin:0 auto}
+body{font-family:'Inter','Segoe UI',Arial,sans-serif;color:#2d3435;font-size:13px;background:#fff}
+.page{width:210mm;min-height:297mm;margin:0 auto;padding:20mm 20mm 15mm;position:relative}
 .header{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:16px;border-bottom:3px solid #005cc1;margin-bottom:16px}
 .logo-area{display:flex;align-items:center;gap:12px}
 .logo-box{width:44px;height:44px;background:#005cc1;border-radius:8px;display:flex;align-items:center;justify-content:center;color:white;font-weight:900;font-size:16px}
@@ -207,8 +296,9 @@ td:last-child{text-align:right;font-weight:600}
 .terms{font-size:9px;color:#5a6061;max-width:320px;line-height:1.5}
 .terms strong{font-size:10px;color:#2d3435}
 .thank-you{text-align:center;font-size:10px;color:#5a6061;margin-top:16px;padding-top:12px;border-top:1px solid #f0f2f3}
-@media print{body{padding:24px}}
+@media print{@page{size:A4;margin:0} .page{padding:15mm 18mm}}
 </style></head><body>
+<div class="page">
 <div class="header">
   <div class="logo-area">
     <div class="logo-box">${settings.name.slice(0, 2).toUpperCase()}</div>
@@ -244,12 +334,13 @@ ${sale.notes ? `<div style="font-size:11px;color:#5a6061;margin-bottom:12px;font
   <div class="terms"><strong>Terms & Conditions</strong><br>• Goods once delivered cannot be returned.<br>• Prices subject to change without notice.<br>• Credit payment due within 30 days.</div>
 </div>
 <div class="thank-you">${settings.name ? `Thank you for shopping at ${settings.name}!` : 'Thank you!'}</div>
+</div>
 </body></html>`;
   };
 
   const handlePrintSale = (sale: SaleRecord) => {
-    const w = window.open('', '_blank', 'width=750,height=900');
-    if (!w) { toast.error('Pop-up blocked!'); return; }
+    const w = window.open('', '_blank', 'width=800,height=1000');
+    if (!w) { toast.error(t('popupBlocked')); return; }
     w.document.write(generatePrintHTML(sale));
     w.document.close();
     w.focus();
@@ -258,7 +349,7 @@ ${sale.notes ? `<div style="font-size:11px;color:#5a6061;margin-bottom:12px;font
 
   const handleThermalPrint = (sale: SaleRecord) => {
     const w = window.open('', '_blank', 'width=320,height=600');
-    if (!w) { toast.error('Pop-up blocked!'); return; }
+    if (!w) { toast.error(t('popupBlocked')); return; }
     w.document.write(`<!DOCTYPE html><html><head><title>${sale.invoice}</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -351,7 +442,7 @@ ${sale.discount > 0 ? `<div class="row"><span>Discount</span><span>-${formatCurr
     doc.setFontSize(8); doc.setTextColor(90, 96, 97);
     doc.text(`Thank you for shopping at ${settings.name}!`, pw / 2, y, { align: 'center' });
     doc.save(`${sale.invoice}.pdf`);
-    toast.success('PDF downloaded!');
+    toast.success(t('pdfDownloaded'));
   };
 
   const handleWhatsApp = () => {
@@ -373,8 +464,6 @@ ${sale.discount > 0 ? `<div class="row"><span>Discount</span><span>-${formatCurr
   const statusLabels: Record<string, string> = { paid: t('paid'), pending: t('pending'), credit: t('credit') };
   const statusBadgeClass = status === 'paid' ? 'bg-[hsl(125,100%,77%)] text-[hsl(144,100%,19%)]' : status === 'pending' ? 'bg-[hsl(54,97%,77%)] text-[hsl(37,82%,29%)]' : 'bg-[hsl(224,100%,92%)] text-[hsl(211,100%,26%)]';
 
-  const validItems = rows.filter(r => r.productId && r.qty > 0);
-
   return (
     <section className="p-4 sm:p-6 max-w-4xl mx-auto">
       {/* Quick add bar */}
@@ -383,34 +472,36 @@ ${sale.discount > 0 ? `<div class="row"><span>Discount</span><span>-${formatCurr
           <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-lg">qr_code_scanner</span>
           <input ref={barcodeRef} value={barcodeInput} onChange={e => setBarcodeInput(e.target.value)} onKeyDown={handleBarcode}
             className="w-full bg-card border border-border rounded-lg text-sm py-2.5 pl-10 pr-3 focus:ring-2 focus:ring-ring outline-none"
-            placeholder={t('barcodeSearch') + " — scan or type & Enter"} />
+            placeholder={t('scanOrType')} />
         </div>
       </div>
 
-      {/* ═══════ THE INVOICE-FORM (form = invoice) ═══════ */}
-      <div ref={invoiceRef} className="bg-card rounded-2xl border border-border shadow-lg overflow-hidden">
+      {/* ═══════ A4 PAPER INVOICE-FORM ═══════ */}
+      <div ref={invoiceRef} className="bg-card rounded-sm border border-border shadow-[0_2px_20px_rgba(0,0,0,0.08)] overflow-hidden mx-auto"
+        style={{ maxWidth: '210mm', minHeight: '297mm', aspectRatio: '210/297' }}>
 
         {/* ── Invoice Header ── */}
-        <div className="px-6 sm:px-8 pt-6 sm:pt-8 pb-4 border-b-[3px] border-primary">
+        <div className="px-8 sm:px-12 pt-8 sm:pt-10 pb-4 border-b-[3px] border-primary">
           <div className="flex justify-between items-start">
             <div className="flex items-center gap-3">
-              <div className="w-11 h-11 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-black text-sm">
+              <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-black text-base">
                 {settings.name.slice(0, 2).toUpperCase()}
               </div>
               <div>
-                <div className="text-xl font-black tracking-tight text-foreground">{settings.name}</div>
+                <div className="text-xl sm:text-2xl font-black tracking-tight text-foreground">{settings.name}</div>
                 {bizInfoLine && <div className="text-[11px] text-muted-foreground">{bizInfoLine}</div>}
               </div>
             </div>
             <div className="text-right">
-              <div className="text-primary font-black text-lg tracking-wide">INVOICE</div>
+              <div className="text-[9px] font-bold text-muted-foreground uppercase tracking-[2px]">INVOICE / CHALLAN</div>
+              <div className="text-primary font-black text-lg tracking-wide">#NEW</div>
               <div className="text-xs text-muted-foreground">{dateStr} · {timeStr}</div>
             </div>
           </div>
         </div>
 
-        {/* ── Customer Section (editable) ── */}
-        <div className="px-6 sm:px-8 py-4 bg-muted/40">
+        {/* ── Bill To (editable) ── */}
+        <div className="px-8 sm:px-12 py-4 bg-muted/30">
           <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2">{t('billTo')}</div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="relative">
@@ -440,12 +531,12 @@ ${sale.discount > 0 ? `<div class="row"><span>Discount</span><span>-${formatCurr
           </div>
         </div>
 
-        {/* ── Items Table (editable) ── */}
-        <div className="px-6 sm:px-8 py-5">
+        {/* ── Items Table (editable with searchable picker) ── */}
+        <div className="px-8 sm:px-12 py-5">
           <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3">{t('saleItems')}</div>
 
           {/* Table header */}
-          <div className="hidden sm:grid grid-cols-12 gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-1 mb-2">
+          <div className="hidden sm:grid grid-cols-12 gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-1 mb-2 border-b border-border pb-2">
             <div className="col-span-5">{t('products')}</div>
             <div className="col-span-2 text-center">{t('qty')}</div>
             <div className="col-span-2 text-right">{t('rate')}</div>
@@ -454,24 +545,24 @@ ${sale.discount > 0 ? `<div class="row"><span>Discount</span><span>-${formatCurr
           </div>
 
           {/* Item rows */}
-          <div className="space-y-2">
+          <div className="space-y-1">
             {rows.map((row) => {
               const rowTotal = row.qty * row.rate;
               const product = products.find(p => p.id === row.productId);
               return (
-                <div key={row.id} className="grid grid-cols-12 gap-2 items-center bg-muted/30 rounded-lg px-2 sm:px-3 py-2 hover:bg-muted/50 transition-colors">
-                  {/* Product select */}
+                <div key={row.id} className="grid grid-cols-12 gap-2 items-center px-1 py-2 border-b border-border/50 hover:bg-muted/20 transition-colors">
+                  {/* Product picker */}
                   <div className="col-span-12 sm:col-span-5">
-                    <select value={row.productId} onChange={e => selectProduct(row.id, e.target.value)}
-                      className="w-full bg-transparent border-b border-border text-sm py-1 outline-none focus:border-primary">
-                      <option value="">{t('selectProduct')}</option>
-                      {products.map(p => (
-                        <option key={p.id} value={p.id} disabled={p.stock <= 0}>
-                          {p.name} ({p.size}) — ৳{p.pricePerBox} [{p.stock}]
-                        </option>
-                      ))}
-                    </select>
-                    {product && <div className="text-[10px] text-muted-foreground mt-0.5">{product.size} · {product.finish} · Batch: {product.batch}</div>}
+                    <ProductPicker
+                      products={products}
+                      row={row}
+                      onSelect={(pid) => selectProduct(row.id, pid)}
+                      onUpdateSearch={(q) => updateRow(row.id, 'searchQuery', q)}
+                      onToggleDropdown={(show) => updateRow(row.id, 'showDropdown', show)}
+                      onRemove={() => removeRow(row.id)}
+                      t={t as (key: string) => string}
+                    />
+                    {product && <div className="text-[10px] text-muted-foreground mt-0.5 pl-1">{product.size} · {product.finish}</div>}
                   </div>
                   {/* Qty */}
                   <div className="col-span-4 sm:col-span-2">
@@ -504,9 +595,9 @@ ${sale.discount > 0 ? `<div class="row"><span>Discount</span><span>-${formatCurr
           </button>
         </div>
 
-        {/* ── Summary & Payment (right-aligned like real invoice) ── */}
-        <div className="px-6 sm:px-8 pb-5">
-          <div className="flex flex-col sm:flex-row gap-5">
+        {/* ── Summary & Payment ── */}
+        <div className="px-8 sm:px-12 pb-6">
+          <div className="flex flex-col sm:flex-row gap-6">
             {/* Left: Payment & Notes */}
             <div className="flex-1 space-y-3">
               <div className="grid grid-cols-2 gap-3">
@@ -538,7 +629,7 @@ ${sale.discount > 0 ? `<div class="row"><span>Discount</span><span>-${formatCurr
               </div>
             </div>
 
-            {/* Right: Totals summary */}
+            {/* Right: Totals */}
             <div className="w-full sm:w-64 space-y-2 text-sm">
               <div className="flex justify-between"><span className="text-muted-foreground">{t('subtotal')}</span><span className="font-semibold">{formatCurrency(subtotal)}</span></div>
               <div className="flex justify-between items-center">
@@ -553,7 +644,7 @@ ${sale.discount > 0 ? `<div class="row"><span>Discount</span><span>-${formatCurr
                 </div>
               </div>
               {discountVal > 0 && <div className="flex justify-between text-destructive text-xs"><span>{t('discount')}</span><span>-{formatCurrency(discountVal)}</span></div>}
-              <div className="h-px bg-border" />
+              <div className="h-[2px] bg-foreground" />
               <div className="flex justify-between text-xl font-black">
                 <span>{t('total')}</span>
                 <span className="text-primary">{formatCurrency(total)}</span>
@@ -574,43 +665,42 @@ ${sale.discount > 0 ? `<div class="row"><span>Discount</span><span>-${formatCurr
         </div>
 
         {/* ── Footer: Terms ── */}
-        <div className="px-6 sm:px-8 py-3 bg-muted/20 border-t border-border text-[9px] text-muted-foreground">
+        <div className="px-8 sm:px-12 py-3 bg-muted/20 border-t border-border text-[9px] text-muted-foreground mt-auto">
           <span className="font-bold text-foreground text-[10px]">{t('termsAndConditions')}</span>
-          <span className="ml-2">• {t('goodsOnceDelivered')} • Prices subject to change. • Credit due within 30 days.</span>
+          <span className="ml-2">• {t('goodsOnceDelivered')} • {t('priceSubjectToChange')} • {t('paymentDueWithin')}</span>
         </div>
+      </div>
 
-        {/* ── Action Buttons ── */}
-        <div className="px-6 sm:px-8 py-4 bg-muted/10 border-t border-border no-print">
-          <div className="flex flex-wrap gap-2">
-            <button onClick={handleSaveAndPrint}
-              className="flex-1 min-w-[140px] py-3 bg-gradient-to-b from-primary to-primary/90 text-primary-foreground rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-lg hover:-translate-y-0.5 transition-transform">
-              <span className="material-symbols-outlined text-lg">print</span>
-              {t('saveSale')} & {t('print')}
-            </button>
-            <button onClick={handleSaveAndPDF}
-              className="py-3 px-4 bg-destructive/10 text-destructive rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-destructive/20 transition-colors">
-              <span className="material-symbols-outlined text-lg">picture_as_pdf</span>PDF
-            </button>
-            <button onClick={handleSaveAndThermal}
-              className="py-3 px-4 bg-accent text-accent-foreground rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-accent/80 transition-colors">
-              <span className="material-symbols-outlined text-lg">receipt</span>80mm
-            </button>
-            <button onClick={handleWhatsApp}
-              className="py-3 px-4 bg-[hsl(142,70%,45%)]/10 text-[hsl(142,70%,35%)] rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-[hsl(142,70%,45%)]/20 transition-colors">
-              <span className="material-symbols-outlined text-lg">send</span>WhatsApp
-            </button>
-            <button onClick={handleSaveOnly}
-              className="py-3 px-4 bg-muted text-foreground rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-muted/80 transition-colors">
-              <span className="material-symbols-outlined text-lg">save</span>{t('saveSale')}
-            </button>
-          </div>
+      {/* ── Action Buttons (below the paper) ── */}
+      <div className="max-w-[210mm] mx-auto mt-4 no-print">
+        <div className="flex flex-wrap gap-2">
+          <button onClick={handleSaveAndPrint}
+            className="flex-1 min-w-[140px] py-3 bg-gradient-to-b from-primary to-primary/90 text-primary-foreground rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-lg hover:-translate-y-0.5 transition-transform">
+            <span className="material-symbols-outlined text-lg">print</span>
+            {t('saveSale')} & {t('print')}
+          </button>
+          <button onClick={handleSaveAndPDF}
+            className="py-3 px-4 bg-destructive/10 text-destructive rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-destructive/20 transition-colors">
+            <span className="material-symbols-outlined text-lg">picture_as_pdf</span>PDF
+          </button>
+          <button onClick={handleSaveAndThermal}
+            className="py-3 px-4 bg-accent text-accent-foreground rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-accent/80 transition-colors">
+            <span className="material-symbols-outlined text-lg">receipt</span>80mm
+          </button>
+          <button onClick={handleWhatsApp}
+            className="py-3 px-4 bg-[hsl(142,70%,45%)]/10 text-[hsl(142,70%,35%)] rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-[hsl(142,70%,45%)]/20 transition-colors">
+            <span className="material-symbols-outlined text-lg">send</span>WhatsApp
+          </button>
+          <button onClick={handleSaveOnly}
+            className="py-3 px-4 bg-muted text-foreground rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-muted/80 transition-colors">
+            <span className="material-symbols-outlined text-lg">save</span>{t('saveSale')}
+          </button>
         </div>
       </div>
     </section>
   );
 }
 
-// QR placeholder generator
 function generateQRSVG(data: string, size = 80): string {
   const hash = data.split('').reduce((acc, char) => ((acc << 5) - acc + char.charCodeAt(0)) | 0, 0);
   const grid = 11; const cellSize = size / grid;

@@ -31,6 +31,9 @@ const translations = {
   activeItems: { en: 'Active items', bn: 'সক্রিয় আইটেম' },
   lowStock: { en: 'low stock', bn: 'কম মজুদ' },
   totalSales: { en: 'total sales', bn: 'মোট বিক্রয়' },
+  last7Days: { en: 'Last 7 days revenue', bn: 'গত ৭ দিনের আয়' },
+  noSalesYetDash: { en: 'No sales yet. Start by creating a new sale!', bn: 'এখনও কোনো বিক্রয় নেই। নতুন বিক্রয় শুরু করুন!' },
+  today: { en: 'Today', bn: 'আজ' },
 
   // Products
   stockManagement: { en: 'Stock Management', bn: 'মজুদ ব্যবস্থাপনা' },
@@ -56,6 +59,16 @@ const translations = {
   addNewProduct: { en: 'Add New Product', bn: 'নতুন প্রোডাক্ট যোগ করুন' },
   deleteProduct: { en: 'Delete Product?', bn: 'প্রোডাক্ট মুছে ফেলবেন?' },
   deleteConfirm: { en: 'This action cannot be undone.', bn: 'এটি আর ফিরিয়ে আনা যাবে না।' },
+  productNameReq: { en: 'Product Name *', bn: 'প্রোডাক্টের নাম *' },
+  priceBoxReq: { en: 'Price / Box (৳) *', bn: 'দাম / বক্স (৳) *' },
+  batchNo: { en: 'Batch No.', bn: 'ব্যাচ নং' },
+  saveProduct: { en: 'Save Product', bn: 'প্রোডাক্ট সেভ করুন' },
+  updateProduct: { en: 'Update Product', bn: 'প্রোডাক্ট আপডেট করুন' },
+  nameAndPriceReq: { en: 'Name and price required!', bn: 'নাম ও দাম আবশ্যক!' },
+  productAdded: { en: 'Product added!', bn: 'প্রোডাক্ট যোগ হয়েছে!' },
+  productUpdated: { en: 'Product updated!', bn: 'প্রোডাক্ট আপডেট হয়েছে!' },
+  productDeleted: { en: 'Product deleted!', bn: 'প্রোডাক্ট মুছে ফেলা হয়েছে!' },
+  deleteProductMsg: { en: 'This product will be permanently removed.', bn: 'এই প্রোডাক্টটি স্থায়ীভাবে মুছে যাবে।' },
 
   // Sales / POS
   pointOfSale: { en: 'Point of Sale', bn: 'বিক্রয় কেন্দ্র' },
@@ -80,6 +93,19 @@ const translations = {
   view: { en: 'View', bn: 'দেখুন' },
   noSalesYet: { en: 'No sales recorded yet.', bn: 'এখনও কোনো বিক্রয় হয়নি।' },
   deleteSale: { en: 'Delete Sale?', bn: 'বিক্রয় মুছে ফেলবেন?' },
+  deleteSaleMsg: { en: 'This sale record will be permanently deleted.', bn: 'এই বিক্রয় রেকর্ড স্থায়ীভাবে মুছে যাবে।' },
+  saleDeleted: { en: 'Sale deleted.', bn: 'বিক্রয় মুছে ফেলা হয়েছে।' },
+  saleCompleted: { en: 'Sale completed!', bn: 'বিক্রয় সম্পন্ন!' },
+  csvExported: { en: 'CSV exported!', bn: 'CSV এক্সপোর্ট হয়েছে!' },
+  newSaleEntryBtn: { en: 'New Sale Entry', bn: 'নতুন বিক্রয়' },
+  cartEmpty: { en: 'Cart is empty!', bn: 'কার্ট খালি!' },
+  addedToCart: { en: 'added!', bn: 'যোগ হয়েছে!' },
+  outOfStockMsg: { en: 'out of stock!', bn: 'স্টক নেই!' },
+  onlyBoxesAvail: { en: 'boxes available!', bn: 'বক্স আছে!' },
+  onlyInStock: { en: 'Only', bn: 'মাত্র' },
+  itemCount: { en: 'item(s)', bn: 'আইটেম' },
+  time: { en: 'Time', bn: 'সময়' },
+  status: { en: 'Status', bn: 'অবস্থা' },
 
   // New Sale Entry
   createTransaction: { en: 'Create Transaction', bn: 'নতুন লেনদেন' },
@@ -88,7 +114,6 @@ const translations = {
   phone: { en: 'Phone (optional)', bn: 'ফোন (ঐচ্ছিক)' },
   address: { en: 'Address (optional)', bn: 'ঠিকানা (ঐচ্ছিক)' },
   paymentMethod: { en: 'Payment Method', bn: 'পেমেন্ট মাধ্যম' },
-  status: { en: 'Status', bn: 'অবস্থা' },
   notes: { en: 'Notes', bn: 'নোট' },
   pricingSummary: { en: 'Pricing Summary', bn: 'মূল্য সারসংক্ষেপ' },
   grandTotal: { en: 'Grand Total', bn: 'সর্বমোট' },
@@ -116,6 +141,10 @@ const translations = {
   flat: { en: '৳ Flat', bn: '৳ নির্দিষ্ট' },
   percent: { en: '% Percent', bn: '% শতাংশ' },
   outOfStock: { en: 'Out of stock', bn: 'স্টক নেই' },
+  searchProductPlaceholder: { en: 'Type to search product...', bn: 'প্রোডাক্ট খুঁজতে টাইপ করুন...' },
+  addAtLeastOneItem: { en: 'Add at least one item!', bn: 'অন্তত একটি আইটেম যোগ করুন!' },
+  productNotFound: { en: 'Product not found!', bn: 'প্রোডাক্ট পাওয়া যায়নি!' },
+  scanOrType: { en: 'Scan barcode or type name & Enter', bn: 'বারকোড স্ক্যান করুন বা নাম লিখে Enter দিন' },
 
   // Invoice
   print: { en: 'Print', bn: 'প্রিন্ট' },
@@ -138,6 +167,10 @@ const translations = {
   outOfStockLabel: { en: 'Out of Stock', bn: 'স্টক নেই' },
   lowStockLabel: { en: 'Low Stock ⚠', bn: 'কম মজুদ ⚠' },
   inStock: { en: 'In Stock ✓', bn: 'মজুদে আছে ✓' },
+  lowStockItems: { en: 'Low Stock Items', bn: 'কম মজুদের আইটেম' },
+  product: { en: 'Product', bn: 'প্রোডাক্ট' },
+  type: { en: 'Type', bn: 'ধরন' },
+  note: { en: 'Note', bn: 'নোট' },
 
   // Customers
   crm: { en: 'CRM', bn: 'CRM' },
@@ -147,6 +180,12 @@ const translations = {
   avgSpend: { en: 'Avg. Spend', bn: 'গড় ব্যয়' },
   totalSpent: { en: 'Total Spent', bn: 'মোট খরচ' },
   lastOrder: { en: 'Last Order', bn: 'শেষ অর্ডার' },
+  totalCustomers: { en: 'Total Customers', bn: 'মোট কাস্টমার' },
+  nameRequired: { en: 'Name required!', bn: 'নাম আবশ্যক!' },
+  customerAdded: { en: 'Customer added!', bn: 'কাস্টমার যোগ হয়েছে!' },
+  name: { en: 'Name', bn: 'নাম' },
+  addressLabel: { en: 'Address', bn: 'ঠিকানা' },
+  phoneLabel: { en: 'Phone', bn: 'ফোন' },
 
   // Reports
   performanceOverview: { en: 'Performance Overview', bn: 'কর্মক্ষমতা পর্যালোচনা' },
@@ -157,6 +196,12 @@ const translations = {
   topProducts: { en: 'Top Products', bn: 'সেরা প্রোডাক্ট' },
   dailySalesPerformance: { en: 'Daily Sales Performance', bn: 'দৈনিক বিক্রয়' },
   exportReport: { en: 'Export Report', bn: 'রিপোর্ট এক্সপোর্ট' },
+  totalSalesAllTime: { en: 'Total Sales (all time)', bn: 'সর্বমোট বিক্রয়' },
+  transactions: { en: 'transactions', bn: 'লেনদেন' },
+  thisMonth: { en: 'This month', bn: 'এই মাসে' },
+  orders: { en: 'orders', bn: 'অর্ডার' },
+  noSalesDataMonth: { en: 'No sales data yet this month.', bn: 'এই মাসে এখনও কোনো বিক্রয় নেই।' },
+  reportExported: { en: 'Report exported!', bn: 'রিপোর্ট এক্সপোর্ট হয়েছে!' },
 
   // Settings
   configuration: { en: 'Configuration', bn: 'কনফিগারেশন' },
@@ -177,6 +222,14 @@ const translations = {
   language: { en: 'Language', bn: 'ভাষা' },
   english: { en: 'English', bn: 'ইংরেজি' },
   bangla: { en: 'বাংলা', bn: 'বাংলা' },
+  settingsSaved: { en: 'Settings saved!', bn: 'সেটিংস সেভ হয়েছে!' },
+  dataImported: { en: 'Data imported! Reloading...', bn: 'ডাটা আমদানি হয়েছে! রিলোড হচ্ছে...' },
+  invalidBackup: { en: 'Invalid backup file!', bn: 'ভুল ব্যাকআপ ফাইল!' },
+  allDataCleared: { en: 'All data cleared! Reloading...', bn: 'সব ডাটা মুছে গেছে! রিলোড হচ্ছে...' },
+  clearAllDataQ: { en: 'Clear All Data?', bn: 'সব ডাটা মুছে ফেলবেন?' },
+  clearAllDataMsg: { en: 'This will permanently delete ALL products, sales, customers, and settings. This cannot be undone.', bn: 'এটি সব প্রোডাক্ট, বিক্রয়, কাস্টমার ও সেটিংস স্থায়ীভাবে মুছে ফেলবে। এটি আর ফেরানো যাবে না।' },
+  deleteEverything: { en: 'Delete Everything', bn: 'সব মুছুন' },
+  dataStoredLocally: { en: 'All data is stored locally in your browser. Export regularly for backup.', bn: 'সব ডাটা আপনার ব্রাউজারে সংরক্ষিত। নিয়মিত ব্যাকআপ নিন।' },
 
   // Search
   searchPlaceholder: { en: 'Search products, customers, invoices...', bn: 'প্রোডাক্ট, কাস্টমার, চালান খুঁজুন...' },
@@ -186,6 +239,24 @@ const translations = {
   sampleTemplate: { en: 'Sample Template', bn: 'নমুনা টেমপ্লেট' },
   importData: { en: 'Import Data', bn: 'ডাটা আমদানি করুন' },
   columnMapping: { en: 'Column Mapping', bn: 'কলাম ম্যাপিং' },
+  uploadFile: { en: 'Click to upload Excel / CSV file', bn: 'এক্সেল / CSV ফাইল আপলোড করতে ক্লিক করুন' },
+  supportsFormats: { en: 'Supports .xlsx, .xls, .csv', bn: '.xlsx, .xls, .csv সাপোর্ট করে' },
+  previewLabel: { en: 'Preview', bn: 'প্রিভিউ' },
+  uploadToPreview: { en: 'Upload a file to see preview', bn: 'প্রিভিউ দেখতে ফাইল আপলোড করুন' },
+  tileName: { en: 'Tile Name →', bn: 'টাইলের নাম →' },
+  rateArrow: { en: 'Rate →', bn: 'দর →' },
+  qtyArrow: { en: 'Qty →', bn: 'পরিমাণ →' },
+  sizeArrow: { en: 'Size →', bn: 'সাইজ →' },
+  finishArrow: { en: 'Finish →', bn: 'ফিনিশ →' },
+  importRules: { en: 'Import Rules', bn: 'আমদানির নিয়ম' },
+  importRule1: { en: 'Duplicate products (same name) → Stock will be updated', bn: 'একই নামের প্রোডাক্ট → মজুদ আপডেট হবে' },
+  importRule2: { en: 'Invalid / empty rows are automatically skipped', bn: 'ভুল / খালি সারি স্বয়ংক্রিয়ভাবে বাদ যাবে' },
+  importRule3: { en: 'All prices must be numeric (no ৳ symbol in file)', bn: 'সব দাম সংখ্যায় হতে হবে (ফাইলে ৳ চিহ্ন দেবেন না)' },
+  importingData: { en: 'Importing data...', bn: 'ডাটা আমদানি হচ্ছে...' },
+  productsImported: { en: 'products imported!', bn: 'প্রোডাক্ট আমদানি হয়েছে!' },
+  rowsFound: { en: 'rows found!', bn: 'সারি পাওয়া গেছে!' },
+  uploadFirst: { en: 'Upload a file first!', bn: 'প্রথমে একটি ফাইল আপলোড করুন!' },
+  templateDownloaded: { en: 'Template downloaded!', bn: 'টেমপ্লেট ডাউনলোড হয়েছে!' },
 
   // General
   walkInCustomer: { en: 'Walk-in Customer', bn: 'সরাসরি কাস্টমার' },
@@ -193,6 +264,8 @@ const translations = {
   next: { en: 'Next →', bn: 'পরে →' },
   page: { en: 'Page', bn: 'পৃষ্ঠা' },
   of: { en: 'of', bn: 'এর' },
+  popupBlocked: { en: 'Pop-up blocked!', bn: 'পপ-আপ ব্লক হয়েছে!' },
+  pdfDownloaded: { en: 'PDF downloaded!', bn: 'PDF ডাউনলোড হয়েছে!' },
 } as const;
 
 export type TranslationKey = keyof typeof translations;
