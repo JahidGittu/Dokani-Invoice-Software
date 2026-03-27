@@ -118,15 +118,15 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const paginated = useMemo(() => filtered.slice(page * pageSize, (page + 1) * pageSize), [filtered, page, pageSize]);
 
-  // ── Add Sale: product search ──
+  // ── Add Sale: product search (show all, filter on search) ──
   const debouncedProductSearch = useDebounce(productSearch, 200);
-  const filteredProducts = useMemo(() => {
-    if (!debouncedProductSearch) return [];
+  const displayProducts = useMemo(() => {
+    if (!debouncedProductSearch) return products;
     return products.filter(p =>
       p.name.toLowerCase().includes(debouncedProductSearch.toLowerCase()) ||
       (p.barcode || '').toLowerCase().includes(debouncedProductSearch.toLowerCase()) ||
       p.batch.toLowerCase().includes(debouncedProductSearch.toLowerCase())
-    ).slice(0, 8);
+    );
   }, [products, debouncedProductSearch]);
 
   const selectSearchProduct = (p: Product) => {
