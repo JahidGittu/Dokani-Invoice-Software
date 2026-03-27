@@ -583,34 +583,49 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
           </div>
         </div>
 
-        {/* ── Bill To (editable) ── */}
-        <div className="px-8 sm:px-12 py-4 bg-muted/30">
-          <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2">{t('billTo')}</div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="relative">
-              <input value={customerName}
-                onChange={e => { setCustomerName(e.target.value); setShowSuggestions(true); }}
-                onFocus={() => setShowSuggestions(true)}
-                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                className="w-full bg-transparent border-b border-border text-sm font-semibold py-1.5 focus:border-primary outline-none placeholder:text-muted-foreground/50"
-                placeholder={t('customerNameReq')} />
-              {showSuggestions && suggestions.length > 0 && (
-                <div className="absolute top-full left-0 right-0 bg-card border border-border rounded-lg shadow-xl z-10 mt-1 max-h-[160px] overflow-y-auto">
-                  {suggestions.map(c => (
-                    <button key={c.id} onMouseDown={() => selectCustomer(c)}
-                      className="w-full text-left px-3 py-2 text-xs hover:bg-accent transition-colors flex justify-between">
-                      <span className="font-medium">{c.name}</span><span className="text-muted-foreground">{c.phone}</span>
-                    </button>
-                  ))}
+        {/* ── Editable Customer Fields (hidden inputs inside info area) ── */}
+        <div className="px-6 sm:px-10 pb-3">
+          <div className="flex justify-between text-xs">
+            <div className="space-y-1 flex-1 max-w-[55%]">
+              <div className="flex items-center gap-1">
+                <span className="w-16 text-muted-foreground shrink-0">Name</span><span>:</span>
+                <div className="relative flex-1">
+                  <input value={customerName}
+                    onChange={e => { setCustomerName(e.target.value); setShowSuggestions(true); }}
+                    onFocus={() => setShowSuggestions(true)}
+                    onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                    className="w-full bg-transparent border-b border-border text-sm font-bold py-0.5 focus:border-primary outline-none placeholder:text-muted-foreground/40"
+                    placeholder={t('customerNameReq')} />
+                  {showSuggestions && suggestions.length > 0 && (
+                    <div className="absolute top-full left-0 right-0 bg-card border border-border rounded-lg shadow-xl z-[100] mt-1 max-h-[160px] overflow-y-auto">
+                      {suggestions.map(c => (
+                        <button key={c.id} onMouseDown={() => selectCustomer(c)}
+                          className="w-full text-left px-3 py-2 text-xs hover:bg-accent transition-colors flex justify-between">
+                          <span className="font-medium">{c.name}</span><span className="text-muted-foreground">{c.phone}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="w-16 text-muted-foreground shrink-0">Address</span><span>:</span>
+                <input value={address} onChange={e => setAddress(e.target.value)}
+                  className="flex-1 bg-transparent border-b border-border text-sm font-bold py-0.5 focus:border-primary outline-none placeholder:text-muted-foreground/40"
+                  placeholder="Address (optional)" />
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="w-16 text-muted-foreground shrink-0">Mobile</span><span>:</span>
+                <input value={phone} onChange={e => setPhone(e.target.value)}
+                  className="flex-1 bg-transparent border-b border-border text-sm font-bold py-0.5 focus:border-primary outline-none placeholder:text-muted-foreground/40"
+                  placeholder="Phone (optional)" />
+              </div>
             </div>
-            <input value={phone} onChange={e => setPhone(e.target.value)}
-              className="bg-transparent border-b border-border text-sm py-1.5 focus:border-primary outline-none placeholder:text-muted-foreground/50"
-              placeholder={t('phone')} />
-            <input value={address} onChange={e => setAddress(e.target.value)}
-              className="bg-transparent border-b border-border text-sm py-1.5 focus:border-primary outline-none placeholder:text-muted-foreground/50"
-              placeholder={t('address')} />
+            <div className="text-right space-y-1">
+              <div className="flex gap-1 justify-end"><span className="text-muted-foreground">Invoice#</span><span>:</span><strong className="text-primary">#NEW</strong></div>
+              <div className="flex gap-1 justify-end"><span className="text-muted-foreground">Date</span><span>:</span><strong>{dateStr}</strong></div>
+              <div className="flex gap-1 justify-end"><span className="text-muted-foreground">Sold By</span><span>:</span><strong>{settings.userName || settings.name}</strong></div>
+            </div>
           </div>
         </div>
 
