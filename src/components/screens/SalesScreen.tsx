@@ -129,16 +129,32 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
     );
   }, [products, debouncedProductSearch]);
 
-  const addProductToItems = (product: Product) => {
+  const addProductToItems = (product: Product, carton?: number, piece?: number, sqft?: number, rate?: number) => {
     if (items.find(i => i.productId === product.id)) {
       toast.error('Already added');
       return;
     }
+    const c = carton ?? 1;
+    const pc = piece ?? 0;
+    const sr = rate ?? product.pricePerBox;
+    const piecesPerBox = product.piecesPerBox || 4;
+    const pricePerPiece = piecesPerBox > 0 ? sr / piecesPerBox : 0;
+    const sub = (c * sr) + (pc * pricePerPiece);
     setItems(prev => [...prev, {
       id: Date.now(), productId: product.id, barcode: product.barcode || product.batch || '',
       name: product.name, stock: product.stock, itemType: 'Sale',
-      carton: 1, piece: 0, sqftQty: 0, salesRate: product.pricePerBox, subTotal: product.pricePerBox,
+      carton: c, piece: pc, sqftQty: sqft ?? 0, salesRate: sr, subTotal: sub,
     }]);
+  };
+
+  const manualAddProduct = () => {
+    if (!selectedProductId) { toast.error('Search & select a product first'); return; }
+    const product = products.find(p => p.id === selectedProductId);
+    if (!product) return;
+    addProductToItems(product, manualCarton, manualPiece, manualSqft, parseFloat(manualRate) || product.pricePerBox);
+    setSelectedProductId(null);
+    setProductSearch('');
+    setManualCarton(0); setManualPiece(0); setManualSqft(0); setManualRate('');
   };
 
   const removeItem = (id: number) => setItems(prev => prev.filter(i => i.id !== id));
