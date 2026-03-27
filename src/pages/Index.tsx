@@ -12,6 +12,9 @@ import SettingsScreen from "@/components/screens/SettingsScreen";
 import ExcelImportScreen from "@/components/screens/ExcelImportScreen";
 import PurchaseScreen from "@/components/screens/PurchaseScreen";
 import SupplierScreen from "@/components/screens/SupplierScreen";
+import TransactionsScreen from "@/components/screens/TransactionsScreen";
+import StaffsScreen from "@/components/screens/StaffsScreen";
+import SmsEmailScreen from "@/components/screens/SmsEmailScreen";
 import { useProducts, useCustomers, useSales, useSuppliers, usePurchases, useCompanySettings, type SaleRecord, type Product } from "@/lib/store";
 
 export default function Index() {
