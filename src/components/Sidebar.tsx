@@ -33,7 +33,7 @@ export default function Sidebar({ activeScreen, onNavigate, isOpen, onClose, pro
     <>
       {isOpen && <div className="fixed inset-0 bg-black/30 z-40 lg:hidden" onClick={onClose} />}
       <aside className={cn(
-        "fixed left-0 top-0 h-full w-64 flex flex-col bg-slate-100 tracking-tight text-sm font-medium border-r border-pos-surface-container z-50 transition-transform duration-300",
+        "fixed left-0 top-0 h-full w-64 flex flex-col bg-slate-100 dark:bg-[hsl(220,15%,8%)] tracking-tight text-sm font-medium border-r border-pos-surface-container z-50 transition-transform duration-300",
         "lg:translate-x-0",
         isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
       )}>
@@ -43,11 +43,11 @@ export default function Sidebar({ activeScreen, onNavigate, isOpen, onClose, pro
               <span className="material-symbols-outlined text-white text-base">grid_view</span>
             </div>
             <div>
-              <h1 className="text-base font-bold tracking-tighter text-slate-900">TilePOS</h1>
+              <h1 className="text-base font-bold tracking-tighter text-slate-900 dark:text-white">TilePOS</h1>
               <p className="text-[10px] text-pos-on-surface-variant">Lite Edition · Offline</p>
             </div>
           </div>
-          <button className="lg:hidden text-slate-500 hover:text-slate-900" onClick={onClose}>
+          <button className="lg:hidden text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white" onClick={onClose}>
             <span className="material-symbols-outlined">close</span>
           </button>
         </div>
@@ -58,10 +58,10 @@ export default function Sidebar({ activeScreen, onNavigate, isOpen, onClose, pro
               key={item.id}
               onClick={() => { onNavigate(item.id); onClose(); }}
               className={cn(
-                "w-full flex items-center px-4 py-3 border-l-[3px] border-transparent hover:bg-slate-200 transition-all duration-150 cursor-pointer text-left",
+                "w-full flex items-center px-4 py-3 border-l-[3px] border-transparent hover:bg-slate-200 dark:hover:bg-white/5 transition-all duration-150 cursor-pointer text-left",
                 activeScreen === item.id
-                  ? "border-l-pos-secondary bg-pos-surface-high text-slate-900 font-semibold"
-                  : "text-slate-500"
+                  ? "border-l-pos-secondary bg-pos-surface-high text-slate-900 dark:text-white font-semibold"
+                  : "text-slate-500 dark:text-slate-400"
               )}
             >
               <span className={cn("material-symbols-outlined mr-3 text-xl", activeScreen === item.id && "text-pos-secondary")}>{item.icon}</span>
@@ -77,8 +77,8 @@ export default function Sidebar({ activeScreen, onNavigate, isOpen, onClose, pro
           <button
             onClick={() => { onNavigate('settings'); onClose(); }}
             className={cn(
-              "w-full flex items-center px-4 py-3 border-l-[3px] border-transparent hover:bg-slate-200 transition-all cursor-pointer text-left",
-              activeScreen === 'settings' ? "border-l-pos-secondary bg-pos-surface-high text-slate-900 font-semibold" : "text-slate-500"
+              "w-full flex items-center px-4 py-3 border-l-[3px] border-transparent hover:bg-slate-200 dark:hover:bg-white/5 transition-all cursor-pointer text-left",
+              activeScreen === 'settings' ? "border-l-pos-secondary bg-pos-surface-high text-slate-900 dark:text-white font-semibold" : "text-slate-500 dark:text-slate-400"
             )}
           >
             <span className={cn("material-symbols-outlined mr-3 text-xl", activeScreen === 'settings' && "text-pos-secondary")}>settings</span>
