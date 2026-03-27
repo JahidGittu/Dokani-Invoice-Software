@@ -160,8 +160,8 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
 
       {/* ═══ UNIFIED TABLE ═══ */}
       <div className="bg-pos-surface-lowest rounded-xl shadow-sm overflow-hidden border border-pos-surface-container">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[1100px]">
+        <div className="overflow-auto max-h-[calc(100vh-260px)]">
+          <table className="w-full min-w-[1100px] relative">
              <thead className="sticky top-0 z-10">
               <tr className="text-[9px] font-bold text-pos-on-surface-variant uppercase tracking-wider bg-pos-surface-low border-b border-pos-surface-container">
                 <th className="px-2 py-2.5 w-8 text-center">#</th>
