@@ -33,7 +33,7 @@ export default function Sidebar({ activeScreen, onNavigate, isOpen, onClose, pro
     <>
       {isOpen && <div className="fixed inset-0 bg-black/30 z-40 lg:hidden" onClick={onClose} />}
       <aside className={cn(
-        "fixed left-0 top-0 h-full w-64 flex flex-col bg-slate-100 tracking-tight text-sm font-medium border-r border-pos-surface-container z-50 transition-transform duration-300",
+        "fixed left-0 top-0 h-full w-64 flex flex-col bg-slate-100 dark:bg-[hsl(220,15%,8%)] tracking-tight text-sm font-medium border-r border-pos-surface-container z-50 transition-transform duration-300",
         "lg:translate-x-0",
         isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
       )}>
