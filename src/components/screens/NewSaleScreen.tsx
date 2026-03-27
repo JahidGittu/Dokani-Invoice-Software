@@ -235,31 +235,31 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
     setRows([{ id: Date.now(), productId: '', qty: 1, rate: 0, searchQuery: '', showDropdown: false }]);
   };
 
-  const handleSaveAndPrint = () => {
-    const data = collectSaleData(); if (!data) return;
+  const handleSaveAndPrint = async () => {
+    const data = await collectSaleData(); if (!data) return;
     commitSale(data.sale, data.deductions);
     handlePrintSale(data.sale);
     resetForm();
     toast.success(t('saleSaved'));
   };
 
-  const handleSaveOnly = () => {
-    const data = collectSaleData(); if (!data) return;
+  const handleSaveOnly = async () => {
+    const data = await collectSaleData(); if (!data) return;
     commitSale(data.sale, data.deductions);
     resetForm();
     toast.success(t('saleSaved'));
   };
 
-  const handleSaveAndPDF = () => {
-    const data = collectSaleData(); if (!data) return;
+  const handleSaveAndPDF = async () => {
+    const data = await collectSaleData(); if (!data) return;
     commitSale(data.sale, data.deductions);
     generatePDF(data.sale);
     resetForm();
     toast.success(t('saleSaved'));
   };
 
-  const handleSaveAndThermal = () => {
-    const data = collectSaleData(); if (!data) return;
+  const handleSaveAndThermal = async () => {
+    const data = await collectSaleData(); if (!data) return;
     commitSale(data.sale, data.deductions);
     handleThermalPrint(data.sale);
     resetForm();
