@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { useDebounce } from "@/hooks/useDebounce";
 import { type Product, type SaleRecord, type Customer, getLowStockProducts } from "@/lib/store";
 
 const headings: Record<string, string> = {
@@ -27,20 +28,26 @@ interface HeaderProps {
 export default function Header({ activeScreen, onToggleSidebar, onNavigate, onSearch, products, sales = [], customers = [], userName = 'AR' }: HeaderProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [showResults, setShowResults] = useState(false);
-  const lowStock = getLowStockProducts(products);
+  const lowStock = useMemo(() => getLowStockProducts(products), [products]);
   const initials = (userName || 'U').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
 
-  const searchResults = searchQuery.length >= 2 ? [
-    ...products.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 3).map(p => ({
-      label: `${p.name} — ৳${p.pricePerBox}`, sub: `${p.size} · ${p.finish}`, screen: 'products', icon: 'inventory_2',
-    })),
-    ...sales.filter(s => s.customer.toLowerCase().includes(searchQuery.toLowerCase()) || s.invoice.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 3).map(s => ({
-      label: `${s.invoice} · ${s.customer}`, sub: `৳${s.total.toLocaleString()}`, screen: 'sales', icon: 'receipt',
-    })),
-    ...customers.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 2).map(c => ({
-      label: `${c.name}${c.phone ? ' · ' + c.phone : ''}`, sub: 'Customer', screen: 'customers', icon: 'person',
-    })),
-  ] : [];
+  const debouncedQuery = useDebounce(searchQuery, 250);
+
+  const searchResults = useMemo(() => {
+    if (debouncedQuery.length < 2) return [];
+    const q = debouncedQuery.toLowerCase();
+    return [
+      ...products.filter(p => p.name.toLowerCase().includes(q) || p.batch.toLowerCase().includes(q)).slice(0, 3).map(p => ({
+        label: `${p.name} — ৳${p.pricePerBox}`, sub: `${p.size} · ${p.finish}`, screen: 'products', icon: 'inventory_2',
+      })),
+      ...sales.filter(s => s.customer.toLowerCase().includes(q) || s.invoice.toLowerCase().includes(q)).slice(0, 3).map(s => ({
+        label: `${s.invoice} · ${s.customer}`, sub: `৳${s.total.toLocaleString()}`, screen: 'sales', icon: 'receipt',
+      })),
+      ...customers.filter(c => c.name.toLowerCase().includes(q) || (c.phone && c.phone.includes(q))).slice(0, 2).map(c => ({
+        label: `${c.name}${c.phone ? ' · ' + c.phone : ''}`, sub: 'Customer', screen: 'customers', icon: 'person',
+      })),
+    ];
+  }, [debouncedQuery, products, sales, customers]);
 
   return (
     <header className="flex justify-between items-center w-full px-4 lg:px-8 h-16 sticky top-0 z-40 bg-white/80 backdrop-blur-md shadow-sm">
@@ -48,7 +55,7 @@ export default function Header({ activeScreen, onToggleSidebar, onNavigate, onSe
         <button className="lg:hidden p-2 text-slate-500 hover:text-slate-900" onClick={onToggleSidebar}>
           <span className="material-symbols-outlined">menu</span>
         </button>
-        <span className="text-xl font-black text-slate-900">{headings[activeScreen] || 'Dashboard'}</span>
+        <span className="text-lg sm:text-xl font-black text-slate-900">{headings[activeScreen] || 'Dashboard'}</span>
         <div className="relative w-48 lg:w-64 hidden sm:block">
           <input
             value={searchQuery}

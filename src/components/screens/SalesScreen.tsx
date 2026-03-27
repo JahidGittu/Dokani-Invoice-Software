@@ -1,4 +1,5 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useMemo } from "react";
+import { useDebounce } from "@/hooks/useDebounce";
 import { formatCurrency, getNextInvoiceNumber, downloadCSV, type CartItem, type Product, type SaleRecord, type Customer } from "@/lib/store";
 import { toast } from "sonner";
 import InvoiceModal from "@/components/InvoiceModal";
@@ -15,6 +16,8 @@ interface SalesScreenProps {
   onNavigate: (screen: string) => void;
 }
 
+const PAGE_SIZE = 10;
+
 export default function SalesScreen({ products, customers, sales, onSaleComplete, onDeleteSale, companyName, companyPhone, companyAddress, onNavigate }: SalesScreenProps) {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [customerName, setCustomerName] = useState('');
@@ -25,14 +28,29 @@ export default function SalesScreen({ products, customers, sales, onSaleComplete
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showInvoice, setShowInvoice] = useState(false);
   const [viewSale, setViewSale] = useState<SaleRecord | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+  const [page, setPage] = useState(0);
 
-  const filteredProducts = products.filter(p =>
-    p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.size.toLowerCase().includes(searchQuery.toLowerCase())
+  const debouncedSearch = useDebounce(searchQuery, 250);
+
+  const filteredProducts = useMemo(() =>
+    products.filter(p =>
+      p.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      p.size.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      p.batch.toLowerCase().includes(debouncedSearch.toLowerCase())
+    ),
+    [products, debouncedSearch]
   );
 
-  const customerSuggestions = customerName.length >= 1
-    ? customers.filter(c => c.name.toLowerCase().includes(customerName.toLowerCase())).slice(0, 5)
-    : [];
+  const customerSuggestions = useMemo(() =>
+    customerName.length >= 1
+      ? customers.filter(c => c.name.toLowerCase().includes(customerName.toLowerCase())).slice(0, 5)
+      : [],
+    [customerName, customers]
+  );
+
+  const totalPages = Math.max(1, Math.ceil(sales.length / PAGE_SIZE));
+  const paginatedSales = useMemo(() => sales.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE), [sales, page]);
 
   const addToCart = useCallback((product: Product) => {
     if (product.stock <= 0) { toast.error(`${product.name} out of stock!`); return; }
@@ -86,8 +104,9 @@ export default function SalesScreen({ products, customers, sales, onSaleComplete
 
   const reopenInvoice = (s: SaleRecord) => { setViewSale(s); setShowInvoice(true); };
 
-  const handleDeleteSale = (id: string) => {
-    if (confirm('Delete this sale record?')) { onDeleteSale(id); toast.success('Sale deleted.'); }
+  const confirmDeleteSale = () => {
+    if (showDeleteConfirm) { onDeleteSale(showDeleteConfirm); toast.success('Sale deleted.'); }
+    setShowDeleteConfirm(null);
   };
 
   const exportSalesCSV = () => {
@@ -99,49 +118,49 @@ export default function SalesScreen({ products, customers, sales, onSaleComplete
   };
 
   return (
-    <section className="p-8 max-w-7xl mx-auto space-y-8">
-      <div className="flex justify-between items-end">
+    <section className="p-4 sm:p-8 max-w-7xl mx-auto space-y-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
         <div>
           <span className="text-xs text-pos-on-surface-variant uppercase tracking-widest block mb-2">Point of Sale</span>
-          <h2 className="text-5xl font-bold text-pos-on-surface leading-tight tracking-tighter">Sales / POS</h2>
+          <h2 className="text-3xl sm:text-5xl font-bold text-pos-on-surface leading-tight tracking-tighter">Sales / POS</h2>
         </div>
         <button onClick={() => onNavigate('new-sale')} className="px-6 py-3 bg-gradient-to-b from-pos-secondary to-pos-secondary-dim text-white rounded-lg font-medium flex items-center gap-2 shadow-lg hover:-translate-y-1 transition-transform">
           <span className="material-symbols-outlined text-lg">receipt_long</span>New Sale Entry
         </button>
       </div>
 
-      <div className="grid grid-cols-12 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Product Grid */}
-        <div className="col-span-7 space-y-4">
+        <div className="lg:col-span-7 space-y-4">
           <div className="relative">
             <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
               className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-3 pl-10 focus:ring-2 focus:ring-pos-secondary outline-none"
-              placeholder="Search by name, size, finish..." />
+              placeholder="Search by name, size, batch..." />
             <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-pos-on-surface-variant">search</span>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {filteredProducts.length > 0 ? filteredProducts.map(p => (
               <div key={p.id} onClick={() => addToCart(p)}
-                className="bg-pos-surface-lowest rounded-xl p-5 border border-pos-surface-container cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-lg">
+                className={`bg-pos-surface-lowest rounded-xl p-5 border border-pos-surface-container cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-lg ${p.stock <= 0 ? 'opacity-50 cursor-not-allowed' : ''}`}>
                 <div className="text-sm font-bold mb-1">{p.name}</div>
                 <div className="text-xs text-pos-on-surface-variant mb-3">{p.size} · {p.finish}</div>
                 <div className="flex justify-between items-end">
                   <div className="text-lg font-black text-pos-secondary">{formatCurrency(p.pricePerBox)}</div>
-                  <div className="text-[10px] text-pos-on-surface-variant">{p.stock} boxes</div>
+                  <div className={`text-[10px] font-bold ${p.stock <= 20 ? 'text-pos-error' : 'text-pos-on-surface-variant'}`}>{p.stock} boxes</div>
                 </div>
               </div>
             )) : (
-              <div className="text-xs text-pos-on-surface-variant col-span-2 py-4">No products. <button onClick={() => onNavigate('products')} className="text-pos-secondary underline">Add products first.</button></div>
+              <div className="text-xs text-pos-on-surface-variant col-span-2 py-4">No products found. <button onClick={() => onNavigate('products')} className="text-pos-secondary underline">Add products first.</button></div>
             )}
           </div>
         </div>
 
         {/* Cart */}
-        <div className="col-span-5">
+        <div className="lg:col-span-5">
           <div className="bg-pos-surface-lowest rounded-xl shadow-sm border border-pos-surface-container sticky top-24">
             <div className="px-5 py-4 border-b border-pos-surface-container flex justify-between items-center">
-              <h3 className="font-semibold">Current Cart</h3>
-              <button onClick={() => setCart([])} className="text-xs text-pos-error hover:underline">Clear</button>
+              <h3 className="font-semibold">Current Cart <span className="text-pos-on-surface-variant font-normal text-sm">({cart.length})</span></h3>
+              {cart.length > 0 && <button onClick={() => setCart([])} className="text-xs text-pos-error hover:underline">Clear</button>}
             </div>
             {/* Customer in POS */}
             <div className="px-5 pt-4 relative">
@@ -208,41 +227,73 @@ export default function SalesScreen({ products, customers, sales, onSaleComplete
         </div>
       </div>
 
-      {/* Sales History */}
+      {/* Sales History with Pagination */}
       <div className="bg-pos-surface-lowest rounded-xl shadow-sm overflow-hidden border border-pos-surface-container">
-        <div className="px-8 py-5 flex justify-between items-center bg-pos-surface-low">
-          <h3 className="text-base font-semibold">Sales History</h3>
+        <div className="px-4 sm:px-8 py-5 flex justify-between items-center bg-pos-surface-low">
+          <h3 className="text-base font-semibold">Sales History <span className="text-pos-on-surface-variant font-normal text-sm">({sales.length})</span></h3>
           <button onClick={exportSalesCSV} className="text-sm font-medium text-pos-secondary flex items-center gap-1 hover:underline">
             <span className="material-symbols-outlined text-base">download</span>Export
           </button>
         </div>
-        <table className="w-full text-left">
-          <thead><tr className="text-[11px] font-bold text-pos-on-surface-variant uppercase tracking-widest bg-pos-surface-low border-t border-pos-surface-container">
-            <th className="px-6 py-3">Invoice</th><th className="px-6 py-3">Customer</th><th className="px-6 py-3">Items</th><th className="px-6 py-3">Amount</th><th className="px-6 py-3">Payment</th><th className="px-6 py-3">Date</th><th className="px-6 py-3 text-right">Actions</th>
-          </tr></thead>
-          <tbody className="divide-y divide-pos-surface-container">
-            {sales.length > 0 ? sales.map(s => (
-              <tr key={s.id} className="hover:bg-pos-surface-low transition-colors">
-                <td className="px-6 py-4 text-xs font-bold text-pos-secondary">{s.invoice}</td>
-                <td className="px-6 py-4 text-sm">{s.customer}</td>
-                <td className="px-6 py-4 text-xs">{s.items.length} item(s)</td>
-                <td className="px-6 py-4 font-bold">{formatCurrency(s.total)}</td>
-                <td className="px-6 py-4 text-xs capitalize">{s.paymentMethod}</td>
-                <td className="px-6 py-4 text-xs text-pos-on-surface-variant">{(() => { try { return new Date(s.date).toLocaleDateString('en-GB'); } catch { return s.date; } })()}</td>
-                <td className="px-6 py-4 text-right flex justify-end gap-2">
-                  <button onClick={() => reopenInvoice(s)} className="text-pos-secondary text-xs hover:underline">View</button>
-                  <button onClick={() => handleDeleteSale(s.id)} className="text-pos-error text-xs hover:underline">Delete</button>
-                </td>
-              </tr>
-            )) : (
-              <tr><td colSpan={7} className="px-8 py-8 text-center text-xs text-pos-on-surface-variant">No sales recorded yet.</td></tr>
-            )}
-          </tbody>
-        </table>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left">
+            <thead><tr className="text-[11px] font-bold text-pos-on-surface-variant uppercase tracking-widest bg-pos-surface-low border-t border-pos-surface-container">
+              <th className="px-4 sm:px-6 py-3">Invoice</th><th className="px-4 sm:px-6 py-3">Customer</th><th className="px-4 sm:px-6 py-3 hidden sm:table-cell">Items</th><th className="px-4 sm:px-6 py-3">Amount</th><th className="px-4 sm:px-6 py-3 hidden md:table-cell">Payment</th><th className="px-4 sm:px-6 py-3 hidden lg:table-cell">Date</th><th className="px-4 sm:px-6 py-3 text-right">Actions</th>
+            </tr></thead>
+            <tbody className="divide-y divide-pos-surface-container">
+              {paginatedSales.length > 0 ? paginatedSales.map(s => (
+                <tr key={s.id} className="hover:bg-pos-surface-low transition-colors">
+                  <td className="px-4 sm:px-6 py-4 text-xs font-bold text-pos-secondary">{s.invoice}</td>
+                  <td className="px-4 sm:px-6 py-4 text-sm">{s.customer}</td>
+                  <td className="px-4 sm:px-6 py-4 text-xs hidden sm:table-cell">{s.items.length} item(s)</td>
+                  <td className="px-4 sm:px-6 py-4 font-bold">{formatCurrency(s.total)}</td>
+                  <td className="px-4 sm:px-6 py-4 text-xs capitalize hidden md:table-cell">{s.paymentMethod}</td>
+                  <td className="px-4 sm:px-6 py-4 text-xs text-pos-on-surface-variant hidden lg:table-cell">{(() => { try { return new Date(s.date).toLocaleDateString('en-GB'); } catch { return s.date; } })()}</td>
+                  <td className="px-4 sm:px-6 py-4 text-right flex justify-end gap-2">
+                    <button onClick={() => reopenInvoice(s)} className="text-pos-secondary text-xs hover:underline">View</button>
+                    <button onClick={() => setShowDeleteConfirm(s.id)} className="text-pos-error text-xs hover:underline">Delete</button>
+                  </td>
+                </tr>
+              )) : (
+                <tr><td colSpan={7} className="px-8 py-8 text-center text-xs text-pos-on-surface-variant">No sales recorded yet.</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+        {sales.length > PAGE_SIZE && (
+          <div className="px-6 py-3 bg-pos-surface-low border-t border-pos-surface-container flex justify-between items-center">
+            <span className="text-xs text-pos-on-surface-variant">Page {page + 1} of {totalPages}</span>
+            <div className="flex gap-2">
+              <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0}
+                className="px-3 py-1 text-xs font-semibold bg-pos-surface-container rounded-lg disabled:opacity-40">← Prev</button>
+              <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={page >= totalPages - 1}
+                className="px-3 py-1 text-xs font-semibold bg-pos-surface-container rounded-lg disabled:opacity-40">Next →</button>
+            </div>
+          </div>
+        )}
       </div>
 
       {showInvoice && viewSale && (
         <InvoiceModal sale={viewSale} companyName={companyName} companyPhone={companyPhone} companyAddress={companyAddress} onClose={() => setShowInvoice(false)} />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/35 flex items-center justify-center z-[1000]" onClick={() => setShowDeleteConfirm(null)}>
+          <div className="bg-pos-surface-lowest rounded-xl w-[360px] shadow-2xl p-7" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-pos-error-container flex items-center justify-center">
+                <span className="material-symbols-outlined text-pos-on-error-container">delete</span>
+              </div>
+              <h3 className="text-lg font-bold">Delete Sale?</h3>
+            </div>
+            <p className="text-sm text-pos-on-surface-variant mb-6">This sale record will be permanently deleted.</p>
+            <div className="flex gap-3">
+              <button onClick={() => setShowDeleteConfirm(null)} className="flex-1 py-2.5 bg-pos-surface-container text-pos-on-surface-variant rounded-lg font-semibold text-sm">Cancel</button>
+              <button onClick={confirmDeleteSale} className="flex-1 py-2.5 bg-pos-error text-white rounded-lg font-semibold text-sm">Delete</button>
+            </div>
+          </div>
+        </div>
       )}
     </section>
   );
