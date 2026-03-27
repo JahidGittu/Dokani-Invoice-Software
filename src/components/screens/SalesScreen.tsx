@@ -129,6 +129,7 @@ export default function SalesScreen({ products, customers, sales, onSaleComplete
               placeholder={t('searchByName')} />
             <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-pos-on-surface-variant">search</span>
           </div>
+          <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('availableProducts')}</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {filteredProducts.length > 0 ? filteredProducts.map(p => (
               <div key={p.id} onClick={() => addToCart(p)}
