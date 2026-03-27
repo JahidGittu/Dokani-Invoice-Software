@@ -187,8 +187,8 @@ tbody tr:nth-child(even){background:#fafafa}
       <div class="due-row"><span>Balance:</span><span class="due-val">${balance}/-</span></div>
     </div>
     <div class="remark">
-      <div><strong>Remark:</strong> ${sale.notes || ''}</div>
-      <div><strong>Total Quantity:</strong> ${totalQty}</div>
+      ${sale.notes ? `<div><strong>Remark:</strong> ${sale.notes}</div>` : '<div><strong>Remark:</strong></div>'}
+      <div><strong>Total Quantity: ${totalQty}</strong></div>
       <div>In Word: <span class="inword">${numberToWords(sale.total)}</span></div>
     </div>
   </div>
@@ -203,13 +203,13 @@ tbody tr:nth-child(even){background:#fafafa}
 
 <!-- Signatures -->
 <div class="sig-row">
-  <div class="sig">Customer Signature</div>
-  <div class="sig">Authorized Signature</div>
+  <div class="sig"><em>Customer Signature</em></div>
+  <div class="sig"><em>Authorized Signature</em></div>
 </div>
 
 <!-- Disclaimer -->
 <div class="disclaimer">বিক্রিত মাল ১ মাসের মধ্যে ফেরত নেওয়া হয়।চায়না/ইন্ডিয়ান মাল ফেরত নেওয়া হয় না।</div>
-<div class="footer-line">SOFTWARE: ${companyName} | Printing @: ${new Date().toLocaleString()}</div>
+<div class="footer-line">SOFTWARE: ${companyName} | ${companyPhone || ''} | Printing @: ${new Date().toLocaleString()}</div>
 
 </div>
 </body></html>`;
