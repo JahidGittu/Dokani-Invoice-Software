@@ -220,7 +220,8 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
       notes: remark, status: autoStatus as SaleRecord['status'],
       date: now.toISOString(), time: now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
       paid: paidVal, due: dueVal, delivery: deliveryVal, returnAmount: returnVal,
-      lessAmount: lessVal, balance: balanceVal,
+      lessAmount: lessVal, balance: balanceVal, labour: labourVal,
+      previousDues: prevDues, soldBy: settings.userName || '',
     };
 
     onSaleComplete(sale, items.map(i => ({ productId: i.productId, qty: i.carton })));
