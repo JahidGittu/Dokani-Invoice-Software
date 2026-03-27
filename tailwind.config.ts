@@ -13,6 +13,9 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ["Inter", "sans-serif"],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -47,15 +50,30 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        sidebar: {
-          DEFAULT: "hsl(var(--sidebar-background))",
-          foreground: "hsl(var(--sidebar-foreground))",
-          primary: "hsl(var(--sidebar-primary))",
-          "primary-foreground": "hsl(var(--sidebar-primary-foreground))",
-          accent: "hsl(var(--sidebar-accent))",
-          "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
-          border: "hsl(var(--sidebar-border))",
-          ring: "hsl(var(--sidebar-ring))",
+        // TilePOS specific
+        pos: {
+          surface: "hsl(var(--pos-surface))",
+          "surface-container": "hsl(var(--pos-surface-container))",
+          "surface-low": "hsl(var(--pos-surface-container-low))",
+          "surface-high": "hsl(var(--pos-surface-container-high))",
+          "surface-highest": "hsl(var(--pos-surface-container-highest))",
+          "surface-lowest": "hsl(var(--pos-surface-container-lowest))",
+          "on-surface": "hsl(var(--pos-on-surface))",
+          "on-surface-variant": "hsl(var(--pos-on-surface-variant))",
+          secondary: "hsl(var(--pos-secondary))",
+          "secondary-dim": "hsl(var(--pos-secondary-dim))",
+          "secondary-container": "hsl(var(--pos-secondary-container))",
+          "on-secondary-container": "hsl(var(--pos-on-secondary-container))",
+          tertiary: "hsl(var(--pos-tertiary))",
+          "tertiary-container": "hsl(var(--pos-tertiary-container))",
+          "on-tertiary-container": "hsl(var(--pos-on-tertiary-container))",
+          error: "hsl(var(--pos-error))",
+          "error-container": "hsl(var(--pos-error-container))",
+          "on-error-container": "hsl(var(--pos-on-error-container))",
+          "primary-container": "hsl(var(--pos-primary-container))",
+          "on-primary-container": "hsl(var(--pos-on-primary-container))",
+          outline: "hsl(var(--pos-outline))",
+          "outline-variant": "hsl(var(--pos-outline-variant))",
         },
       },
       borderRadius: {
@@ -65,20 +83,12 @@ export default {
       },
       keyframes: {
         "accordion-down": {
-          from: {
-            height: "0",
-          },
-          to: {
-            height: "var(--radix-accordion-content-height)",
-          },
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
         },
         "accordion-up": {
-          from: {
-            height: "var(--radix-accordion-content-height)",
-          },
-          to: {
-            height: "0",
-          },
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
         },
       },
       animation: {
