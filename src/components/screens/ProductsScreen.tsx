@@ -21,7 +21,7 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
   const [editId, setEditId] = useState<string | null>(null);
   const [page, setPage] = useState(0);
   const [form, setForm] = useState({
-    name: '', size: '', finish: 'Glossy', pricePerBox: '', sqftPerBox: '', stock: '', batch: '',
+    name: '', size: '', finish: 'Glossy', pricePerBox: '', sqftPerBox: '', piecesPerBox: '4', stock: '', batch: '',
     barcode: '', category: 'Wall Tiles', brand: '', buyRate: '',
   });
 
