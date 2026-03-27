@@ -250,6 +250,13 @@ export default function SalesScreen({ products, customers, sales, onSaleComplete
                   <td className="px-3 sm:px-4 py-3 text-xs hidden lg:table-cell">{formatCurrency(s.lessAmount ?? 0)}</td>
                   <td className="px-3 sm:px-4 py-3 text-xs font-semibold text-[hsl(125,60%,35%)]">{formatCurrency(s.paid ?? s.total)}</td>
                   <td className={`px-3 sm:px-4 py-3 text-xs font-semibold ${saledue > 0 ? 'text-destructive' : 'text-[hsl(125,60%,35%)]'}`}>{formatCurrency(saledue)}</td>
+                  <td className="px-3 sm:px-4 py-3">
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                      s.status === 'paid' ? 'bg-[hsl(125,100%,90%)] text-[hsl(144,100%,19%)]' :
+                      s.status === 'pending' ? 'bg-[hsl(54,97%,90%)] text-[hsl(37,82%,29%)]' :
+                      'bg-[hsl(224,100%,92%)] text-[hsl(211,100%,26%)]'
+                    }`}>{s.status}</span>
+                  </td>
                   <td className="px-3 sm:px-4 py-3 text-right">
                     <div className="relative inline-block">
                       <button data-sale-id={s.id} className="px-3 py-1.5 bg-pos-error text-white rounded text-xs font-semibold flex items-center gap-1"
