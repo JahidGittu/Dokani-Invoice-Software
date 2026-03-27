@@ -1,7 +1,9 @@
 import { useState, useMemo, useRef, useCallback } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useI18n } from "@/lib/i18n";
-import { type Product, formatCurrency, PRODUCT_CATEGORIES, PRODUCT_BRANDS } from "@/lib/store";
+import { type Product, formatCurrency } from "@/lib/store";
+import { useProductOptions } from "@/hooks/useProductOptions";
+import ComboInput from "@/components/ComboInput";
 import { toast } from "sonner";
 
 interface ProductsScreenProps {
