@@ -203,16 +203,15 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
   const timeStr = today.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
   const bizInfoLine = [settings.phone, settings.address].filter(Boolean).join(' · ');
 
-  const collectSaleData = (): { sale: SaleRecord; deductions: { productId: string; qty: number }[] } | null => {
+  const collectSaleData = async (): Promise<{ sale: SaleRecord; deductions: { productId: string; qty: number }[] } | null> => {
     const items = rows.filter(r => r.productId && r.qty > 0 && r.rate > 0).map(r => {
       const p = products.find(x => x.id === r.productId);
       return { productId: r.productId, name: p?.name || 'Custom Item', detail: p ? `${p.size} · ${p.finish}` : '', qty: r.qty, price: r.rate, stock: p?.stock ?? 999 };
     });
     if (!items.length) { toast.error(t('addAtLeastOneItem')); return null; }
-    // Stock validation
     const overStock = items.find(i => i.qty > i.stock);
     if (overStock) { toast.error(`${overStock.name}: ${t('qty')} ${overStock.qty} > ${t('stock')} ${overStock.stock}`); return null; }
-    const inv = getNextInvoiceNumber(settings.invPrefix);
+    const inv = getNextInvNum ? await getNextInvNum() : getNextInvoiceNumber(settings.invPrefix);
     const now = new Date();
     const sale: SaleRecord = {
       id: crypto.randomUUID(), invoice: inv, customer: customerName || t('walkInCustomer'),
