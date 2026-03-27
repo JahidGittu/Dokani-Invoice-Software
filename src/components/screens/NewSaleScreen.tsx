@@ -174,7 +174,7 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
       return;
     }
     const p = products.find(x => x.id === productId);
-    if (p) setRows(prev => prev.map(r => r.id === rowId ? { ...r, productId, rate: p.pricePerBox, qty: r.qty || 1 } : r));
+    if (p) setRows(prev => prev.map(r => r.id === rowId ? { ...r, productId, rate: p.pricePerBox, qty: r.qty || 1, carton: r.carton || (r.qty || 1) } : r));
   };
 
   const handleBarcode = (e: React.KeyboardEvent) => {
