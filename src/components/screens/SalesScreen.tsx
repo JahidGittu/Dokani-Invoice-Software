@@ -193,7 +193,7 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
     setCustomerName(''); setPhone(''); setAddress('');
     setItems([]); setDiscount(''); setDelivery(''); setPaidAmount('');
     setRemark(''); setSaleStatus('Complete'); setPaymentMode('Cash');
-    setReturnAmt(''); setLessAmt('');
+    setReturnAmt(''); setLessAmt(''); setLabourCost('');
   };
 
   const handleSave = () => {
