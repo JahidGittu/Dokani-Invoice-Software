@@ -210,8 +210,7 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
     setBarcodeInput('');
   };
 
-  // Calculations
-  const subtotal = rows.reduce((sum, r) => sum + (r.qty * r.rate), 0);
+  const subtotal = rows.reduce((sum, r) => sum + (r.carton * r.rate), 0);
   const discountVal = calcDiscount(subtotal, parseFloat(discount) || 0, discountType);
   const returnVal = parseFloat(returnAmt) || 0;
   const lessVal = parseFloat(lessAmt) || 0;
