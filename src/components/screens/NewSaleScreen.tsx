@@ -167,15 +167,24 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
   const addRow = () => setRows(prev => [...prev, { id: Date.now(), productId: '', qty: 1, rate: 0, searchQuery: '', showDropdown: false, carton: 0, piece: 0 }]);
   const removeRow = (id: number) => setRows(prev => prev.length <= 1 ? prev : prev.filter(r => r.id !== id));
   const updateRow = (id: number, field: keyof NewSaleRow, value: string | number | boolean) => {
-    setRows(prev => prev.map(r => r.id === id ? { ...r, [field]: value } : r));
+    setRows(prev => prev.map(r => {
+      if (r.id !== id) return r;
+      const updated = { ...r, [field]: value };
+      // Sync: carton change → qty = carton, recalc sqft
+      if (field === 'carton') {
+        const ctn = Number(value) || 0;
+        updated.qty = ctn; // qty = total cartons (boxes)
+      }
+      return updated;
+    }));
   };
   const selectProduct = (rowId: number, productId: string) => {
     if (!productId) {
-      setRows(prev => prev.map(r => r.id === rowId ? { ...r, productId: '', rate: 0 } : r));
+      setRows(prev => prev.map(r => r.id === rowId ? { ...r, productId: '', rate: 0, carton: 0, piece: 0, qty: 0 } : r));
       return;
     }
     const p = products.find(x => x.id === productId);
-    if (p) setRows(prev => prev.map(r => r.id === rowId ? { ...r, productId, rate: p.pricePerBox, qty: r.qty || 1, carton: r.carton || (r.qty || 1) } : r));
+    if (p) setRows(prev => prev.map(r => r.id === rowId ? { ...r, productId, rate: p.pricePerBox, qty: 1, carton: 1, piece: 0 } : r));
   };
 
   const handleBarcode = (e: React.KeyboardEvent) => {
