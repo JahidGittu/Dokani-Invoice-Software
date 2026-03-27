@@ -80,6 +80,7 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
   const [discount, setDiscount] = useState('');
   const [discountType, setDiscountType] = useState<'flat' | 'percent'>('percent');
   const [delivery, setDelivery] = useState('');
+  const [labourCost, setLabourCost] = useState('');
   const [returnAmt, setReturnAmt] = useState('');
   const [lessAmt, setLessAmt] = useState('');
   const [paidAmount, setPaidAmount] = useState('');
