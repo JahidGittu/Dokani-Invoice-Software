@@ -101,7 +101,7 @@ function ProductPicker({
       )}
       
       {row.showDropdown && !selectedProduct && (
-        <div className="absolute top-full left-0 right-0 bg-card border border-border rounded-lg shadow-xl z-50 mt-1 max-h-[240px] overflow-y-auto min-w-[300px]">
+        <div className="fixed left-1/2 -translate-x-1/2 w-[400px] bg-card border border-border rounded-lg shadow-2xl mt-1 max-h-[280px] overflow-y-auto" style={{ zIndex: 9999, top: 'auto', marginTop: '2px' }}>
           {filtered.length > 0 ? filtered.map(p => (
             <button key={p.id} onMouseDown={() => handleSelect(p)}
               disabled={p.stock <= 0}
