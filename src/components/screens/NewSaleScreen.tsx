@@ -353,7 +353,7 @@ tbody tr:nth-child(even){background:#fafafa}
     ${settings.phone ? `<div class="sub">Phone# ${settings.phone}</div>` : ''}
     ${settings.email ? `<div class="sub">${settings.email}</div>` : ''}
   </div>
-  <div>${qrSVG}</div>
+  <div>${qrImg}</div>
 </div>
 <div class="bill-title">BILL-INVOICE</div>
 <div class="info-row">
