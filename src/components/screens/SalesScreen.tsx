@@ -567,70 +567,94 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
             </div>
           </div>
 
-          {/* ── RIGHT: Summary sidebar ── */}
-          <div className="w-full lg:w-[280px] shrink-0">
-            <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container p-4 space-y-2.5 sticky top-4">
-              {/* Total */}
-              <div className="flex items-center justify-between border border-pos-surface-container rounded-lg px-3 py-2.5">
-                <span className="text-sm font-medium text-pos-on-surface-variant">Total</span>
-                <span className="text-lg font-black text-pos-secondary">{formatCurrency(total)}</span>
-              </div>
-              {/* Return */}
-              <div className="flex items-center justify-between border border-pos-surface-container rounded-lg px-3 py-2">
-                <span className="text-sm text-pos-on-surface-variant">Return</span>
-                <input type="number" value={returnAmt} onChange={e => setReturnAmt(e.target.value)} placeholder="0"
-                  className="w-20 bg-transparent text-sm text-right outline-none font-bold text-pos-error" />
-              </div>
-              {/* Discount */}
-              <div className="flex items-center justify-between border border-pos-surface-container rounded-lg px-3 py-2">
-                <div className="flex items-center gap-1">
-                  <span className="text-sm text-pos-on-surface-variant">Discount</span>
-                  <select value={discountType} onChange={e => setDiscountType(e.target.value as 'flat' | 'percent')}
-                    className="bg-transparent text-[10px] outline-none">
-                    <option value="percent">%</option><option value="flat">৳</option>
-                  </select>
+          {/* ── RIGHT: Summary sidebar - Invoice style 2-column layout ── */}
+          <div className="w-full lg:w-[320px] shrink-0">
+            <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container p-4 space-y-3 sticky top-4">
+
+              {/* Two-column: Left (inputs) | Right (summary) */}
+              <div className="grid grid-cols-2 gap-2.5">
+
+                {/* LEFT column - input fields */}
+                <div className="space-y-2">
+                  <div className="border border-pos-surface-container rounded-lg px-2.5 py-1.5">
+                    <label className="text-[9px] font-bold text-pos-on-surface-variant uppercase block">Subtotal</label>
+                    <div className="text-sm font-black text-pos-secondary">{formatCurrency(total)}</div>
+                  </div>
+                  <div className="border border-pos-surface-container rounded-lg px-2.5 py-1.5">
+                    <label className="text-[9px] font-bold text-pos-on-surface-variant uppercase block">Discount</label>
+                    <div className="flex items-center gap-1">
+                      <input type="number" value={discount} onChange={e => setDiscount(e.target.value)} placeholder="0"
+                        className="w-full bg-transparent text-sm outline-none" />
+                      <select value={discountType} onChange={e => setDiscountType(e.target.value as 'flat' | 'percent')}
+                        className="bg-transparent text-[10px] outline-none font-bold shrink-0">
+                        <option value="flat">৳</option><option value="percent">%</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="border border-pos-surface-container rounded-lg px-2.5 py-1.5">
+                    <label className="text-[9px] font-bold text-pos-on-surface-variant uppercase block">Return</label>
+                    <input type="number" value={returnAmt} onChange={e => setReturnAmt(e.target.value)} placeholder="0"
+                      className="w-full bg-transparent text-sm outline-none text-pos-error font-bold" />
+                  </div>
+                  <div className="border border-pos-surface-container rounded-lg px-2.5 py-1.5">
+                    <label className="text-[9px] font-bold text-pos-on-surface-variant uppercase block">Less</label>
+                    <input type="number" value={lessAmt} onChange={e => setLessAmt(e.target.value)} placeholder="0"
+                      className="w-full bg-transparent text-sm outline-none" />
+                  </div>
+                  <div className="border border-pos-surface-container rounded-lg px-2.5 py-1.5">
+                    <label className="text-[9px] font-bold text-pos-on-surface-variant uppercase block">Delivery</label>
+                    <input type="number" value={delivery} onChange={e => setDelivery(e.target.value)} placeholder="0"
+                      className="w-full bg-transparent text-sm outline-none font-bold text-pos-secondary" />
+                  </div>
+                  <div className="border border-pos-surface-container rounded-lg px-2.5 py-1.5">
+                    <label className="text-[9px] font-bold text-pos-on-surface-variant uppercase block">Labour</label>
+                    <input type="number" value={labourCost} onChange={e => setLabourCost(e.target.value)} placeholder="0"
+                      className="w-full bg-transparent text-sm outline-none font-bold text-pos-secondary" />
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <input type="number" value={discount} onChange={e => setDiscount(e.target.value)} placeholder="0"
-                    className="w-14 bg-transparent text-sm text-right outline-none" />
-                  <span className="text-xs font-bold text-pos-on-surface-variant">Less</span>
-                  <input type="number" value={lessAmt} onChange={e => setLessAmt(e.target.value)} placeholder="0"
-                    className="w-14 bg-transparent text-sm text-right outline-none" />
+
+                {/* RIGHT column - calculated summary */}
+                <div className="space-y-2">
+                  <div className="border border-pos-surface-container rounded-lg px-2.5 py-1.5">
+                    <label className="text-[9px] font-bold text-pos-on-surface-variant uppercase block">Total</label>
+                    <div className="text-sm font-bold text-right">{formatCurrency(total)}</div>
+                  </div>
+                  {labourVal > 0 && (
+                    <div className="border border-pos-surface-container rounded-lg px-2.5 py-1.5">
+                      <label className="text-[9px] font-bold text-pos-on-surface-variant uppercase block">Labour</label>
+                      <div className="text-sm font-bold text-right">{formatCurrency(labourVal)}</div>
+                    </div>
+                  )}
+                  {discountVal > 0 && (
+                    <div className="border border-pos-surface-container rounded-lg px-2.5 py-1.5">
+                      <label className="text-[9px] font-bold text-pos-on-surface-variant uppercase block">Discount</label>
+                      <div className="text-sm font-bold text-right text-pos-error">-{formatCurrency(discountVal)}</div>
+                    </div>
+                  )}
+                  {/* PAYABLE - big bold like invoice */}
+                  <div className="bg-pos-surface-high border-2 border-pos-secondary rounded-lg px-2.5 py-2.5">
+                    <label className="text-[9px] font-black uppercase block">PAYABLE</label>
+                    <div className="text-xl font-black text-pos-secondary text-right">{formatCurrency(payable)}</div>
+                  </div>
+                  <div className="border border-pos-surface-container rounded-lg px-2.5 py-1.5">
+                    <label className="text-[9px] font-bold text-pos-on-surface-variant uppercase block">Paid</label>
+                    <input type="number" value={paidAmount} onChange={e => setPaidAmount(e.target.value)} placeholder="0"
+                      className="w-full bg-transparent text-sm text-right outline-none font-bold" />
+                  </div>
+                  {/* Due */}
+                  <div className="border border-pos-surface-container rounded-lg px-2.5 py-1.5">
+                    <label className="text-[9px] font-bold text-pos-error uppercase block">Due</label>
+                    <div className={`text-sm font-black text-right ${dueVal > 0 ? 'text-pos-error' : 'text-[hsl(125,60%,35%)]'}`}>{formatCurrency(dueVal)}</div>
+                  </div>
+                  {/* Balance box like invoice due-box */}
+                  <div className="border-2 border-[#333] rounded-lg px-2.5 py-1.5">
+                    <div className="flex justify-between text-[10px]"><span>Due In Bill:</span><strong>{formatCurrency(dueVal)}</strong></div>
+                    <div className="flex justify-between text-[10px]"><span>Prev. Dues:</span><strong>{formatCurrency(prevDues)}</strong></div>
+                    <div className="flex justify-between text-[10px] border-t border-gray-300 pt-0.5 mt-0.5"><span className="font-bold">Balance:</span><strong className={`${balanceVal > 0 ? 'text-pos-error' : ''}`}>{formatCurrency(balanceVal)}</strong></div>
+                  </div>
                 </div>
               </div>
-              {/* Delivery */}
-              <div className="flex items-center justify-between border border-pos-surface-container rounded-lg px-3 py-2">
-                <span className="text-sm text-pos-on-surface-variant">Delivery</span>
-                <input type="number" value={delivery} onChange={e => setDelivery(e.target.value)} placeholder="0"
-                  className="w-20 bg-transparent text-sm text-right outline-none font-bold text-pos-secondary" />
-              </div>
-              {/* Labour */}
-              <div className="flex items-center justify-between border border-pos-surface-container rounded-lg px-3 py-2">
-                <span className="text-sm text-pos-on-surface-variant">Labour</span>
-                <input type="number" value={labourCost} onChange={e => setLabourCost(e.target.value)} placeholder="0"
-                  className="w-20 bg-transparent text-sm text-right outline-none font-bold text-pos-secondary" />
-              </div>
-              {/* Payable */}
-              <div className="flex items-center justify-between border border-pos-surface-container rounded-lg px-3 py-2.5 bg-pos-surface-high">
-                <span className="text-sm font-bold text-pos-on-surface">Payable</span>
-                <span className="text-lg font-black text-pos-secondary">{formatCurrency(payable)}</span>
-              </div>
-              {/* Paid */}
-              <div className="flex items-center justify-between border border-pos-surface-container rounded-lg px-3 py-2">
-                <span className="text-sm font-bold text-pos-on-surface-variant">Paid</span>
-                <input type="number" value={paidAmount} onChange={e => setPaidAmount(e.target.value)} placeholder="0"
-                  className="w-20 bg-transparent text-sm text-right outline-none font-bold" />
-              </div>
-              {/* Due */}
-              <div className="flex items-center justify-between border border-pos-surface-container rounded-lg px-3 py-2.5">
-                <span className="text-sm font-bold text-pos-error">Due</span>
-                <span className={`text-lg font-black ${dueVal > 0 ? 'text-pos-error' : 'text-[hsl(125,60%,35%)]'}`}>{formatCurrency(dueVal)}</span>
-              </div>
-              {/* Balance */}
-              <div className="flex items-center justify-between border border-pos-surface-container rounded-lg px-3 py-2.5">
-                <span className="text-sm font-bold text-pos-secondary">Balance</span>
-                <span className={`text-lg font-black ${balanceVal > 0 ? 'text-pos-error' : 'text-[hsl(125,60%,35%)]'}`}>{formatCurrency(balanceVal)}</span>
-              </div>
+
               {/* Mode */}
               <div className="flex items-center justify-between border border-pos-surface-container rounded-lg px-3 py-2">
                 <span className="text-sm text-pos-on-surface-variant">Mode</span>
@@ -641,7 +665,7 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
               </div>
               {/* Save */}
               <button onClick={handleSave}
-                className="w-full py-3 bg-pos-error text-white rounded-lg font-bold text-base hover:bg-pos-error/90 transition-colors mt-2">
+                className="w-full py-3 bg-pos-error text-white rounded-lg font-bold text-base hover:bg-pos-error/90 transition-colors">
                 Save
               </button>
             </div>
