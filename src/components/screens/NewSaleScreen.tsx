@@ -764,8 +764,8 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
           <div className="flex gap-6">
             {/* LEFT COLUMN */}
             <div className="flex-1">
-              {/* Due Box - bordered */}
-              <div className="border border-muted-foreground/60 rounded px-4 py-2.5 text-[12px] space-y-0.5 mb-3">
+              {/* Due Box - bordered, compact width */}
+              <div className="border border-muted-foreground/60 rounded px-3 py-2 text-[11px] space-y-0.5 mb-3 max-w-[180px]">
                 <div className="flex justify-between">
                   <span>Due In This Bill:</span>
                   <span className="font-bold text-destructive">{Math.round(dueVal)}/-</span>
