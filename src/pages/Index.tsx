@@ -10,7 +10,9 @@ import CustomersScreen from "@/components/screens/CustomersScreen";
 import ReportsScreen from "@/components/screens/ReportsScreen";
 import SettingsScreen from "@/components/screens/SettingsScreen";
 import ExcelImportScreen from "@/components/screens/ExcelImportScreen";
-import { useProducts, useCustomers, useSales, useCompanySettings, type SaleRecord, type Product } from "@/lib/store";
+import PurchaseScreen from "@/components/screens/PurchaseScreen";
+import SupplierScreen from "@/components/screens/SupplierScreen";
+import { useProducts, useCustomers, useSales, useSuppliers, usePurchases, useCompanySettings, type SaleRecord, type Product } from "@/lib/store";
 
 export default function Index() {
   const [activeScreen, setActiveScreen] = useState('dashboard');
