@@ -508,7 +508,7 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
                     <td className="py-1.5 px-1.5 border-b border-gray-200 font-semibold">{item.name}{item.detail ? ` (${item.detail})` : ''}</td>
                     <td className="py-1.5 px-1.5 border-b border-gray-200 text-right">{Number(item.sqftQty ?? item.qty).toFixed(2)}</td>
                     <td className="py-1.5 px-1.5 border-b border-gray-200 text-right">{item.price}</td>
-                    <td className="py-1.5 px-1.5 border-b border-gray-200 text-right font-bold">{item.price * item.qty}</td>
+                    <td className="py-1.5 px-1.5 border-b border-gray-200 text-right font-bold">{Math.round((item.carton ?? item.qty) * item.price + (item.piece ?? 0) * (item.price / (4)))}</td>
                   </tr>
                 ))}
               </tbody>
