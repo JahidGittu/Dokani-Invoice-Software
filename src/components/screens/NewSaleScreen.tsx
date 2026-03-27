@@ -592,7 +592,7 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
           <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3">{t('saleItems')}</div>
 
           {/* Scrollable table */}
-          <div className="overflow-x-auto">
+          <div className="overflow-visible">
             <table className="w-full min-w-[700px]">
               <thead>
                 <tr className="text-[9px] font-bold text-white uppercase tracking-wider" style={{ background: 'hsl(var(--destructive))' }}>
