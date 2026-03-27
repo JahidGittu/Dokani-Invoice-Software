@@ -230,6 +230,7 @@ export default function SalesScreen({ products, customers, sales, onSaleComplete
               <th className="px-3 sm:px-4 py-3 hidden lg:table-cell">Less</th>
               <th className="px-3 sm:px-4 py-3">{t('paid')}</th>
               <th className="px-3 sm:px-4 py-3">{t('due')}</th>
+              <th className="px-3 sm:px-4 py-3">{t('status')}</th>
               <th className="px-3 sm:px-4 py-3 text-right">{t('actions')}</th>
             </tr></thead>
             <tbody className="divide-y divide-pos-surface-container">
