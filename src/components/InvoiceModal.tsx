@@ -227,7 +227,7 @@ export default function InvoiceModal({ sale, companyName, onClose }: InvoiceModa
               <div className="text-xl font-black tracking-tighter">{companyName}</div>
               <div className="text-xs text-pos-on-surface-variant">Invoice #{sale.invoice} · {dateStr}</div>
             </div>
-            <span className={`px-3 py-1 rounded-full text-[10px] font-bold ${sale.status === 'Paid' ? 'bg-pos-tertiary-container text-pos-on-tertiary-container' : 'bg-pos-surface-container text-pos-on-surface-variant'}`}>
+            <span className={`px-3 py-1 rounded-full text-[10px] font-bold ${sale.status === 'paid' ? 'bg-pos-tertiary-container text-pos-on-tertiary-container' : sale.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-pos-secondary-container text-pos-on-secondary-container'}`}>
               {sale.status.toUpperCase()}
             </span>
           </div>

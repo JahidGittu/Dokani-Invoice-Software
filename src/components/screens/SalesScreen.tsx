@@ -100,7 +100,7 @@ export default function SalesScreen({ products, customers, onSaleComplete, compa
       total,
       paymentMethod,
       notes,
-      status: 'Paid',
+      status: 'paid',
       date: now.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
       time: now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
     };

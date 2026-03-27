@@ -131,7 +131,7 @@ export default function DashboardScreen({ onNavigate }: DashboardScreenProps) {
                 <td className="px-8 py-4 font-bold">{formatCurrency(s.total)}</td>
                 <td className="px-8 py-4 text-xs text-pos-on-surface-variant">{s.time}</td>
                 <td className="px-8 py-4 text-right">
-                  <span className={`px-3 py-1 rounded-full text-[10px] font-bold ${s.status === 'Paid' ? 'bg-pos-tertiary-container text-pos-on-tertiary-container' : 'bg-pos-surface-container text-pos-on-surface-variant'}`}>
+                  <span className={`px-3 py-1 rounded-full text-[10px] font-bold ${s.status === 'paid' ? 'bg-pos-tertiary-container text-pos-on-tertiary-container' : s.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-pos-secondary-container text-pos-on-secondary-container'}`}>
                     {s.status}
                   </span>
                 </td>
