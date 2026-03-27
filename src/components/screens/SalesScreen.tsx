@@ -399,6 +399,11 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
                 <input type="number" min={0} value={manualSqft} onChange={e => setManualSqft(parseFloat(e.target.value) || 0)}
                   className="w-full bg-transparent text-sm text-center outline-none" />
               </div>
+              <div className="flex items-center gap-1 bg-pos-surface-lowest border border-pos-surface-container rounded-lg px-2 py-2">
+                <span className="text-[10px] font-bold text-pos-on-surface-variant uppercase">Sales Rate</span>
+                <input type="number" value={manualRate} onChange={e => setManualRate(e.target.value)} placeholder="0"
+                  className="w-20 bg-transparent text-sm text-center outline-none" />
+              </div>
               <button onClick={manualAddProduct}
                 className="px-6 py-2.5 bg-pos-error text-white rounded-lg font-bold text-sm hover:bg-pos-error/90 transition-colors">
                 Add
