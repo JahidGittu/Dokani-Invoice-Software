@@ -463,7 +463,7 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
               {companyPhone && <div className="text-[10px] text-gray-600">Phone# {companyPhone}</div>}
               {companyEmail && <div className="text-[9px] text-gray-500">{companyEmail}</div>}
             </div>
-            <div className="shrink-0" dangerouslySetInnerHTML={{ __html: generateQRSVG(`${sale.invoice}-${sale.total}`, 60) }} />
+            {qrDataUrl ? <img src={qrDataUrl} alt="QR" width={60} height={60} style={{ imageRendering: 'pixelated' }} /> : <div className="w-[60px] h-[60px] bg-gray-100 rounded" />}
           </div>
 
           {/* BILL-INVOICE */}
