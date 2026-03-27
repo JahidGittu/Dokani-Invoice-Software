@@ -759,99 +759,83 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
           </button>
         </div>
 
-        {/* ── Bottom 2-Column: Due Box (Left) + Totals (Right) ── */}
+        {/* ── Bottom 2-Column: exact reference layout ── */}
         <div className="px-8 sm:px-12 pb-4">
-          <div className="flex flex-col sm:flex-row gap-5">
-            {/* LEFT COLUMN: Due Box + Remark + Quantity + In Word */}
-            <div className="flex-1 space-y-3">
-              {/* Due Box */}
-              <div className="border-2 border-foreground rounded p-3 space-y-1.5 text-xs">
+          <div className="flex gap-6">
+            {/* LEFT COLUMN */}
+            <div className="flex-1">
+              {/* Due Box - bordered */}
+              <div className="border border-muted-foreground/60 rounded px-4 py-2.5 text-[12px] space-y-0.5 mb-3">
                 <div className="flex justify-between">
-                  <span className="font-semibold">Due In This Bill:</span>
-                  <span className="font-black min-w-[80px] text-right">{Math.round(dueVal)}/-</span>
+                  <span>Due In This Bill:</span>
+                  <span className="font-bold text-destructive">{Math.round(dueVal)}/-</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="font-semibold">Previous Dues:</span>
-                  <span className="font-black min-w-[80px] text-right">0/-</span>
+                  <span>Previous Dues:</span>
+                  <span className="font-bold">0/-</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="font-semibold">Balance:</span>
-                  <span className="font-black min-w-[80px] text-right">{Math.round(balanceVal)}/-</span>
+                  <span>Balance:</span>
+                  <span className="font-bold">{Math.round(balanceVal)}/-</span>
                 </div>
               </div>
-
-              {/* Remark */}
-              <div className="text-xs">
-                <span className="font-bold">Remark:</span> <span className="text-muted-foreground">{notes || ''}</span>
-              </div>
-
-              {/* Total Quantity */}
-              <div className="text-xs">
-                <span className="font-bold">Total Quantity:</span>{' '}
-                <span>{rows.reduce((sum, r) => {
+              {/* Remark, Quantity, In Word */}
+              <div className="text-[12px] space-y-0.5 text-muted-foreground">
+                <div><span className="text-foreground">Remark:</span></div>
+                <div><span className="text-foreground">Total Quantity:</span> <span className="font-bold text-foreground">{rows.reduce((sum, r) => {
                   const product = products.find(p => p.id === r.productId);
                   const sqftPerBox = product?.sqftPerBox || 0;
                   const piecesPerBox = product?.piecesPerBox || 4;
                   const sqftPerPiece = piecesPerBox > 0 ? sqftPerBox / piecesPerBox : 0;
                   return sum + (r.carton * sqftPerBox) + (r.piece * sqftPerPiece);
-                }, 0).toFixed(1)}</span>
-              </div>
-
-              {/* In Word */}
-              <div className="text-xs">
-                <span className="font-bold">In Word:</span>{' '}
-                <span className="text-primary font-bold">{numberToWords(total)}</span>
+                }, 0).toFixed(0)}</span></div>
+                <div><span className="text-foreground">In Word:</span> <span className="font-bold text-foreground">{numberToWords(total)}</span></div>
               </div>
             </div>
 
-            {/* RIGHT COLUMN: Total, Labour, PAYABLE, Paid only */}
-            <div className="w-full sm:w-56 space-y-1.5 text-xs">
-              <div className="flex justify-between py-0.5">
-                <span className="font-semibold">Total:</span>
+            {/* RIGHT COLUMN */}
+            <div className="w-[220px] shrink-0 text-[13px]">
+              <div className="flex justify-between py-1">
+                <span className="text-muted-foreground">Total:</span>
                 <span className="font-semibold">{Math.round(subtotal)}</span>
               </div>
-
-              {/* Labour input */}
-              <div className="flex justify-between items-center py-0.5">
-                <span className="font-semibold">Labour:</span>
+              <div className="flex justify-between items-center py-1">
+                <span className="text-muted-foreground">Labour:</span>
                 <input type="number" value={labour} onChange={e => setLabour(e.target.value)} placeholder="0"
-                  className="w-20 bg-muted/30 border border-border rounded text-xs py-1 px-1.5 text-right outline-none focus:ring-1 focus:ring-ring" />
+                  className="w-20 bg-transparent border-b border-border text-[13px] py-0.5 text-right outline-none focus:border-primary font-semibold" />
               </div>
-
-              {/* PAYABLE - prominent */}
-              <div className="flex justify-between items-center py-2 border-t-2 border-b-2 border-foreground my-1">
-                <span className="text-lg font-black">PAYABLE:</span>
-                <span className="text-lg font-black text-primary">{Math.round(total)}</span>
+              {/* PAYABLE - big & bold with borders */}
+              <div className="flex justify-between items-center py-2.5 border-t-[3px] border-b-[3px] border-foreground mt-2 mb-2">
+                <span className="text-[20px] font-black tracking-tight">PAYABLE:</span>
+                <span className="text-[20px] font-black">{Math.round(total)}</span>
               </div>
-
-              {/* Paid input */}
-              <div className="flex justify-between items-center py-0.5">
-                <span className="font-bold">Paid:</span>
+              <div className="flex justify-between items-center py-1">
+                <span className="text-muted-foreground">Paid:</span>
                 <input type="number" value={paidAmount} onChange={e => setPaidAmount(e.target.value)} placeholder="0"
-                  className="w-20 bg-[hsl(125,100%,95%)] border border-[hsl(125,60%,70%)] rounded text-xs py-1 px-1.5 text-right outline-none focus:ring-1 focus:ring-[hsl(125,60%,50%)] font-bold" />
+                  className="w-20 bg-transparent border-b border-border text-[13px] py-0.5 text-right outline-none focus:border-primary font-semibold" />
               </div>
             </div>
           </div>
         </div>
 
         {/* ── Signatures ── */}
-        <div className="px-8 sm:px-12 pb-2">
-          <div className="flex justify-between mt-12 pt-2">
-            <div className="text-center min-w-[150px]">
-              <div className="border-t border-muted-foreground pt-1.5 text-xs font-bold text-primary">Customer Signature</div>
+        <div className="px-8 sm:px-12 mt-14 pb-4">
+          <div className="flex justify-between">
+            <div className="text-center">
+              <div className="border-t border-foreground/40 pt-2 px-8 text-[13px] font-semibold italic text-foreground/80">Customer Signature</div>
             </div>
-            <div className="text-center min-w-[150px]">
-              <div className="border-t border-muted-foreground pt-1.5 text-xs font-bold text-primary">Authorized Signature</div>
+            <div className="text-center">
+              <div className="border-t border-foreground/40 pt-2 px-8 text-[13px] font-semibold italic text-foreground/80">Authorized Signature</div>
             </div>
           </div>
         </div>
 
-        {/* ── Disclaimer & Footer ── */}
-        <div className="px-8 sm:px-12 py-3 border-t border-border mt-auto">
-          <div className="text-center text-[11px] font-bold text-destructive mb-1">
-            বিক্রিত মাল ১ মাসের মধ্যে ফেরত নেওয়া হয়। চায়না/ইন্ডিয়ান মাল ফেরত নেওয়া হয় না।
+        {/* ── Disclaimer & Software line ── */}
+        <div className="px-8 sm:px-12 py-4 border-t border-border/50 mt-4">
+          <div className="text-center text-[13px] font-bold text-foreground mb-2">
+            বিক্রিত মাল ১ মাসের মধ্যে ফেরত নেওয়া হয়।চায়না/ইন্ডিয়ান মাল ফেরত নেওয়া হয় না।
           </div>
-          <div className="text-center text-[9px] text-muted-foreground">
+          <div className="text-center text-[10px] text-muted-foreground">
             SOFTWARE: {settings.name} | Printing @: {new Date().toLocaleString()}
           </div>
         </div>
