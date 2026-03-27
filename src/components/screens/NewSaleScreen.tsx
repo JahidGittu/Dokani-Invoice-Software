@@ -32,7 +32,7 @@ interface NewSaleScreenProps {
 
 // Searchable Product Picker component
 function ProductPicker({ 
-  products, row, onSelect, onUpdateSearch, onToggleDropdown, onRemove, t 
+  products, row, onSelect, onUpdateSearch, onToggleDropdown, onRemove, onToggleScan, t 
 }: {
   products: Product[];
   row: NewSaleRow;
@@ -40,6 +40,7 @@ function ProductPicker({
   onUpdateSearch: (query: string) => void;
   onToggleDropdown: (show: boolean) => void;
   onRemove: () => void;
+  onToggleScan?: () => void;
   t: (key: string) => string;
 }) {
   const selectedProduct = products.find(p => p.id === row.productId);
@@ -63,20 +64,27 @@ function ProductPicker({
   };
 
   return (
-    <div className="relative">
+    <div className="relative flex items-center gap-1.5">
+      {/* Scan button */}
+      <button
+        onClick={() => onToggleScan?.()}
+        className="shrink-0 w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center hover:bg-primary/20 transition-colors"
+        title={t('scan')}
+      >
+        <span className="material-symbols-outlined text-base">qr_code_scanner</span>
+      </button>
+
       {selectedProduct ? (
-        <div className="flex items-center gap-2">
-          <div className="flex-1 bg-muted/40 rounded-lg px-3 py-1.5 flex items-center gap-2 min-w-0">
-            <span className="text-sm font-semibold truncate">{selectedProduct.name}</span>
-            <span className="text-[10px] text-muted-foreground shrink-0">{selectedProduct.size}</span>
-            <button onClick={() => { onSelect(''); onUpdateSearch(''); }}
-              className="ml-auto text-muted-foreground hover:text-destructive shrink-0">
-              <span className="material-symbols-outlined text-sm">close</span>
-            </button>
-          </div>
+        <div className="flex-1 bg-muted/40 rounded-lg px-3 py-1.5 flex items-center gap-2 min-w-0">
+          <span className="text-sm font-semibold truncate">{selectedProduct.name}</span>
+          <span className="text-[10px] text-muted-foreground shrink-0">{selectedProduct.size}</span>
+          <button onClick={() => { onSelect(''); onUpdateSearch(''); }}
+            className="ml-auto text-muted-foreground hover:text-destructive shrink-0">
+            <span className="material-symbols-outlined text-sm">close</span>
+          </button>
         </div>
       ) : (
-        <div className="relative">
+        <div className="relative flex-1">
           <span className="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">search</span>
           <input
             value={row.searchQuery}
@@ -90,7 +98,7 @@ function ProductPicker({
       )}
       
       {row.showDropdown && !selectedProduct && (
-        <div className="absolute top-full left-0 right-0 bg-card border border-border rounded-lg shadow-xl z-20 mt-1 max-h-[200px] overflow-y-auto">
+        <div className="absolute top-full left-10 right-0 bg-card border border-border rounded-lg shadow-xl z-20 mt-1 max-h-[200px] overflow-y-auto">
           {filtered.length > 0 ? filtered.map(p => (
             <button key={p.id} onMouseDown={() => handleSelect(p)}
               disabled={p.stock <= 0}
@@ -552,6 +560,7 @@ ${sale.discount > 0 ? `<div class="row"><span>Discount</span><span>-${formatCurr
                       onUpdateSearch={(q) => updateRow(row.id, 'searchQuery', q)}
                       onToggleDropdown={(show) => updateRow(row.id, 'showDropdown', show)}
                       onRemove={() => removeRow(row.id)}
+                      onToggleScan={() => setShowBarcodePopup(true)}
                       t={t as (key: string) => string}
                     />
                     {product && <div className="text-[10px] text-muted-foreground mt-0.5 pl-1">{product.size} · {product.finish}</div>}
@@ -581,17 +590,10 @@ ${sale.discount > 0 ? `<div class="row"><span>Discount</span><span>-${formatCurr
             })}
           </div>
 
-          {/* Add item + Scan button row */}
-          <div className="mt-3 flex gap-2">
-            <button onClick={() => setShowBarcodePopup(true)}
-              className="py-2 px-4 bg-primary/10 text-primary border-2 border-dashed border-primary/40 rounded-lg text-xs font-bold hover:bg-primary/20 transition-colors flex items-center gap-1.5 shrink-0">
-              <span className="material-symbols-outlined text-base">qr_code_scanner</span>{t('scan')}
-            </button>
-            <button onClick={addRow}
-              className="flex-1 py-2 border-2 border-dashed border-border rounded-lg text-xs text-muted-foreground hover:border-primary hover:text-primary transition-colors flex items-center justify-center gap-1">
-              <span className="material-symbols-outlined text-sm">add</span>{t('addItem')}
-            </button>
-          </div>
+          <button onClick={addRow}
+            className="mt-3 w-full py-2 border-2 border-dashed border-border rounded-lg text-xs text-muted-foreground hover:border-primary hover:text-primary transition-colors flex items-center justify-center gap-1">
+            <span className="material-symbols-outlined text-sm">add</span>{t('addItem')}
+          </button>
 
           {/* Barcode scan popup */}
           {showBarcodePopup && (
