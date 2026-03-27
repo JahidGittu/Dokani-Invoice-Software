@@ -459,8 +459,8 @@ ${sale.discount > 0 ? `<div class="row"><span>Discount</span><span>-${formatCurr
     toast.success(t('pdfDownloaded'));
   };
 
-  const handleWhatsApp = () => {
-    const data = collectSaleData(); if (!data) return;
+  const handleWhatsApp = async () => {
+    const data = await collectSaleData(); if (!data) return;
     const sale = data.sale;
     let msg = `*${settings.name}*\n`;
     if (bizInfoLine) msg += `${bizInfoLine}\n`;

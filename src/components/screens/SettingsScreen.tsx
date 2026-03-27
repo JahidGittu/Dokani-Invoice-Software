@@ -6,6 +6,7 @@ import { toast } from "sonner";
 interface SettingsScreenProps {
   settings: CompanySettings;
   onUpdateSettings: (s: CompanySettings) => void;
+  onSignOut?: () => Promise<void>;
 }
 
 type ClearOption = 'products' | 'customers' | 'sales' | 'settings' | 'counter';
