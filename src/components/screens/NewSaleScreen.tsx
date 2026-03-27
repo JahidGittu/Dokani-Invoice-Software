@@ -288,10 +288,10 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
     toast.success(t('saleSaved'));
   };
 
-  const handleSaveAndPDF = () => {
+  const handleSaveAndPDF = async () => {
     const data = collectSaleData(); if (!data) return;
     commitSale(data.sale, data.deductions);
-    generatePDF(data.sale);
+    await generatePDF(data.sale);
     resetForm();
     toast.success(t('saleSaved'));
   };
