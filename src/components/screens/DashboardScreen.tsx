@@ -85,7 +85,7 @@ export default function DashboardScreen({ onNavigate, products, customers, sales
         </div>
         <div className="flex gap-2">
           <button onClick={() => onNavigate('sales')} className="px-4 py-2 bg-pos-error text-white rounded-lg font-medium text-sm flex items-center gap-1">
-            <span className="material-symbols-outlined text-sm">list</span>{t('recentSales')}
+            <span className="material-symbols-outlined text-sm">list</span>{t('recentTransactions')}
           </button>
           <button onClick={() => onNavigate('inventory')} className="px-4 py-2 bg-pos-secondary text-white rounded-lg font-medium text-sm flex items-center gap-1">
             <span className="material-symbols-outlined text-sm">layers</span>{t('stock')}
