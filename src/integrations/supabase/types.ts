@@ -14,7 +14,242 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      company_settings: {
+        Row: {
+          address: string
+          created_at: string
+          dark_mode: boolean
+          email: string
+          id: string
+          inv_counter: number
+          inv_prefix: string
+          low_stock_threshold: number
+          name: string
+          phone: string
+          updated_at: string
+          user_id: string
+          user_name: string
+          user_role: string
+        }
+        Insert: {
+          address?: string
+          created_at?: string
+          dark_mode?: boolean
+          email?: string
+          id?: string
+          inv_counter?: number
+          inv_prefix?: string
+          low_stock_threshold?: number
+          name?: string
+          phone?: string
+          updated_at?: string
+          user_id: string
+          user_name?: string
+          user_role?: string
+        }
+        Update: {
+          address?: string
+          created_at?: string
+          dark_mode?: boolean
+          email?: string
+          id?: string
+          inv_counter?: number
+          inv_prefix?: string
+          low_stock_threshold?: number
+          name?: string
+          phone?: string
+          updated_at?: string
+          user_id?: string
+          user_name?: string
+          user_role?: string
+        }
+        Relationships: []
+      }
+      customers: {
+        Row: {
+          address: string
+          color: string
+          created_at: string
+          id: string
+          initials: string
+          last_order: string | null
+          name: string
+          phone: string
+          total_spent: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address?: string
+          color?: string
+          created_at?: string
+          id?: string
+          initials?: string
+          last_order?: string | null
+          name: string
+          phone?: string
+          total_spent?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string
+          color?: string
+          created_at?: string
+          id?: string
+          initials?: string
+          last_order?: string | null
+          name?: string
+          phone?: string
+          total_spent?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      products: {
+        Row: {
+          barcode: string | null
+          batch: string
+          created_at: string
+          finish: string
+          id: string
+          name: string
+          price_per_box: number
+          size: string
+          sqft_per_box: number
+          stock: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          barcode?: string | null
+          batch?: string
+          created_at?: string
+          finish?: string
+          id?: string
+          name: string
+          price_per_box?: number
+          size?: string
+          sqft_per_box?: number
+          stock?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          barcode?: string | null
+          batch?: string
+          created_at?: string
+          finish?: string
+          id?: string
+          name?: string
+          price_per_box?: number
+          size?: string
+          sqft_per_box?: number
+          stock?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      sale_items: {
+        Row: {
+          detail: string
+          id: string
+          name: string
+          price: number
+          product_id: string
+          qty: number
+          sale_id: string
+        }
+        Insert: {
+          detail?: string
+          id?: string
+          name: string
+          price?: number
+          product_id?: string
+          qty?: number
+          sale_id: string
+        }
+        Update: {
+          detail?: string
+          id?: string
+          name?: string
+          price?: number
+          product_id?: string
+          qty?: number
+          sale_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sale_items_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: false
+            referencedRelation: "sales"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sales: {
+        Row: {
+          address: string | null
+          created_at: string
+          customer: string
+          discount: number
+          discount_type: string
+          id: string
+          invoice: string
+          notes: string | null
+          payment_method: string
+          phone: string
+          sale_date: string
+          sale_time: string
+          status: string
+          subtotal: number
+          total: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          customer?: string
+          discount?: number
+          discount_type?: string
+          id?: string
+          invoice: string
+          notes?: string | null
+          payment_method?: string
+          phone?: string
+          sale_date?: string
+          sale_time?: string
+          status?: string
+          subtotal?: number
+          total?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          customer?: string
+          discount?: number
+          discount_type?: string
+          id?: string
+          invoice?: string
+          notes?: string | null
+          payment_method?: string
+          phone?: string
+          sale_date?: string
+          sale_time?: string
+          status?: string
+          subtotal?: number
+          total?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
