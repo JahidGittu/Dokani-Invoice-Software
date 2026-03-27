@@ -673,6 +673,19 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
               </div>
               {discountVal > 0 && <div className="flex justify-between text-destructive text-xs"><span>{t('discount')}</span><span>-{formatCurrency(discountVal)}</span></div>}
               
+              {/* Return */}
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-muted-foreground">Return</span>
+                <input type="number" value={returnAmt} onChange={e => setReturnAmt(e.target.value)} placeholder="0"
+                  className="w-20 bg-muted/30 border border-border rounded text-xs py-1 px-1.5 text-right outline-none focus:ring-1 focus:ring-ring" />
+              </div>
+              {/* Less */}
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-muted-foreground">Less</span>
+                <input type="number" value={lessAmt} onChange={e => setLessAmt(e.target.value)} placeholder="0"
+                  className="w-20 bg-muted/30 border border-border rounded text-xs py-1 px-1.5 text-right outline-none focus:ring-1 focus:ring-ring" />
+              </div>
+
               {/* Delivery */}
               <div className="flex justify-between items-center text-xs">
                 <span className="text-muted-foreground">{t('delivery')}</span>
