@@ -230,7 +230,7 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
       phone, address, items, subtotal, discount: discountVal, discountType, total,
       paymentMethod: payment, notes, status: autoStatus as SaleRecord['status'],
       date: now.toISOString(), time: now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
-      paid: paidVal, due: dueVal, delivery: deliveryVal, labour: labourVal,
+      paid: paidVal, due: dueVal, delivery: deliveryVal, labour: labourVal, returnAmount: returnVal, lessAmount: lessVal, balance: balanceVal,
     };
     return { sale, deductions: items.filter(i => i.productId).map(i => ({ productId: i.productId, qty: i.qty })) };
   };
