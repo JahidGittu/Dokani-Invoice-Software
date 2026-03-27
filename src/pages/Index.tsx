@@ -10,14 +10,18 @@ import CustomersScreen from "@/components/screens/CustomersScreen";
 import ReportsScreen from "@/components/screens/ReportsScreen";
 import SettingsScreen from "@/components/screens/SettingsScreen";
 import ExcelImportScreen from "@/components/screens/ExcelImportScreen";
-import { useProducts, useCustomers, useSales, useCompanySettings, type SaleRecord, type Product } from "@/lib/store";
+import PurchaseScreen from "@/components/screens/PurchaseScreen";
+import SupplierScreen from "@/components/screens/SupplierScreen";
+import { useProducts, useCustomers, useSales, useSuppliers, usePurchases, useCompanySettings, type SaleRecord, type Product } from "@/lib/store";
 
 export default function Index() {
   const [activeScreen, setActiveScreen] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { products, addProduct, updateProduct, deleteProduct, deductStock, setProducts } = useProducts();
+  const { products, addProduct, updateProduct, deleteProduct, deductStock, addStock, setProducts } = useProducts();
   const { customers, addCustomer, deleteCustomer, updateCustomerSpend } = useCustomers();
   const { sales, addSale, deleteSale } = useSales();
+  const { suppliers, addSupplier, deleteSupplier, updateSupplierDue } = useSuppliers();
+  const { purchases, addPurchase, deletePurchase } = usePurchases();
   const { settings, setSettings } = useCompanySettings();
 
   const handleSaleComplete = useCallback((sale: SaleRecord, stockDeductions: { productId: string; qty: number }[]) => {
@@ -73,6 +77,8 @@ export default function Index() {
       case 'inventory': return <InventoryScreen products={products} onUpdateProduct={updateProduct} />;
       case 'customers': return <CustomersScreen customers={customers} onAddCustomer={addCustomer} onDeleteCustomer={deleteCustomer} />;
       case 'reports': return <ReportsScreen sales={sales} products={products} customers={customers} />;
+      case 'purchases': return <PurchaseScreen products={products} suppliers={suppliers} purchases={purchases} onAddPurchase={addPurchase} onDeletePurchase={deletePurchase} onAddStock={addStock} onUpdateSupplierDue={updateSupplierDue} />;
+      case 'suppliers': return <SupplierScreen suppliers={suppliers} onAddSupplier={addSupplier} onDeleteSupplier={deleteSupplier} />;
       case 'settings': return <SettingsScreen settings={settings} onUpdateSettings={setSettings} />;
       case 'excel': return <ExcelImportScreen products={products} onImportProducts={handleImportProducts} />;
       default: return <DashboardScreen onNavigate={setActiveScreen} products={products} customers={customers} sales={sales} />;

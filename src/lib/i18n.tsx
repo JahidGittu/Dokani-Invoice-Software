@@ -328,6 +328,7 @@ const translations = {
 
   // Phase 3: Purchase
   purchase: { en: 'Purchase', bn: 'ক্রয়' },
+  purchases: { en: 'Purchases', bn: 'ক্রয়সমূহ' },
   addPurchase: { en: 'Add Purchase', bn: 'ক্রয় যোগ করুন' },
   purchaseHistory: { en: 'Purchase History', bn: 'ক্রয়ের ইতিহাস' },
   supplierLabel: { en: 'Supplier', bn: 'সরবরাহকারী' },

@@ -131,7 +131,11 @@ ${sale.notes ? `<div style="font-size:11px;color:#5a6061;margin-bottom:12px;font
 <div class="summary"><div class="summary-table">
   <div class="summary-row"><span>Subtotal</span><span>${formatCurrency(sale.subtotal)}</span></div>
   ${sale.discount > 0 ? `<div class="summary-row" style="color:#9f403d"><span>Discount</span><span>-${formatCurrency(sale.discount)}</span></div>` : ''}
+  ${(sale.delivery ?? 0) > 0 ? `<div class="summary-row"><span>Delivery</span><span>+${formatCurrency(sale.delivery!)}</span></div>` : ''}
+  ${(sale.labour ?? 0) > 0 ? `<div class="summary-row"><span>Labour</span><span>+${formatCurrency(sale.labour!)}</span></div>` : ''}
   <div class="summary-row total"><span>TOTAL</span><span class="total-amount">${formatCurrency(sale.total)}</span></div>
+  <div class="summary-row" style="font-weight:700;color:#006120"><span>Paid</span><span>${formatCurrency(sale.paid ?? sale.total)}</span></div>
+  ${(sale.due ?? 0) > 0 ? `<div class="summary-row" style="font-weight:700;color:#9f403d"><span>Due</span><span>${formatCurrency(sale.due!)}</span></div>` : ''}
   <div class="summary-row"><span>Status</span><span class="badge badge-${sale.status}">${sale.status.toUpperCase()}</span></div>
 </div></div>
 <div class="footer-area">
@@ -169,7 +173,11 @@ ${sale.items.map(item => `
 <div class="line"></div>
 <div class="row"><span>Subtotal</span><span>${formatCurrency(sale.subtotal)}</span></div>
 ${sale.discount > 0 ? `<div class="row"><span>Discount</span><span>-${formatCurrency(sale.discount)}</span></div>` : ''}
+${(sale.delivery ?? 0) > 0 ? `<div class="row"><span>Delivery</span><span>+${formatCurrency(sale.delivery!)}</span></div>` : ''}
+${(sale.labour ?? 0) > 0 ? `<div class="row"><span>Labour</span><span>+${formatCurrency(sale.labour!)}</span></div>` : ''}
 <div class="row total-line"><span>TOTAL</span><span>${formatCurrency(sale.total)}</span></div>
+<div class="row"><span>Paid</span><span>${formatCurrency(sale.paid ?? sale.total)}</span></div>
+${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><span>${formatCurrency(sale.due!)}</span></div>` : ''}
 <div class="row" style="font-size:10px"><span>Payment: ${sale.paymentMethod.toUpperCase()}</span><span>${sale.status.toUpperCase()}</span></div>
 <div class="line"></div>
 <div class="center" style="font-size:9px;margin-top:4px">Thank you! Visit again.</div>
@@ -313,6 +321,14 @@ ${sale.discount > 0 ? `<div class="row"><span>Discount</span><span>-${formatCurr
       doc.setTextColor(45, 52, 53);
       y += 5;
     }
+    if ((sale.delivery ?? 0) > 0) {
+      doc.setTextColor(90, 96, 97); doc.text('Delivery', totalsX, y);
+      doc.setTextColor(45, 52, 53); doc.text(`+${formatCurrency(sale.delivery!)}`, pw - 15, y, { align: 'right' }); y += 5;
+    }
+    if ((sale.labour ?? 0) > 0) {
+      doc.setTextColor(90, 96, 97); doc.text('Labour', totalsX, y);
+      doc.setTextColor(45, 52, 53); doc.text(`+${formatCurrency(sale.labour!)}`, pw - 15, y, { align: 'right' }); y += 5;
+    }
 
     doc.setDrawColor(45, 52, 53);
     doc.setLineWidth(0.5);
@@ -324,6 +340,14 @@ ${sale.discount > 0 ? `<div class="row"><span>Discount</span><span>-${formatCurr
     doc.setTextColor(0, 92, 193);
     doc.text(formatCurrency(sale.total), pw - 15, y, { align: 'right' });
     y += 6;
+
+    doc.setFontSize(9); doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 97, 32); doc.text('Paid', totalsX, y);
+    doc.text(formatCurrency(sale.paid ?? sale.total), pw - 15, y, { align: 'right' }); y += 5;
+    if ((sale.due ?? 0) > 0) {
+      doc.setTextColor(159, 64, 61); doc.text('Due', totalsX, y);
+      doc.text(formatCurrency(sale.due!), pw - 15, y, { align: 'right' }); y += 5;
+    }
 
     doc.setFontSize(8);
     doc.setTextColor(45, 52, 53);
@@ -449,9 +473,27 @@ ${sale.discount > 0 ? `<div class="row"><span>Discount</span><span>-${formatCurr
                   <span>{t('discount')}</span><span>-{formatCurrency(sale.discount)}</span>
                 </div>
               )}
+              {(sale.delivery ?? 0) > 0 && (
+                <div className="flex justify-between text-xs text-pos-on-surface-variant">
+                  <span>{t('delivery')}</span><span>+{formatCurrency(sale.delivery!)}</span>
+                </div>
+              )}
+              {(sale.labour ?? 0) > 0 && (
+                <div className="flex justify-between text-xs text-pos-on-surface-variant">
+                  <span>{t('labour')}</span><span>+{formatCurrency(sale.labour!)}</span>
+                </div>
+              )}
               <div className="flex justify-between font-black text-base pt-1 border-t-2 border-pos-on-surface">
                 <span>{t('total')}</span><span className="text-pos-secondary">{formatCurrency(sale.total)}</span>
               </div>
+              <div className="flex justify-between text-xs font-bold text-[hsl(125,60%,35%)]">
+                <span>{t('paid')}</span><span>{formatCurrency(sale.paid ?? sale.total)}</span>
+              </div>
+              {(sale.due ?? 0) > 0 && (
+                <div className="flex justify-between text-xs font-bold text-pos-error">
+                  <span>{t('due')}</span><span>{formatCurrency(sale.due!)}</span>
+                </div>
+              )}
               <div className="flex justify-between text-[10px] text-pos-on-surface-variant">
                 <span>{t('status')}</span>
                 <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${statusBadgeClass}`}>{sale.status}</span>
