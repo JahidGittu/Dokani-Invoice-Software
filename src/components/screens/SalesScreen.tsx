@@ -209,8 +209,8 @@ export default function SalesScreen({ products, customers, sales, onSaleComplete
       </div>
 
       {/* Sales History */}
-      <div className="bg-pos-surface-lowest rounded-xl shadow-sm overflow-hidden border border-pos-surface-container">
-        <div className="px-4 sm:px-8 py-5 flex justify-between items-center bg-pos-surface-low">
+      <div className="bg-pos-surface-lowest rounded-xl shadow-sm border border-pos-surface-container relative">
+        <div className="px-4 sm:px-8 py-5 flex justify-between items-center bg-pos-surface-low rounded-t-xl">
           <h3 className="text-base font-semibold">{t('salesHistory')} <span className="text-pos-on-surface-variant font-normal text-sm">({sales.length})</span></h3>
           <button onClick={exportSalesCSV} className="text-sm font-medium text-pos-secondary flex items-center gap-1 hover:underline">
             <span className="material-symbols-outlined text-base">download</span>{t('export')}
@@ -235,7 +235,6 @@ export default function SalesScreen({ products, customers, sales, onSaleComplete
             <tbody className="divide-y divide-pos-surface-container">
               {paginatedSales.length > 0 ? paginatedSales.map(s => {
                 const saledue = s.due ?? (s.total - (s.paid ?? s.total));
-                const statusClass = s.status === 'paid' ? 'bg-[hsl(125,100%,90%)] text-[hsl(144,100%,19%)]' : s.status === 'pending' ? 'bg-[hsl(54,97%,88%)] text-[hsl(37,82%,29%)]' : 'bg-[hsl(224,100%,92%)] text-[hsl(211,100%,26%)]';
                 const custType = s.customerType || (s.customer === t('walkInCustomer') ? 'Walking' : 'Listed');
                 return (
                 <tr key={s.id} className="hover:bg-pos-surface-low transition-colors">
@@ -253,17 +252,9 @@ export default function SalesScreen({ products, customers, sales, onSaleComplete
                   <td className="px-3 sm:px-4 py-3 text-right">
                     <div className="relative inline-block">
                       <button className="px-3 py-1.5 bg-pos-error text-white rounded text-xs font-semibold flex items-center gap-1"
-                        onClick={(e) => {
-                          const menu = e.currentTarget.nextElementSibling;
-                          if (menu) menu.classList.toggle('hidden');
-                        }}>
+                        onClick={() => setOpenMenuId(openMenuId === s.id ? null : s.id)}>
                         Options <span className="material-symbols-outlined text-xs">arrow_drop_down</span>
                       </button>
-                      <div className="hidden absolute right-0 top-full mt-1 bg-card border border-border rounded-lg shadow-xl z-20 min-w-[120px]">
-                        <button onClick={() => reopenInvoice(s)} className="w-full text-left px-3 py-2 text-xs hover:bg-accent flex items-center gap-2"><span className="material-symbols-outlined text-sm text-pos-secondary">visibility</span>{t('view')}</button>
-                        <button onClick={() => { /* edit logic */ }} className="w-full text-left px-3 py-2 text-xs hover:bg-accent flex items-center gap-2"><span className="material-symbols-outlined text-sm text-pos-secondary">edit</span>{t('edit')}</button>
-                        <button onClick={() => setShowDeleteConfirm(s.id)} className="w-full text-left px-3 py-2 text-xs hover:bg-accent flex items-center gap-2 text-destructive"><span className="material-symbols-outlined text-sm">delete</span>{t('delete')}</button>
-                      </div>
                     </div>
                   </td>
                 </tr>
@@ -273,6 +264,29 @@ export default function SalesScreen({ products, customers, sales, onSaleComplete
             </tbody>
           </table>
         </div>
+
+        {/* Floating dropdown menu rendered outside overflow container */}
+        {openMenuId && (() => {
+          const sale = sales.find(s => s.id === openMenuId);
+          if (!sale) return null;
+          return (
+            <div className="fixed inset-0 z-[999]" onClick={() => setOpenMenuId(null)}>
+              <div className="fixed z-[1000]" style={{ top: (() => {
+                const btn = document.querySelector(`[data-sale-id="${openMenuId}"]`) as HTMLElement;
+                if (!btn) return '50%';
+                const rect = btn.getBoundingClientRect();
+                return `${rect.bottom + 4}px`;
+              })(), right: '2rem' }}
+                onClick={e => e.stopPropagation()}>
+                <div className="bg-card border border-border rounded-lg shadow-xl min-w-[140px] py-1">
+                  <button onClick={() => { reopenInvoice(sale); setOpenMenuId(null); }} className="w-full text-left px-4 py-2.5 text-xs hover:bg-accent flex items-center gap-2 transition-colors"><span className="material-symbols-outlined text-sm text-pos-secondary">visibility</span>{t('view')}</button>
+                  <button onClick={() => { setOpenMenuId(null); }} className="w-full text-left px-4 py-2.5 text-xs hover:bg-accent flex items-center gap-2 transition-colors"><span className="material-symbols-outlined text-sm text-pos-secondary">edit</span>{t('edit')}</button>
+                  <button onClick={() => { setShowDeleteConfirm(sale.id); setOpenMenuId(null); }} className="w-full text-left px-4 py-2.5 text-xs hover:bg-accent flex items-center gap-2 text-destructive transition-colors"><span className="material-symbols-outlined text-sm">delete</span>{t('delete')}</button>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
         {sales.length > PAGE_SIZE && (
           <div className="px-6 py-3 bg-pos-surface-low border-t border-pos-surface-container flex justify-between items-center">
             <span className="text-xs text-pos-on-surface-variant">{t('page')} {page + 1} {t('of')} {totalPages}</span>
