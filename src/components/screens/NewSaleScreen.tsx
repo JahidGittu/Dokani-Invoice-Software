@@ -132,6 +132,9 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
   const [discount, setDiscount] = useState('');
   const [discountType, setDiscountType] = useState<'flat' | 'percent'>('flat');
   const [received, setReceived] = useState('');
+  const [delivery, setDelivery] = useState('');
+  const [labour, setLabour] = useState('');
+  const [paidAmount, setPaidAmount] = useState('');
   const [rows, setRows] = useState<NewSaleRow[]>([{ id: Date.now(), productId: '', qty: 1, rate: 0, searchQuery: '', showDropdown: false }]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [barcodeInput, setBarcodeInput] = useState('');
@@ -193,7 +196,11 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
   // Calculations
   const subtotal = rows.reduce((sum, r) => sum + (r.qty * r.rate), 0);
   const discountVal = calcDiscount(subtotal, parseFloat(discount) || 0, discountType);
-  const total = Math.max(0, subtotal - discountVal);
+  const deliveryVal = parseFloat(delivery) || 0;
+  const labourVal = parseFloat(labour) || 0;
+  const total = Math.max(0, subtotal - discountVal + deliveryVal + labourVal);
+  const paidVal = parseFloat(paidAmount) || 0;
+  const dueVal = Math.max(0, total - paidVal);
   const receivedNum = parseFloat(received) || 0;
   const change = receivedNum > 0 && receivedNum >= total ? receivedNum - total : 0;
 
@@ -212,11 +219,13 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
     if (overStock) { toast.error(`${overStock.name}: ${t('qty')} ${overStock.qty} > ${t('stock')} ${overStock.stock}`); return null; }
     const inv = getNextInvoiceNumber(settings.invPrefix);
     const now = new Date();
+    const autoStatus = paidVal >= total ? 'paid' : paidVal > 0 ? 'pending' : status === 'credit' ? 'credit' : 'pending';
     const sale: SaleRecord = {
       id: crypto.randomUUID(), invoice: inv, customer: customerName || t('walkInCustomer'),
       phone, address, items, subtotal, discount: discountVal, discountType, total,
-      paymentMethod: payment, notes, status: status as SaleRecord['status'],
+      paymentMethod: payment, notes, status: autoStatus as SaleRecord['status'],
       date: now.toISOString(), time: now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
+      paid: paidVal, due: dueVal, delivery: deliveryVal, labour: labourVal,
     };
     return { sale, deductions: items.filter(i => i.productId).map(i => ({ productId: i.productId, qty: i.qty })) };
   };
@@ -231,6 +240,7 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
   const resetForm = () => {
     setCustomerName(''); setPhone(''); setAddress(''); setNotes('');
     setDiscount(''); setReceived(''); setPayment('cash'); setStatus('paid');
+    setDelivery(''); setLabour(''); setPaidAmount('');
     setRows([{ id: Date.now(), productId: '', qty: 1, rate: 0, searchQuery: '', showDropdown: false }]);
   };
 
@@ -649,11 +659,38 @@ ${sale.discount > 0 ? `<div class="row"><span>Discount</span><span>-${formatCurr
                 </div>
               </div>
               {discountVal > 0 && <div className="flex justify-between text-destructive text-xs"><span>{t('discount')}</span><span>-{formatCurrency(discountVal)}</span></div>}
+              
+              {/* Delivery */}
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-muted-foreground">{t('delivery')}</span>
+                <input type="number" value={delivery} onChange={e => setDelivery(e.target.value)} placeholder="0"
+                  className="w-20 bg-muted/30 border border-border rounded text-xs py-1 px-1.5 text-right outline-none focus:ring-1 focus:ring-ring" />
+              </div>
+              {/* Labour */}
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-muted-foreground">{t('labour')}</span>
+                <input type="number" value={labour} onChange={e => setLabour(e.target.value)} placeholder="0"
+                  className="w-20 bg-muted/30 border border-border rounded text-xs py-1 px-1.5 text-right outline-none focus:ring-1 focus:ring-ring" />
+              </div>
+
               <div className="h-[2px] bg-foreground" />
               <div className="flex justify-between text-xl font-black">
                 <span>{t('total')}</span>
                 <span className="text-primary">{formatCurrency(total)}</span>
               </div>
+
+              {/* Paid */}
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-muted-foreground font-bold">{t('paid')}</span>
+                <input type="number" value={paidAmount} onChange={e => setPaidAmount(e.target.value)} placeholder="0"
+                  className="w-20 bg-[hsl(125,100%,95%)] border border-[hsl(125,60%,70%)] rounded text-xs py-1 px-1.5 text-right outline-none focus:ring-1 focus:ring-[hsl(125,60%,50%)] font-bold" />
+              </div>
+              {/* Due */}
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-destructive font-bold">{t('due')}</span>
+                <span className={`font-bold text-sm ${dueVal > 0 ? 'text-destructive' : 'text-[hsl(125,60%,35%)]'}`}>{formatCurrency(dueVal)}</span>
+              </div>
+
               <div className="flex justify-between items-center text-xs">
                 <span className="text-muted-foreground">{t('amountReceived')}</span>
                 <input type="number" value={received} onChange={e => setReceived(e.target.value)} placeholder="0"

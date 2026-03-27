@@ -218,24 +218,30 @@ export default function SalesScreen({ products, customers, sales, onSaleComplete
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead><tr className="text-[11px] font-bold text-pos-on-surface-variant uppercase tracking-widest bg-pos-surface-low border-t border-pos-surface-container">
-              <th className="px-4 sm:px-6 py-3">{t('invoice')}</th><th className="px-4 sm:px-6 py-3">{t('customer')}</th><th className="px-4 sm:px-6 py-3 hidden sm:table-cell">{t('items')}</th><th className="px-4 sm:px-6 py-3">{t('amount')}</th><th className="px-4 sm:px-6 py-3 hidden md:table-cell">{t('payment')}</th><th className="px-4 sm:px-6 py-3 hidden lg:table-cell">{t('date')}</th><th className="px-4 sm:px-6 py-3 text-right">{t('actions')}</th>
+              <th className="px-4 sm:px-6 py-3">{t('invoice')}</th><th className="px-4 sm:px-6 py-3">{t('customer')}</th><th className="px-4 sm:px-6 py-3 hidden sm:table-cell">{t('items')}</th><th className="px-4 sm:px-6 py-3">{t('amount')}</th><th className="px-4 sm:px-6 py-3 hidden md:table-cell">{t('paid')}</th><th className="px-4 sm:px-6 py-3 hidden md:table-cell">{t('due')}</th><th className="px-4 sm:px-6 py-3 hidden md:table-cell">{t('payment')}</th><th className="px-4 sm:px-6 py-3 hidden lg:table-cell">{t('status')}</th><th className="px-4 sm:px-6 py-3 hidden lg:table-cell">{t('date')}</th><th className="px-4 sm:px-6 py-3 text-right">{t('actions')}</th>
             </tr></thead>
             <tbody className="divide-y divide-pos-surface-container">
-              {paginatedSales.length > 0 ? paginatedSales.map(s => (
+              {paginatedSales.length > 0 ? paginatedSales.map(s => {
+                const saledue = s.due ?? (s.total - (s.paid ?? s.total));
+                const statusClass = s.status === 'paid' ? 'bg-[hsl(125,100%,90%)] text-[hsl(144,100%,19%)]' : s.status === 'pending' ? 'bg-[hsl(54,97%,88%)] text-[hsl(37,82%,29%)]' : 'bg-[hsl(224,100%,92%)] text-[hsl(211,100%,26%)]';
+                return (
                 <tr key={s.id} className="hover:bg-pos-surface-low transition-colors">
                   <td className="px-4 sm:px-6 py-4 text-xs font-bold text-pos-secondary">{s.invoice}</td>
                   <td className="px-4 sm:px-6 py-4 text-sm">{s.customer}</td>
                   <td className="px-4 sm:px-6 py-4 text-xs hidden sm:table-cell">{s.items.length} {t('itemCount')}</td>
                   <td className="px-4 sm:px-6 py-4 font-bold">{formatCurrency(s.total)}</td>
+                  <td className="px-4 sm:px-6 py-4 text-xs font-semibold text-[hsl(125,60%,35%)] hidden md:table-cell">{formatCurrency(s.paid ?? s.total)}</td>
+                  <td className={`px-4 sm:px-6 py-4 text-xs font-semibold hidden md:table-cell ${saledue > 0 ? 'text-destructive' : 'text-[hsl(125,60%,35%)]'}`}>{formatCurrency(saledue)}</td>
                   <td className="px-4 sm:px-6 py-4 text-xs capitalize hidden md:table-cell">{s.paymentMethod}</td>
+                  <td className="px-4 sm:px-6 py-4 hidden lg:table-cell"><span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${statusClass}`}>{s.status}</span></td>
                   <td className="px-4 sm:px-6 py-4 text-xs text-pos-on-surface-variant hidden lg:table-cell">{(() => { try { return new Date(s.date).toLocaleDateString('en-GB'); } catch { return s.date; } })()}</td>
                   <td className="px-4 sm:px-6 py-4 text-right flex justify-end gap-2">
                     <button onClick={() => reopenInvoice(s)} className="text-pos-secondary text-xs hover:underline">{t('view')}</button>
                     <button onClick={() => setShowDeleteConfirm(s.id)} className="text-pos-error text-xs hover:underline">{t('delete')}</button>
                   </td>
                 </tr>
-              )) : (
-                <tr><td colSpan={7} className="px-8 py-8 text-center text-xs text-pos-on-surface-variant">{t('noSalesYet')}</td></tr>
+              )}) : (
+                <tr><td colSpan={10} className="px-8 py-8 text-center text-xs text-pos-on-surface-variant">{t('noSalesYet')}</td></tr>
               )}
             </tbody>
           </table>
