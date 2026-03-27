@@ -233,31 +233,36 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
               </div>
             </div>
 
-            {/* Product search */}
-            <div className="relative">
-              <input ref={searchRef} value={productSearch} onChange={e => setProductSearch(e.target.value)}
-                className="w-full bg-pos-surface-lowest border-2 border-pos-secondary/30 rounded-xl text-sm py-3 pl-11 pr-4 outline-none focus:border-pos-secondary transition-colors"
-                placeholder="Search the Product (name, barcode)..." />
-              <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-pos-on-surface-variant">search</span>
-
-              {/* Search dropdown */}
-              {filteredProducts.length > 0 && (
-                <div className="absolute left-0 top-full mt-1 w-full bg-popover border border-border rounded-xl shadow-xl z-50 max-h-[250px] overflow-y-auto">
-                  {filteredProducts.map(p => (
-                    <button key={p.id} onClick={() => addProductToItems(p)}
-                      className="w-full text-left px-4 py-2.5 hover:bg-accent transition-colors flex items-center justify-between border-b border-border/50 last:border-0">
-                      <div>
-                        <span className="font-semibold text-sm">{p.name}</span>
-                        <span className="text-xs text-muted-foreground ml-2">({p.barcode || p.batch})</span>
+            {/* Product search + list */}
+            <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container overflow-hidden">
+              <div className="relative px-4 pt-3 pb-2">
+                <input ref={searchRef} value={productSearch} onChange={e => setProductSearch(e.target.value)}
+                  className="w-full bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2.5 pl-10 pr-4 outline-none focus:border-pos-secondary transition-colors"
+                  placeholder="Search product (name, barcode, batch)..." />
+                <span className="material-symbols-outlined absolute left-7 top-1/2 -translate-y-1/2 text-pos-on-surface-variant text-lg">search</span>
+              </div>
+              <div className="max-h-[200px] overflow-y-auto border-t border-pos-surface-container">
+                {filteredProducts.length > 0 ? filteredProducts.map(p => {
+                  const alreadyAdded = items.some(i => i.productId === p.id);
+                  return (
+                    <button key={p.id} onClick={() => !alreadyAdded && addProductToItems(p)} disabled={alreadyAdded}
+                      className={`w-full text-left px-4 py-2 flex items-center justify-between border-b border-pos-surface-container/50 last:border-0 transition-colors ${alreadyAdded ? 'opacity-40 cursor-not-allowed bg-pos-surface-high' : 'hover:bg-accent'}`}>
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="material-symbols-outlined text-sm text-pos-secondary">inventory_2</span>
+                        <span className="font-semibold text-sm truncate">{p.name}</span>
+                        <span className="text-[10px] text-muted-foreground">({p.barcode || p.batch || '—'})</span>
                       </div>
-                      <div className="text-right">
+                      <div className="flex items-center gap-3 shrink-0">
                         <span className="text-xs text-muted-foreground">Stock: {p.stock}</span>
-                        <span className="text-xs font-bold text-pos-secondary ml-3">৳{p.buyRate || 0}</span>
+                        <span className="text-xs font-bold text-pos-secondary">৳{p.buyRate || 0}</span>
+                        {alreadyAdded && <span className="text-[10px] text-pos-on-surface-variant bg-pos-surface-container px-1.5 py-0.5 rounded">Added</span>}
                       </div>
                     </button>
-                  ))}
-                </div>
-              )}
+                  );
+                }) : (
+                  <div className="px-4 py-6 text-center text-sm text-pos-on-surface-variant">No products found</div>
+                )}
+              </div>
             </div>
 
             {/* Items table */}
