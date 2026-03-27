@@ -150,20 +150,20 @@ export default function ExcelImportScreen({ products, onImportProducts }: ExcelI
           <div className="px-6 py-4 bg-pos-surface-low border-b border-pos-surface-container">
             <h3 className="text-sm font-semibold">{fileName ? `${t('previewLabel')} — ${fileName}` : t('uploadToPreview')}</h3>
           </div>
-          <div className="overflow-auto">
+          <div className="overflow-auto max-h-80">
             <table className="w-full text-left">
               <thead>
-                <tr className="text-[11px] font-bold text-pos-on-surface-variant uppercase tracking-widest bg-pos-surface-low">
-                  <th className="px-5 py-3">{t('name')}</th><th className="px-5 py-3">{t('rate')}</th><th className="px-5 py-3">{t('qty')}</th><th className="px-5 py-3">{t('size')}</th><th className="px-5 py-3">{t('finish')}</th>
+                <tr className="text-[10px] font-bold text-pos-on-surface-variant uppercase tracking-widest bg-pos-surface-low">
+                  <th className="px-3 py-2">{t('name')}</th><th className="px-3 py-2">{t('categoryLabel')}</th><th className="px-3 py-2">{t('brandLabel')}</th><th className="px-3 py-2">{t('size')}</th><th className="px-3 py-2">{t('finish')}</th><th className="px-3 py-2">Sqft</th><th className="px-3 py-2">{t('buyRateLabel')}</th><th className="px-3 py-2">{t('rate')}</th><th className="px-3 py-2">{t('qty')}</th><th className="px-3 py-2">Batch</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-pos-surface-container">
-                {importedRows.length > 1 ? importedRows.slice(1, 6).map((row, i) => (
+                {importedRows.length > 1 ? importedRows.slice(1, 8).map((row, i) => (
                   <tr key={i} className="hover:bg-pos-surface-low">
-                    {row.slice(0, 5).map((cell, j) => <td key={j} className="px-5 py-3 text-xs">{cell}</td>)}
+                    {row.slice(0, 10).map((cell, j) => <td key={j} className="px-3 py-2 text-[11px]">{cell}</td>)}
                   </tr>
                 )) : (
-                  <tr><td colSpan={5} className="px-5 py-10 text-center text-xs text-pos-on-surface-variant">{t('uploadToPreview')}</td></tr>
+                  <tr><td colSpan={10} className="px-5 py-10 text-center text-xs text-pos-on-surface-variant">{t('uploadToPreview')}</td></tr>
                 )}
               </tbody>
             </table>
