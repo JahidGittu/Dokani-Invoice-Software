@@ -496,6 +496,7 @@ export default function ReportsScreen({ sales = [], products = [], customers = [
             </div>
           )}
 
+          {activeReport === 'account' && (
             <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container overflow-hidden">
               <div className="px-5 py-3 bg-pos-surface-low font-semibold text-sm">Account Reports</div>
               <div className="overflow-x-auto">
