@@ -238,6 +238,13 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
     if (!items.length) { toast.error(t('addAtLeastOneItem')); return null; }
     const overStock = items.find(i => i.qty > i.stock);
     if (overStock) { toast.error(`${overStock.name}: ${t('qty')} ${overStock.qty} > ${t('stock')} ${overStock.stock}`); return null; }
+    
+    // Validate required fields
+    if (!paidAmount && status !== 'credit') {
+      toast.error('Paid amount is required! / পেইড এমাউন্ট দিন!');
+      return null;
+    }
+
     const inv = getNextInvoiceNumber(settings.invPrefix);
     const now = new Date();
     const autoStatus = paidVal >= total ? 'paid' : paidVal > 0 ? 'pending' : status === 'credit' ? 'credit' : 'pending';
