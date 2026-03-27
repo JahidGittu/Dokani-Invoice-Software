@@ -23,6 +23,7 @@ interface NewSaleRow {
   showDropdown: boolean;
   carton: number;
   piece: number;
+  sqftInput: string; // user-entered sqft for auto-calc
 }
 
 interface NewSaleScreenProps {
