@@ -5,9 +5,9 @@ import { useMemo } from "react";
 
 const navItems = [
   { id: 'dashboard', icon: 'dashboard', labelKey: 'dashboard' as const },
+  { id: 'new-sale', icon: 'receipt_long', labelKey: 'newSaleEntry' as const },
   { id: 'products', icon: 'inventory_2', labelKey: 'products' as const },
   { id: 'sales', icon: 'point_of_sale', labelKey: 'salesPOS' as const },
-  { id: 'new-sale', icon: 'receipt_long', labelKey: 'newSaleEntry' as const },
   { id: 'inventory', icon: 'layers', labelKey: 'inventory' as const },
   { id: 'customers', icon: 'group', labelKey: 'customers' as const },
   { id: 'reports', icon: 'assessment', labelKey: 'reports' as const },
