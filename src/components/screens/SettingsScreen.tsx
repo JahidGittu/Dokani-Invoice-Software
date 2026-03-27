@@ -145,167 +145,196 @@ export default function SettingsScreen({ settings, onUpdateSettings }: SettingsS
 
   return (
     <section className="p-4 sm:p-6 max-w-7xl mx-auto">
-      <div className="mb-4">
-        <span className="text-xs text-pos-on-surface-variant uppercase tracking-widest block mb-1">{t('configuration')}</span>
-        <h2 className="text-2xl sm:text-3xl font-bold text-pos-on-surface leading-tight tracking-tighter">{t('settings')}</h2>
+      <div className="mb-5 flex items-end justify-between">
+        <div>
+          <span className="text-[10px] text-pos-on-surface-variant uppercase tracking-widest block mb-0.5">{t('configuration')}</span>
+          <h2 className="text-2xl font-bold text-pos-on-surface tracking-tight">{t('settings')}</h2>
+        </div>
+        <button onClick={handleSave} className="px-6 py-2.5 bg-gradient-to-b from-pos-secondary to-pos-secondary-dim text-white rounded-xl font-bold text-sm flex items-center gap-2 shadow-lg hover:-translate-y-0.5 transition-transform">
+          <span className="material-symbols-outlined text-lg">save</span>{t('saveAllSettings')}
+        </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
 
-        {/* ── Column 1: Business Info + User Profile ── */}
-        <div className="space-y-4">
-          {/* Business Info */}
-          <div className="bg-pos-surface-lowest rounded-xl p-4 border border-pos-surface-container">
-            <h3 className="text-[10px] font-bold text-pos-on-surface-variant uppercase tracking-widest mb-3 flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-sm">store</span>{t('businessInfo')}
-            </h3>
-            <div className="space-y-2.5">
+        {/* ── Column 1 (5 cols): Business Info + User Profile ── */}
+        <div className="lg:col-span-5 space-y-4">
+          {/* Business Info Card */}
+          <div className="bg-pos-surface-lowest rounded-2xl border border-pos-surface-container overflow-hidden">
+            <div className="px-4 py-2.5 bg-gradient-to-r from-pos-secondary/5 to-transparent border-b border-pos-surface-container">
+              <h3 className="text-[10px] font-bold text-pos-secondary uppercase tracking-widest flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-sm">store</span>{t('businessInfo')}
+              </h3>
+            </div>
+            <div className="p-4 space-y-2.5">
               <div>
                 <label className="block text-[10px] font-bold text-pos-on-surface-variant uppercase mb-1">{t('businessName')}</label>
-                <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2 px-3 focus:ring-2 focus:ring-pos-secondary outline-none text-pos-on-surface" />
+                <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className="w-full bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2 px-3 focus:ring-2 focus:ring-pos-secondary focus:border-pos-secondary outline-none text-pos-on-surface transition-all" />
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="block text-[10px] font-bold text-pos-on-surface-variant uppercase mb-1">{t('phoneLabel')}</label>
-                  <input value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2 px-3 focus:ring-2 focus:ring-pos-secondary outline-none text-pos-on-surface" />
+                  <input value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} className="w-full bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2 px-3 focus:ring-2 focus:ring-pos-secondary focus:border-pos-secondary outline-none text-pos-on-surface transition-all" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-pos-on-surface-variant uppercase mb-1">{t('email')}</label>
-                  <input value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} type="email" className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2 px-3 focus:ring-2 focus:ring-pos-secondary outline-none text-pos-on-surface" />
+                  <input value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} type="email" className="w-full bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2 px-3 focus:ring-2 focus:ring-pos-secondary focus:border-pos-secondary outline-none text-pos-on-surface transition-all" />
                 </div>
               </div>
               <div>
                 <label className="block text-[10px] font-bold text-pos-on-surface-variant uppercase mb-1">{t('addressLabel')}</label>
-                <input value={form.address} onChange={e => setForm(f => ({ ...f, address: e.target.value }))} className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2 px-3 focus:ring-2 focus:ring-pos-secondary outline-none text-pos-on-surface" />
+                <input value={form.address} onChange={e => setForm(f => ({ ...f, address: e.target.value }))} className="w-full bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2 px-3 focus:ring-2 focus:ring-pos-secondary focus:border-pos-secondary outline-none text-pos-on-surface transition-all" />
               </div>
             </div>
           </div>
 
-          {/* User Profile */}
-          <div className="bg-pos-surface-lowest rounded-xl p-4 border border-pos-surface-container">
-            <h3 className="text-[10px] font-bold text-pos-on-surface-variant uppercase tracking-widest mb-3 flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-sm">person</span>{t('userProfile')}
-            </h3>
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-full bg-pos-secondary-container flex items-center justify-center">
-                <span className="text-sm font-bold text-pos-on-secondary-container">{initials}</span>
-              </div>
-              <div>
-                <div className="text-sm font-semibold text-pos-on-surface">{form.userName || 'User'}</div>
-                <div className="text-[10px] text-pos-on-surface-variant">{form.userRole}</div>
-              </div>
+          {/* User Profile Card */}
+          <div className="bg-pos-surface-lowest rounded-2xl border border-pos-surface-container overflow-hidden">
+            <div className="px-4 py-2.5 bg-gradient-to-r from-pos-tertiary-container/30 to-transparent border-b border-pos-surface-container">
+              <h3 className="text-[10px] font-bold text-pos-on-surface-variant uppercase tracking-widest flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-sm">person</span>{t('userProfile')}
+              </h3>
             </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="block text-[10px] font-bold text-pos-on-surface-variant uppercase mb-1">{t('fullName')}</label>
-                <input value={form.userName} onChange={e => setForm(f => ({ ...f, userName: e.target.value }))} className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2 px-3 focus:ring-2 focus:ring-pos-secondary outline-none text-pos-on-surface" />
+            <div className="p-4">
+              <div className="flex items-center gap-3 mb-3 p-2.5 bg-pos-surface-high/50 rounded-xl">
+                <div className="w-11 h-11 rounded-full bg-gradient-to-br from-pos-secondary to-pos-secondary-dim flex items-center justify-center shadow-md">
+                  <span className="text-sm font-bold text-white">{initials}</span>
+                </div>
+                <div>
+                  <div className="text-sm font-bold text-pos-on-surface">{form.userName || 'User'}</div>
+                  <div className="text-[10px] text-pos-on-surface-variant flex items-center gap-1">
+                    <span className="material-symbols-outlined text-[10px]">badge</span>{form.userRole}
+                  </div>
+                </div>
               </div>
-              <div>
-                <label className="block text-[10px] font-bold text-pos-on-surface-variant uppercase mb-1">{t('role')}</label>
-                <input value={form.userRole} onChange={e => setForm(f => ({ ...f, userRole: e.target.value }))} className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2 px-3 focus:ring-2 focus:ring-pos-secondary outline-none text-pos-on-surface" />
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-[10px] font-bold text-pos-on-surface-variant uppercase mb-1">{t('fullName')}</label>
+                  <input value={form.userName} onChange={e => setForm(f => ({ ...f, userName: e.target.value }))} className="w-full bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2 px-3 focus:ring-2 focus:ring-pos-secondary focus:border-pos-secondary outline-none text-pos-on-surface transition-all" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-pos-on-surface-variant uppercase mb-1">{t('role')}</label>
+                  <input value={form.userRole} onChange={e => setForm(f => ({ ...f, userRole: e.target.value }))} className="w-full bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2 px-3 focus:ring-2 focus:ring-pos-secondary focus:border-pos-secondary outline-none text-pos-on-surface transition-all" />
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* ── Column 2: System + Appearance + Save ── */}
-        <div className="space-y-4">
+        {/* ── Column 2 (3 cols): System + Appearance ── */}
+        <div className="lg:col-span-3 space-y-4">
           {/* System Settings */}
-          <div className="bg-pos-surface-lowest rounded-xl p-4 border border-pos-surface-container">
-            <h3 className="text-[10px] font-bold text-pos-on-surface-variant uppercase tracking-widest mb-3 flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-sm">tune</span>{t('systemSettings')}
-            </h3>
-            <div className="grid grid-cols-2 gap-2">
+          <div className="bg-pos-surface-lowest rounded-2xl border border-pos-surface-container overflow-hidden">
+            <div className="px-4 py-2.5 bg-gradient-to-r from-amber-500/5 to-transparent border-b border-pos-surface-container">
+              <h3 className="text-[10px] font-bold text-pos-on-surface-variant uppercase tracking-widest flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-sm">tune</span>{t('systemSettings')}
+              </h3>
+            </div>
+            <div className="p-4 space-y-2.5">
               <div>
                 <label className="block text-[10px] font-bold text-pos-on-surface-variant uppercase mb-1">{t('invoicePrefix')}</label>
-                <input value={form.invPrefix} onChange={e => setForm(f => ({ ...f, invPrefix: e.target.value }))} className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2 px-3 focus:ring-2 focus:ring-pos-secondary outline-none text-pos-on-surface" placeholder="INV" />
+                <input value={form.invPrefix} onChange={e => setForm(f => ({ ...f, invPrefix: e.target.value }))} className="w-full bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2 px-3 focus:ring-2 focus:ring-pos-secondary outline-none text-pos-on-surface" placeholder="INV" />
               </div>
               <div>
                 <label className="block text-[10px] font-bold text-pos-on-surface-variant uppercase mb-1">{t('lowStockThreshold')}</label>
-                <input type="number" value={form.lowStockThreshold} onChange={e => setForm(f => ({ ...f, lowStockThreshold: parseInt(e.target.value) || 20 }))} className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2 px-3 focus:ring-2 focus:ring-pos-secondary outline-none text-pos-on-surface" />
+                <input type="number" value={form.lowStockThreshold} onChange={e => setForm(f => ({ ...f, lowStockThreshold: parseInt(e.target.value) || 20 }))} className="w-full bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2 px-3 focus:ring-2 focus:ring-pos-secondary outline-none text-pos-on-surface" />
               </div>
             </div>
           </div>
 
           {/* Appearance */}
-          <div className="bg-pos-surface-lowest rounded-xl p-4 border border-pos-surface-container">
-            <h3 className="text-[10px] font-bold text-pos-on-surface-variant uppercase tracking-widest mb-3 flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-sm">palette</span>{t('appearance')}
-            </h3>
-            <button onClick={toggleDarkMode}
-              className="flex items-center gap-3 w-full p-3 rounded-xl hover:bg-pos-surface-high transition-colors">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${form.darkMode ? 'bg-indigo-900/30 text-indigo-400' : 'bg-amber-100 text-amber-600'}`}>
-                <span className="material-symbols-outlined text-xl">{form.darkMode ? 'dark_mode' : 'light_mode'}</span>
-              </div>
-              <div className="text-left flex-1">
-                <div className="font-semibold text-sm text-pos-on-surface">{form.darkMode ? t('darkMode') : t('lightMode')}</div>
-                <div className="text-[10px] text-pos-on-surface-variant">{form.darkMode ? 'Switch to light' : 'Switch to dark'}</div>
-              </div>
-              <div className={`w-11 h-6 rounded-full relative transition-colors ${form.darkMode ? 'bg-pos-secondary' : 'bg-pos-surface-container-highest'}`}>
-                <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-md transition-transform ${form.darkMode ? 'translate-x-5' : 'translate-x-0.5'}`} />
-              </div>
-            </button>
+          <div className="bg-pos-surface-lowest rounded-2xl border border-pos-surface-container overflow-hidden">
+            <div className="px-4 py-2.5 bg-gradient-to-r from-violet-500/5 to-transparent border-b border-pos-surface-container">
+              <h3 className="text-[10px] font-bold text-pos-on-surface-variant uppercase tracking-widest flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-sm">palette</span>{t('appearance')}
+              </h3>
+            </div>
+            <div className="p-4">
+              <button onClick={toggleDarkMode}
+                className="flex items-center gap-3 w-full p-3 rounded-xl bg-pos-surface-high/50 hover:bg-pos-surface-high transition-all group">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all group-hover:scale-110 ${form.darkMode ? 'bg-indigo-900/30 text-indigo-400' : 'bg-amber-100 text-amber-600'}`}>
+                  <span className="material-symbols-outlined text-xl">{form.darkMode ? 'dark_mode' : 'light_mode'}</span>
+                </div>
+                <div className="text-left flex-1">
+                  <div className="font-semibold text-sm text-pos-on-surface">{form.darkMode ? t('darkMode') : t('lightMode')}</div>
+                  <div className="text-[10px] text-pos-on-surface-variant">{form.darkMode ? 'Switch to light' : 'Switch to dark'}</div>
+                </div>
+                <div className={`w-11 h-6 rounded-full relative transition-colors ${form.darkMode ? 'bg-pos-secondary' : 'bg-pos-surface-container-highest'}`}>
+                  <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-md transition-transform ${form.darkMode ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                </div>
+              </button>
+            </div>
           </div>
-
-          {/* Save Button */}
-          <button onClick={handleSave} className="w-full py-3 bg-gradient-to-b from-pos-secondary to-pos-secondary-dim text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-lg hover:-translate-y-0.5 transition-transform">
-            <span className="material-symbols-outlined text-lg">save</span>{t('saveAllSettings')}
-          </button>
         </div>
 
-        {/* ── Column 3: Cloud Backup + Data Management ── */}
-        <div className="space-y-4">
+        {/* ── Column 3 (4 cols): Cloud Backup + Data Management ── */}
+        <div className="lg:col-span-4 space-y-4">
           {/* Cloud Backup */}
-          <div className="bg-pos-surface-lowest rounded-xl p-4 border border-pos-surface-container">
-            <h3 className="text-[10px] font-bold text-pos-on-surface-variant uppercase tracking-widest mb-3 flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-sm">cloud</span>
-              {lang === 'bn' ? 'ক্লাউড ব্যাকআপ' : 'Cloud Backup'}
-            </h3>
-            {user ? (
-              <div className="space-y-2.5">
-                <div className="flex items-center gap-2 p-2.5 bg-pos-tertiary-container/30 rounded-lg">
-                  <span className="material-symbols-outlined text-pos-tertiary text-lg">check_circle</span>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-xs font-semibold text-pos-on-surface">{lang === 'bn' ? 'লগইন করা আছে' : 'Logged in'}</div>
-                    <div className="text-[10px] text-pos-on-surface-variant truncate">{user.email}</div>
+          <div className="bg-pos-surface-lowest rounded-2xl border border-pos-surface-container overflow-hidden">
+            <div className="px-4 py-2.5 bg-gradient-to-r from-sky-500/5 to-transparent border-b border-pos-surface-container">
+              <h3 className="text-[10px] font-bold text-pos-on-surface-variant uppercase tracking-widest flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-sm">cloud</span>
+                {lang === 'bn' ? 'ক্লাউড ব্যাকআপ' : 'Cloud Backup'}
+              </h3>
+            </div>
+            <div className="p-4">
+              {user ? (
+                <div className="space-y-2.5">
+                  <div className="flex items-center gap-2 p-2.5 bg-[hsl(125,100%,95%)] rounded-lg">
+                    <span className="material-symbols-outlined text-[hsl(125,60%,35%)] text-lg">check_circle</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-semibold text-pos-on-surface">{lang === 'bn' ? 'লগইন করা আছে' : 'Logged in'}</div>
+                      <div className="text-[10px] text-pos-on-surface-variant truncate">{user.email}</div>
+                    </div>
                   </div>
+                  <button onClick={handleCloudBackupClick} className="w-full py-2.5 bg-pos-tertiary-container text-pos-on-tertiary-container rounded-lg font-semibold text-xs flex items-center justify-center gap-1.5 hover:opacity-90 transition-opacity">
+                    <span className="material-symbols-outlined text-sm">cloud_upload</span>
+                    {lang === 'bn' ? 'ড্রাইভে ব্যাকআপ' : 'Backup to Drive'}
+                  </button>
+                  <button onClick={handleSignOut} className="w-full py-2 bg-pos-surface-container text-pos-on-surface-variant rounded-lg font-semibold text-xs flex items-center justify-center gap-1.5 hover:bg-pos-surface-container-highest transition-colors">
+                    <span className="material-symbols-outlined text-sm">logout</span>{t('logout')}
+                  </button>
                 </div>
-                <button onClick={handleCloudBackupClick} className="w-full py-2 bg-pos-tertiary-container text-pos-on-tertiary-container rounded-lg font-semibold text-xs flex items-center justify-center gap-1.5">
-                  <span className="material-symbols-outlined text-sm">cloud_upload</span>
-                  {lang === 'bn' ? 'ড্রাইভে ব্যাকআপ' : 'Backup to Drive'}
-                </button>
-                <button onClick={handleSignOut} className="w-full py-2 bg-pos-surface-container text-pos-on-surface-variant rounded-lg font-semibold text-xs flex items-center justify-center gap-1.5">
-                  <span className="material-symbols-outlined text-sm">logout</span>{t('logout')}
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-2.5">
-                <p className="text-[10px] text-pos-on-surface-variant leading-relaxed">
-                  {lang === 'bn' ? 'Google Drive এ ডাটা ব্যাকআপ রাখুন। লগইন করলেই ব্যবহার করতে পারবেন।' : 'Backup data to Google Drive. Sign in to enable.'}
-                </p>
-                <button onClick={() => setShowAuthModal(true)} className="w-full py-2.5 bg-pos-secondary text-white rounded-lg font-semibold text-xs flex items-center justify-center gap-1.5">
-                  <span className="material-symbols-outlined text-sm">cloud_upload</span>
-                  {lang === 'bn' ? 'ক্লাউড ব্যাকআপ চালু করুন' : 'Enable Cloud Backup'}
-                </button>
-              </div>
-            )}
+              ) : (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 p-3 bg-pos-surface-high/50 rounded-xl">
+                    <div className="w-10 h-10 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center shrink-0">
+                      <span className="material-symbols-outlined text-xl">cloud_off</span>
+                    </div>
+                    <p className="text-[10px] text-pos-on-surface-variant leading-relaxed">
+                      {lang === 'bn' ? 'Google Drive এ ডাটা ব্যাকআপ রাখুন।' : 'Backup data to Google Drive.'}
+                    </p>
+                  </div>
+                  <button onClick={() => setShowAuthModal(true)} className="w-full py-2.5 bg-gradient-to-b from-pos-secondary to-pos-secondary-dim text-white rounded-lg font-semibold text-xs flex items-center justify-center gap-1.5 shadow-md hover:-translate-y-0.5 transition-transform">
+                    <span className="material-symbols-outlined text-sm">cloud_upload</span>
+                    {lang === 'bn' ? 'ক্লাউড ব্যাকআপ চালু করুন' : 'Enable Cloud Backup'}
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Data Management */}
-          <div className="bg-pos-surface-lowest rounded-xl p-4 border border-pos-surface-container">
-            <h3 className="text-[10px] font-bold text-pos-on-surface-variant uppercase tracking-widest mb-3 flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-sm">database</span>{t('dataManagement')}
-            </h3>
-            <p className="text-[10px] text-pos-on-surface-variant mb-3">{t('dataStoredLocally')}</p>
-            <div className="space-y-2">
-              <button onClick={exportAllData} className="w-full py-2 bg-pos-tertiary-container text-pos-on-tertiary-container rounded-lg font-semibold text-xs flex items-center justify-center gap-1.5">
-                <span className="material-symbols-outlined text-sm">file_download</span>{t('exportBackup')}
-              </button>
-              <button onClick={() => fileRef.current?.click()} className="w-full py-2 bg-pos-secondary-container text-pos-on-secondary-container rounded-lg font-semibold text-xs flex items-center justify-center gap-1.5">
-                <span className="material-symbols-outlined text-sm">file_upload</span>{t('importBackup')}
-              </button>
+          <div className="bg-pos-surface-lowest rounded-2xl border border-pos-surface-container overflow-hidden">
+            <div className="px-4 py-2.5 bg-gradient-to-r from-rose-500/5 to-transparent border-b border-pos-surface-container">
+              <h3 className="text-[10px] font-bold text-pos-on-surface-variant uppercase tracking-widest flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-sm">database</span>{t('dataManagement')}
+              </h3>
+            </div>
+            <div className="p-4">
+              <p className="text-[10px] text-pos-on-surface-variant mb-3 flex items-center gap-1">
+                <span className="material-symbols-outlined text-xs">info</span>{t('dataStoredLocally')}
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                <button onClick={exportAllData} className="py-2.5 bg-pos-tertiary-container text-pos-on-tertiary-container rounded-lg font-semibold text-[11px] flex items-center justify-center gap-1.5 hover:opacity-90 transition-opacity">
+                  <span className="material-symbols-outlined text-sm">file_download</span>{t('exportBackup')}
+                </button>
+                <button onClick={() => fileRef.current?.click()} className="py-2.5 bg-pos-secondary-container text-pos-on-secondary-container rounded-lg font-semibold text-[11px] flex items-center justify-center gap-1.5 hover:opacity-90 transition-opacity">
+                  <span className="material-symbols-outlined text-sm">file_upload</span>{t('importBackup')}
+                </button>
+              </div>
               <input ref={fileRef} type="file" accept=".json" className="hidden" onChange={handleImport} />
-              <button onClick={() => setShowClearModal(true)} className="w-full py-2 bg-pos-error-container text-pos-on-error-container rounded-lg font-semibold text-xs flex items-center justify-center gap-1.5">
+              <button onClick={() => setShowClearModal(true)} className="w-full mt-2 py-2.5 bg-pos-error-container text-pos-on-error-container rounded-lg font-semibold text-[11px] flex items-center justify-center gap-1.5 hover:opacity-90 transition-opacity">
                 <span className="material-symbols-outlined text-sm">delete_forever</span>{t('clearAllData')}
               </button>
             </div>
