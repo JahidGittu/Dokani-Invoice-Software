@@ -1,16 +1,17 @@
 import { cn } from "@/lib/utils";
 import { type Product, getLowStockProducts } from "@/lib/store";
+import { useI18n } from "@/lib/i18n";
 import { useMemo } from "react";
 
 const navItems = [
-  { id: 'dashboard', icon: 'dashboard', label: 'Dashboard' },
-  { id: 'products', icon: 'inventory_2', label: 'Products' },
-  { id: 'sales', icon: 'point_of_sale', label: 'Sales / POS' },
-  { id: 'new-sale', icon: 'receipt_long', label: 'New Sale Entry' },
-  { id: 'inventory', icon: 'layers', label: 'Inventory' },
-  { id: 'customers', icon: 'group', label: 'Customers' },
-  { id: 'reports', icon: 'assessment', label: 'Reports' },
-  { id: 'excel', icon: 'file_upload', label: 'Excel Import' },
+  { id: 'dashboard', icon: 'dashboard', labelKey: 'dashboard' as const },
+  { id: 'products', icon: 'inventory_2', labelKey: 'products' as const },
+  { id: 'sales', icon: 'point_of_sale', labelKey: 'salesPOS' as const },
+  { id: 'new-sale', icon: 'receipt_long', labelKey: 'newSaleEntry' as const },
+  { id: 'inventory', icon: 'layers', labelKey: 'inventory' as const },
+  { id: 'customers', icon: 'group', labelKey: 'customers' as const },
+  { id: 'reports', icon: 'assessment', labelKey: 'reports' as const },
+  { id: 'excel', icon: 'file_upload', labelKey: 'excelImport' as const },
 ];
 
 interface SidebarProps {
@@ -24,15 +25,13 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ activeScreen, onNavigate, isOpen, onClose, products, userName = 'Arif Rahman', userRole = 'Administrator' }: SidebarProps) {
+  const { t } = useI18n();
   const lowStock = useMemo(() => getLowStockProducts(products), [products]);
   const initials = (userName || 'U').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
 
   return (
     <>
-      {isOpen && (
-        <div className="fixed inset-0 bg-black/30 z-40 lg:hidden" onClick={onClose} />
-      )}
-
+      {isOpen && <div className="fixed inset-0 bg-black/30 z-40 lg:hidden" onClick={onClose} />}
       <aside className={cn(
         "fixed left-0 top-0 h-full w-64 flex flex-col bg-slate-100 tracking-tight text-sm font-medium border-r border-pos-surface-container z-50 transition-transform duration-300",
         "lg:translate-x-0",
@@ -65,10 +64,8 @@ export default function Sidebar({ activeScreen, onNavigate, isOpen, onClose, pro
                   : "text-slate-500"
               )}
             >
-              <span className={cn("material-symbols-outlined mr-3 text-xl", activeScreen === item.id && "text-pos-secondary")}>
-                {item.icon}
-              </span>
-              <span>{item.label}</span>
+              <span className={cn("material-symbols-outlined mr-3 text-xl", activeScreen === item.id && "text-pos-secondary")}>{item.icon}</span>
+              <span>{t(item.labelKey)}</span>
               {item.id === 'inventory' && lowStock.length > 0 && (
                 <span className="ml-auto px-1.5 py-0.5 bg-pos-error text-white rounded-full text-[9px] font-bold">{lowStock.length}</span>
               )}
@@ -85,7 +82,7 @@ export default function Sidebar({ activeScreen, onNavigate, isOpen, onClose, pro
             )}
           >
             <span className={cn("material-symbols-outlined mr-3 text-xl", activeScreen === 'settings' && "text-pos-secondary")}>settings</span>
-            <span>Settings</span>
+            <span>{t('settings')}</span>
           </button>
           <div className="flex items-center px-4 py-3 gap-3">
             <div className="w-8 h-8 rounded-full bg-pos-secondary-container flex items-center justify-center">
