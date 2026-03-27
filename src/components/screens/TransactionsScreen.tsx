@@ -34,7 +34,7 @@ export default function TransactionsScreen({ sales, purchases }: TransactionsScr
         type: 'expense',
         description: `Purchase from ${p.supplierName}`,
         amount: p.total,
-        method: p.paymentMethod || 'Cash',
+        method: 'Cash',
         reference: p.invoice || p.id.slice(0, 8),
       });
     });
