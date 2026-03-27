@@ -17,10 +17,15 @@ export default function ExcelImportScreen({ products, onImportProducts }: ExcelI
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [mapName, setMapName] = useState('0');
-  const [mapPrice, setMapPrice] = useState('1');
-  const [mapQty, setMapQty] = useState('2');
+  const [mapCategory, setMapCategory] = useState('1');
+  const [mapBrand, setMapBrand] = useState('2');
   const [mapSize, setMapSize] = useState('3');
   const [mapFinish, setMapFinish] = useState('4');
+  const [mapSqft, setMapSqft] = useState('5');
+  const [mapBuyRate, setMapBuyRate] = useState('6');
+  const [mapPrice, setMapPrice] = useState('7');
+  const [mapQty, setMapQty] = useState('8');
+  const [mapBatch, setMapBatch] = useState('9');
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]; if (!file) return;
@@ -39,7 +44,9 @@ export default function ExcelImportScreen({ products, onImportProducts }: ExcelI
   const runImport = () => {
     if (!importedRows.length) { toast.error(t('uploadFirst')); return; }
     setImporting(true); setProgress(0);
-    const ni = parseInt(mapName), pi = parseInt(mapPrice), qi = parseInt(mapQty), si = parseInt(mapSize), fi = parseInt(mapFinish);
+    const ni = parseInt(mapName), ci = parseInt(mapCategory), bi = parseInt(mapBrand);
+    const si = parseInt(mapSize), fi = parseInt(mapFinish), sqi = parseInt(mapSqft);
+    const bri = parseInt(mapBuyRate), pi = parseInt(mapPrice), qi = parseInt(mapQty), bai = parseInt(mapBatch);
     let w = 0;
     const iv = setInterval(() => {
       w += 15; setProgress(Math.min(w, 100));
@@ -47,10 +54,21 @@ export default function ExcelImportScreen({ products, onImportProducts }: ExcelI
         clearInterval(iv);
         const newProducts: Omit<Product, 'id'>[] = [];
         importedRows.slice(1).forEach(row => {
-          const name = row[ni]; const price = parseFloat(row[pi]); const qty = parseInt(row[qi]);
-          if (!name || isNaN(price) || isNaN(qty)) return;
+          const name = row[ni]; const price = parseFloat(row[pi]) || 0; const qty = parseInt(row[qi]) || 0;
+          if (!name) return;
           if (!products.find(p => p.name.toLowerCase() === name.toLowerCase())) {
-            newProducts.push({ name, size: row[si] || '—', finish: row[fi] || 'Glossy', pricePerBox: price, sqftPerBox: 0, stock: qty, batch: 'Imported' });
+            newProducts.push({
+              name,
+              category: row[ci] || '',
+              brand: row[bi] || '',
+              size: row[si] || '',
+              finish: row[fi] || '',
+              sqftPerBox: parseFloat(row[sqi]) || 0,
+              buyRate: parseFloat(row[bri]) || 0,
+              pricePerBox: price,
+              stock: qty,
+              batch: row[bai] || 'Imported',
+            });
           }
         });
         onImportProducts(newProducts);
@@ -61,13 +79,13 @@ export default function ExcelImportScreen({ products, onImportProducts }: ExcelI
   };
 
   const downloadTemplate = () => {
-    const csv = 'Product Name,Price per Box,Stock (Boxes),Size,Finish\nRoyal Marble,1500,80,60x60,Glossy\nOcean Blue,1200,50,30x60,Matte';
+    const csv = 'Product Name,Category,Brand,Size,Finish,Sqft/Box,Buy Rate,Price/Box,Stock (Boxes),Batch\nRoyal Marble,Floor Tile,Royal,60x60,Glossy,16,1200,1500,80,Batch-A\nOcean Blue,Wall Tile,Ocean,30x60,Matte,12,900,1200,50,Batch-B';
     const blob = new Blob([csv], { type: 'text/csv' });
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'tilepos_template.csv'; a.click();
     toast.success(t('templateDownloaded'));
   };
 
-  const colOptions = ['Column A', 'Column B', 'Column C', 'Column D', 'Column E', 'Column F'];
+  const colOptions = ['Col A', 'Col B', 'Col C', 'Col D', 'Col E', 'Col F', 'Col G', 'Col H', 'Col I', 'Col J'];
 
   return (
     <section className="p-4 sm:p-8 max-w-7xl mx-auto space-y-8">
@@ -96,13 +114,18 @@ export default function ExcelImportScreen({ products, onImportProducts }: ExcelI
             <div className="space-y-3">
               {[
                 { label: t('tileName'), value: mapName, set: setMapName },
-                { label: t('rateArrow'), value: mapPrice, set: setMapPrice },
-                { label: t('qtyArrow'), value: mapQty, set: setMapQty },
+                { label: t('categoryLabel'), value: mapCategory, set: setMapCategory },
+                { label: t('brandLabel'), value: mapBrand, set: setMapBrand },
                 { label: t('sizeArrow'), value: mapSize, set: setMapSize },
                 { label: t('finishArrow'), value: mapFinish, set: setMapFinish },
+                { label: 'Sqft/Box →', value: mapSqft, set: setMapSqft },
+                { label: t('buyRateLabel') + ' →', value: mapBuyRate, set: setMapBuyRate },
+                { label: t('rateArrow'), value: mapPrice, set: setMapPrice },
+                { label: t('qtyArrow'), value: mapQty, set: setMapQty },
+                { label: 'Batch →', value: mapBatch, set: setMapBatch },
               ].map(({ label, value, set }) => (
                 <div key={label} className="flex items-center gap-3">
-                  <span className="text-xs font-semibold text-pos-on-surface w-32 flex-shrink-0">{label}</span>
+                  <span className="text-xs font-semibold text-pos-on-surface w-28 flex-shrink-0">{label}</span>
                   <select value={value} onChange={e => set(e.target.value)} className="flex-1 bg-pos-surface-high border-none rounded-lg text-xs py-2 px-3 outline-none">
                     {colOptions.map((c, i) => <option key={i} value={String(i)}>{c}</option>)}
                   </select>
@@ -127,20 +150,20 @@ export default function ExcelImportScreen({ products, onImportProducts }: ExcelI
           <div className="px-6 py-4 bg-pos-surface-low border-b border-pos-surface-container">
             <h3 className="text-sm font-semibold">{fileName ? `${t('previewLabel')} — ${fileName}` : t('uploadToPreview')}</h3>
           </div>
-          <div className="overflow-auto">
+          <div className="overflow-auto max-h-80">
             <table className="w-full text-left">
               <thead>
-                <tr className="text-[11px] font-bold text-pos-on-surface-variant uppercase tracking-widest bg-pos-surface-low">
-                  <th className="px-5 py-3">{t('name')}</th><th className="px-5 py-3">{t('rate')}</th><th className="px-5 py-3">{t('qty')}</th><th className="px-5 py-3">{t('size')}</th><th className="px-5 py-3">{t('finish')}</th>
+                <tr className="text-[10px] font-bold text-pos-on-surface-variant uppercase tracking-widest bg-pos-surface-low">
+                  <th className="px-3 py-2">{t('name')}</th><th className="px-3 py-2">{t('categoryLabel')}</th><th className="px-3 py-2">{t('brandLabel')}</th><th className="px-3 py-2">{t('size')}</th><th className="px-3 py-2">{t('finish')}</th><th className="px-3 py-2">Sqft</th><th className="px-3 py-2">{t('buyRateLabel')}</th><th className="px-3 py-2">{t('rate')}</th><th className="px-3 py-2">{t('qty')}</th><th className="px-3 py-2">Batch</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-pos-surface-container">
-                {importedRows.length > 1 ? importedRows.slice(1, 6).map((row, i) => (
+                {importedRows.length > 1 ? importedRows.slice(1, 8).map((row, i) => (
                   <tr key={i} className="hover:bg-pos-surface-low">
-                    {row.slice(0, 5).map((cell, j) => <td key={j} className="px-5 py-3 text-xs">{cell}</td>)}
+                    {row.slice(0, 10).map((cell, j) => <td key={j} className="px-3 py-2 text-[11px]">{cell}</td>)}
                   </tr>
                 )) : (
-                  <tr><td colSpan={5} className="px-5 py-10 text-center text-xs text-pos-on-surface-variant">{t('uploadToPreview')}</td></tr>
+                  <tr><td colSpan={10} className="px-5 py-10 text-center text-xs text-pos-on-surface-variant">{t('uploadToPreview')}</td></tr>
                 )}
               </tbody>
             </table>
