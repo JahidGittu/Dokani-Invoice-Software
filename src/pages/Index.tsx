@@ -77,6 +77,8 @@ export default function Index() {
       case 'inventory': return <InventoryScreen products={products} onUpdateProduct={updateProduct} />;
       case 'customers': return <CustomersScreen customers={customers} onAddCustomer={addCustomer} onDeleteCustomer={deleteCustomer} />;
       case 'reports': return <ReportsScreen sales={sales} products={products} customers={customers} />;
+      case 'purchases': return <PurchaseScreen products={products} suppliers={suppliers} purchases={purchases} onAddPurchase={addPurchase} onDeletePurchase={deletePurchase} onAddStock={addStock} onUpdateSupplierDue={updateSupplierDue} />;
+      case 'suppliers': return <SupplierScreen suppliers={suppliers} onAddSupplier={addSupplier} onDeleteSupplier={deleteSupplier} />;
       case 'settings': return <SettingsScreen settings={settings} onUpdateSettings={setSettings} />;
       case 'excel': return <ExcelImportScreen products={products} onImportProducts={handleImportProducts} />;
       default: return <DashboardScreen onNavigate={setActiveScreen} products={products} customers={customers} sales={sales} />;
