@@ -12,6 +12,9 @@ import SettingsScreen from "@/components/screens/SettingsScreen";
 import ExcelImportScreen from "@/components/screens/ExcelImportScreen";
 import PurchaseScreen from "@/components/screens/PurchaseScreen";
 import SupplierScreen from "@/components/screens/SupplierScreen";
+import TransactionsScreen from "@/components/screens/TransactionsScreen";
+import StaffsScreen from "@/components/screens/StaffsScreen";
+import SmsEmailScreen from "@/components/screens/SmsEmailScreen";
 import { useProducts, useCustomers, useSales, useSuppliers, usePurchases, useCompanySettings, type SaleRecord, type Product } from "@/lib/store";
 
 export default function Index() {
@@ -81,6 +84,9 @@ export default function Index() {
       case 'suppliers': return <SupplierScreen suppliers={suppliers} onAddSupplier={addSupplier} onDeleteSupplier={deleteSupplier} />;
       case 'settings': return <SettingsScreen settings={settings} onUpdateSettings={setSettings} />;
       case 'excel': return <ExcelImportScreen products={products} onImportProducts={handleImportProducts} />;
+      case 'transactions': return <TransactionsScreen sales={sales} purchases={purchases} />;
+      case 'staffs': return <StaffsScreen />;
+      case 'sms-email': return <SmsEmailScreen customers={customers} />;
       default: return <DashboardScreen onNavigate={setActiveScreen} products={products} customers={customers} sales={sales} />;
     }
   };
