@@ -40,6 +40,15 @@ export default function Index() {
     newProducts.forEach(p => addProduct(p));
   }, [addProduct]);
 
+  // Dark mode init
+  useEffect(() => {
+    if (settings.darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [settings.darkMode]);
+
   // F2 shortcut to go to New Sale
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
