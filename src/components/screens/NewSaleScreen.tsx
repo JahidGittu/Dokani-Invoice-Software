@@ -298,8 +298,9 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
   };
 
   // ─── Print / PDF / Thermal generators ───
-  const generatePrintHTML = (sale: SaleRecord) => {
-    const qrSVG = generateQRSVG(`${sale.invoice}-${sale.total}`);
+  const generatePrintHTML = async (sale: SaleRecord) => {
+    const qrDataURL = await generateQRDataURL(`${sale.invoice}-${sale.total}`);
+    const qrImg = qrDataURL ? `<img src="${qrDataURL}" width="80" height="80" style="image-rendering:pixelated"/>` : '';
     const printDateStr = (() => { try { const d = new Date(sale.date); return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`; } catch { return sale.date; } })();
     const totalQty = sale.items.reduce((s, i) => s + (i.sqftQty ?? i.qty), 0);
     const dueInBill = sale.due ?? 0;
