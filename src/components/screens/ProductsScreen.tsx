@@ -34,13 +34,10 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
   const { getOptions, addOption } = useProductOptions();
   const [search, setSearch] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
-  const [editId, setEditId] = useState<string | null>(null);
-  const [showAddModal, setShowAddModal] = useState(false);
   const [page, setPage] = useState(0);
-  const [form, setForm] = useState({
-    name: '', size: '', finish: 'Glossy', pricePerBox: '', sqftPerBox: '', piecesPerBox: '4', stock: '', batch: '',
-    barcode: '', category: 'Wall Tiles', brand: '', buyRate: '',
-  });
+  // Inline cell editing: { productId-fieldName: true }
+  const [editingCell, setEditingCell] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState('');
 
   // Single new-entry row at the bottom of the table
   const [newRow, setNewRow] = useState<InlineRow>(emptyRow());
