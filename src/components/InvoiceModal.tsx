@@ -515,43 +515,51 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
             </table>
           </div>
 
-          {/* Due Box + Summary */}
-          <div className="flex justify-between gap-3 mb-3">
-            <div className="border-2 border-[#333] rounded p-2 text-[10px] min-w-[160px] space-y-0.5">
-              <div className="flex justify-between gap-4"><span>Due In This Bill:</span><strong>{dueInBill}/-</strong></div>
-              <div className="flex justify-between gap-4"><span>Previous Dues:</span><strong>{prevDues}/-</strong></div>
-              <div className="flex justify-between gap-4"><span>Balance:</span><strong>{balance}/-</strong></div>
-            </div>
-            <div className="min-w-[160px] space-y-0.5 text-[11px]">
-              <div className="flex justify-between"><span>Total:</span><span className="font-bold">{sale.subtotal}</span></div>
-              {(sale.labour ?? 0) > 0 && <div className="flex justify-between"><span>Labour:</span><span className="font-bold">{sale.labour}</span></div>}
-              {sale.discount > 0 && <div className="flex justify-between"><span>Discount:</span><span className="font-bold">-{sale.discount}</span></div>}
-              <div className="flex justify-between font-black text-base pt-1 mt-1 border-t-2 border-b-2 border-[#222] py-1">
-                <span>PAYABLE:</span><span>{sale.total}</span>
+          {/* Due Box + Summary - matching reference layout */}
+          <div className="flex justify-between gap-4 mt-2">
+            {/* Left: Due Box + Remark */}
+            <div className="flex-1">
+              <div className="border-2 border-[#333] rounded p-2.5 text-[11px] space-y-1 inline-block min-w-[180px]">
+                <div className="flex justify-between gap-6"><span>Due In This Bill:</span><strong className="text-right min-w-[70px]">{dueInBill}/-</strong></div>
+                <div className="flex justify-between gap-6"><span>Previous Dues:</span><strong className="text-right min-w-[70px]">{prevDues}/-</strong></div>
+                <div className="flex justify-between gap-6"><span>Balance:</span><strong className="text-right min-w-[70px]">{balance}/-</strong></div>
               </div>
-              <div className="flex justify-between font-bold"><span>Paid:</span><span>{sale.paid ?? sale.total}</span></div>
+              <div className="text-[10px] mt-2 space-y-0.5">
+                {sale.notes && <div><strong>Remark:</strong> {sale.notes}</div>}
+                <div><strong>Total Quantity: {totalQty}</strong></div>
+                <div>In Word: <strong className="text-[#005cc1]">{numberToWords(sale.total)}</strong></div>
+              </div>
             </div>
-          </div>
-
-          {/* Remark & In Word */}
-          <div className="text-[10px] mb-2 space-y-0.5">
-            {sale.notes && <div><strong>Remark:</strong> {sale.notes}</div>}
-            <div><strong>Total Quantity:</strong> {totalQty}</div>
-            <div>In Word: <strong className="text-[#005cc1]">{numberToWords(sale.total)}</strong></div>
+            {/* Right: Summary */}
+            <div className="min-w-[170px] text-[11px]">
+              <div className="flex justify-between py-0.5"><span>Total:</span><span className="font-bold text-right min-w-[70px]">{sale.subtotal}</span></div>
+              {(sale.labour ?? 0) > 0 && <div className="flex justify-between py-0.5"><span>Labour:</span><span className="font-bold text-right min-w-[70px]">{sale.labour}</span></div>}
+              {sale.discount > 0 && <div className="flex justify-between py-0.5"><span>Discount:</span><span className="font-bold text-right min-w-[70px]">-{sale.discount}</span></div>}
+              <div className="flex justify-between font-black text-lg py-1.5 mt-1 border-t-2 border-b-2 border-[#222]">
+                <span>PAYABLE:</span><span className="text-right">{sale.total}</span>
+              </div>
+              <div className="flex justify-between font-bold text-[12px] py-0.5 mt-1"><span>Paid:</span><span className="text-right min-w-[70px]">{sale.paid ?? sale.total}</span></div>
+            </div>
           </div>
 
           {/* Signatures */}
-          <div className="flex justify-between mt-12 text-[11px] font-bold text-[#005cc1]">
-            <div className="border-t border-gray-400 pt-1 px-4 text-center">Customer Signature</div>
-            <div className="border-t border-gray-400 pt-1 px-4 text-center">Authorized Signature</div>
+          <div className="flex justify-between mt-14 px-4">
+            <div className="text-center">
+              <div className="border-t border-gray-400 w-[160px] mb-1"></div>
+              <span className="text-[12px] font-bold italic text-[#005cc1]">Customer Signature</span>
+            </div>
+            <div className="text-center">
+              <div className="border-t border-gray-400 w-[160px] mb-1"></div>
+              <span className="text-[12px] font-bold italic text-[#005cc1]">Authorized Signature</span>
+            </div>
           </div>
 
           {/* Disclaimer */}
-          <div className="text-center mt-4 text-[10px] text-[#c0392b] font-bold border-t border-gray-200 pt-2">
+          <div className="text-center mt-5 text-[11px] text-[#c0392b] font-bold py-2 border-t border-gray-200">
             বিক্রিত মাল ১ মাসের মধ্যে ফেরত নেওয়া হয়।চায়না/ইন্ডিয়ান মাল ফেরত নেওয়া হয় না।
           </div>
-          <div className="text-[8px] text-center text-gray-400 mt-1">
-            SOFTWARE: {companyName} | {new Date().toLocaleString()}
+          <div className="text-[8px] text-center text-gray-400 mt-0.5">
+            SOFTWARE: {companyName} | {companyPhone || ''} | Printing @: {new Date().toLocaleString()}
           </div>
         </div>
 
