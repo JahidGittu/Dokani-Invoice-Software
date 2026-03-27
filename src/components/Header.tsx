@@ -57,7 +57,7 @@ export default function Header({ activeScreen, onToggleSidebar, onNavigate, onSe
         <button className="lg:hidden p-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white" onClick={onToggleSidebar}>
           <span className="material-symbols-outlined">menu</span>
         </button>
-        <span className="text-lg sm:text-xl font-black text-slate-900">{headings[activeScreen] || t('dashboard')}</span>
+        <span className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">{headings[activeScreen] || t('dashboard')}</span>
         <div className="relative w-44 lg:w-64 hidden sm:block">
           <input
             value={searchQuery}

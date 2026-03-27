@@ -77,8 +77,8 @@ export default function Sidebar({ activeScreen, onNavigate, isOpen, onClose, pro
           <button
             onClick={() => { onNavigate('settings'); onClose(); }}
             className={cn(
-              "w-full flex items-center px-4 py-3 border-l-[3px] border-transparent hover:bg-slate-200 transition-all cursor-pointer text-left",
-              activeScreen === 'settings' ? "border-l-pos-secondary bg-pos-surface-high text-slate-900 font-semibold" : "text-slate-500"
+              "w-full flex items-center px-4 py-3 border-l-[3px] border-transparent hover:bg-slate-200 dark:hover:bg-white/5 transition-all cursor-pointer text-left",
+              activeScreen === 'settings' ? "border-l-pos-secondary bg-pos-surface-high text-slate-900 dark:text-white font-semibold" : "text-slate-500 dark:text-slate-400"
             )}
           >
             <span className={cn("material-symbols-outlined mr-3 text-xl", activeScreen === 'settings' && "text-pos-secondary")}>settings</span>
