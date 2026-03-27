@@ -127,7 +127,7 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
   const [rows, setRows] = useState<NewSaleRow[]>([{ id: Date.now(), productId: '', qty: 1, rate: 0, searchQuery: '', showDropdown: false }]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [barcodeInput, setBarcodeInput] = useState('');
-  const barcodeRef = useRef<HTMLInputElement>(null);
+  const [showBarcodePopup, setShowBarcodePopup] = useState(false);
   const invoiceRef = useRef<HTMLDivElement>(null);
 
   const debouncedCustomer = useDebounce(customerName, 200);
