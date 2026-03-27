@@ -70,13 +70,13 @@ export default function Index() {
 
   const renderScreen = () => {
     switch (activeScreen) {
-      case 'dashboard': return <DashboardScreen onNavigate={setActiveScreen} products={products} customers={customers} sales={sales} />;
+      case 'dashboard': return <DashboardScreen onNavigate={setActiveScreen} products={products} customers={customers} sales={sales} suppliers={suppliers} purchases={purchases} />;
       case 'products': return <ProductsScreen products={products} onAddProduct={addProduct} onUpdateProduct={updateProduct} onDeleteProduct={deleteProduct} />;
       case 'sales': return <SalesScreen products={products} customers={customers} sales={sales} onSaleComplete={handleSaleComplete} onDeleteSale={deleteSale} companyName={settings.name} companyPhone={settings.phone} companyAddress={settings.address} onNavigate={setActiveScreen} />;
       case 'new-sale': return <NewSaleScreen products={products} customers={customers} settings={settings} onSaleComplete={handleSaleComplete} onAutoAddCustomer={handleAutoAddCustomer} />;
       case 'inventory': return <InventoryScreen products={products} onUpdateProduct={updateProduct} />;
       case 'customers': return <CustomersScreen customers={customers} onAddCustomer={addCustomer} onDeleteCustomer={deleteCustomer} />;
-      case 'reports': return <ReportsScreen sales={sales} products={products} customers={customers} />;
+      case 'reports': return <ReportsScreen sales={sales} products={products} customers={customers} suppliers={suppliers} purchases={purchases} />;
       case 'purchases': return <PurchaseScreen products={products} suppliers={suppliers} purchases={purchases} onAddPurchase={addPurchase} onDeletePurchase={deletePurchase} onAddStock={addStock} onUpdateSupplierDue={updateSupplierDue} />;
       case 'suppliers': return <SupplierScreen suppliers={suppliers} onAddSupplier={addSupplier} onDeleteSupplier={deleteSupplier} />;
       case 'settings': return <SettingsScreen settings={settings} onUpdateSettings={setSettings} />;

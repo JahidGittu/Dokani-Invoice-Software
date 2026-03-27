@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef, useMemo } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useI18n } from "@/lib/i18n";
-import { formatCurrency, getNextInvoiceNumber, calcDiscount, type Product, type SaleRecord, type Customer, type CompanySettings } from "@/lib/store";
+import { formatCurrency, getNextInvoiceNumber, calcDiscount, numberToWords, type Product, type SaleRecord, type Customer, type CompanySettings } from "@/lib/store";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
@@ -134,6 +134,8 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
   const [received, setReceived] = useState('');
   const [delivery, setDelivery] = useState('');
   const [labour, setLabour] = useState('');
+  const [returnAmt, setReturnAmt] = useState('');
+  const [lessAmt, setLessAmt] = useState('');
   const [paidAmount, setPaidAmount] = useState('');
   const [rows, setRows] = useState<NewSaleRow[]>([{ id: Date.now(), productId: '', qty: 1, rate: 0, searchQuery: '', showDropdown: false }]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -196,11 +198,14 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
   // Calculations
   const subtotal = rows.reduce((sum, r) => sum + (r.qty * r.rate), 0);
   const discountVal = calcDiscount(subtotal, parseFloat(discount) || 0, discountType);
+  const returnVal = parseFloat(returnAmt) || 0;
+  const lessVal = parseFloat(lessAmt) || 0;
   const deliveryVal = parseFloat(delivery) || 0;
   const labourVal = parseFloat(labour) || 0;
-  const total = Math.max(0, subtotal - discountVal + deliveryVal + labourVal);
+  const total = Math.max(0, subtotal - discountVal - returnVal - lessVal + deliveryVal + labourVal);
   const paidVal = parseFloat(paidAmount) || 0;
   const dueVal = Math.max(0, total - paidVal);
+  const balanceVal = dueVal; // balance = previous dues + current due (simplified)
   const receivedNum = parseFloat(received) || 0;
   const change = receivedNum > 0 && receivedNum >= total ? receivedNum - total : 0;
 
@@ -225,7 +230,7 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
       phone, address, items, subtotal, discount: discountVal, discountType, total,
       paymentMethod: payment, notes, status: autoStatus as SaleRecord['status'],
       date: now.toISOString(), time: now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
-      paid: paidVal, due: dueVal, delivery: deliveryVal, labour: labourVal,
+      paid: paidVal, due: dueVal, delivery: deliveryVal, labour: labourVal, returnAmount: returnVal, lessAmount: lessVal, balance: balanceVal,
     };
     return { sale, deductions: items.filter(i => i.productId).map(i => ({ productId: i.productId, qty: i.qty })) };
   };
@@ -240,7 +245,8 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
   const resetForm = () => {
     setCustomerName(''); setPhone(''); setAddress(''); setNotes('');
     setDiscount(''); setReceived(''); setPayment('cash'); setStatus('paid');
-    setDelivery(''); setLabour(''); setPaidAmount('');
+    setDelivery(''); setLabour(''); setPaidAmount(''); setReturnAmt(''); setLessAmt('');
+    setRows([{ id: Date.now(), productId: '', qty: 1, rate: 0, searchQuery: '', showDropdown: false }]);
     setRows([{ id: Date.now(), productId: '', qty: 1, rate: 0, searchQuery: '', showDropdown: false }]);
   };
 
@@ -341,26 +347,39 @@ td:last-child{text-align:right;font-weight:600}
 </div>
 ${sale.notes ? `<div style="font-size:11px;color:#5a6061;margin-bottom:12px;font-style:italic">Notes: ${sale.notes}</div>` : ''}
 <table>
-  <thead><tr><th>Product</th><th>Qty</th><th>Rate</th><th>Total</th></tr></thead>
-  <tbody>${sale.items.map(item => `
-    <tr><td>${item.name}<div class="detail">${item.detail}</div></td><td>${item.qty}</td><td>${formatCurrency(item.price)}</td><td>${formatCurrency(item.price * item.qty)}</td></tr>
+  <thead><tr><th>SN</th><th>Product</th><th>Carton/Piece</th><th>Sqft/Qty</th><th>Rate</th><th>Sub Total</th></tr></thead>
+  <tbody>${sale.items.map((item, idx) => `
+    <tr><td>${idx + 1}</td><td>${item.name}<div class="detail">${item.detail}</div></td><td>${item.carton ?? item.qty} Carton ${item.piece ?? 0} Piece</td><td>${item.sqftQty ?? item.qty}</td><td>${formatCurrency(item.price)}</td><td>${formatCurrency(item.price * item.qty)}</td></tr>
   `).join('')}</tbody>
 </table>
-<div class="summary"><div class="summary-table">
-  <div class="summary-row"><span>Subtotal</span><span>${formatCurrency(sale.subtotal)}</span></div>
-  ${sale.discount > 0 ? `<div class="summary-row" style="color:#9f403d"><span>Discount</span><span>-${formatCurrency(sale.discount)}</span></div>` : ''}
-  ${(sale.delivery ?? 0) > 0 ? `<div class="summary-row"><span>Delivery</span><span>+${formatCurrency(sale.delivery!)}</span></div>` : ''}
-  ${(sale.labour ?? 0) > 0 ? `<div class="summary-row"><span>Labour</span><span>+${formatCurrency(sale.labour!)}</span></div>` : ''}
-  <div class="summary-row total"><span>TOTAL</span><span class="total-amount">${formatCurrency(sale.total)}</span></div>
-  <div class="summary-row" style="font-weight:700;color:#006120"><span>Paid</span><span>${formatCurrency(sale.paid ?? sale.total)}</span></div>
-  ${(sale.due ?? 0) > 0 ? `<div class="summary-row" style="font-weight:700;color:#9f403d"><span>Due</span><span>${formatCurrency(sale.due!)}</span></div>` : ''}
-  <div class="summary-row"><span>Status</span><span class="badge badge-${sale.status}">${sale.status.toUpperCase()}</span></div>
-</div></div>
-<div class="footer-area">
-  <div class="qr-area">${qrSVG}<div class="qr-label">Scan to verify</div></div>
-  <div class="terms"><strong>Terms & Conditions</strong><br>• Goods once delivered cannot be returned.<br>• Prices subject to change without notice.<br>• Credit payment due within 30 days.</div>
+<div style="display:flex;justify-content:space-between;margin-top:12px">
+  <div style="border:1px solid #ccc;border-radius:6px;padding:10px;font-size:11px;width:220px">
+    <div style="display:flex;justify-content:space-between"><span>Due In This Bill:</span><strong>${formatCurrency(sale.due ?? 0)}/-</strong></div>
+    <div style="display:flex;justify-content:space-between"><span>Previous Dues:</span><strong>${formatCurrency(sale.previousDues ?? 0)}/-</strong></div>
+    <div style="display:flex;justify-content:space-between"><span>Balance:</span><strong>${formatCurrency(sale.balance ?? (sale.due ?? 0))}/-</strong></div>
+  </div>
+  <div class="summary-table">
+    <div class="summary-row"><span>Total:</span><span>${formatCurrency(sale.subtotal)}</span></div>
+    ${(sale.returnAmount ?? 0) > 0 ? `<div class="summary-row"><span>Return:</span><span>-${formatCurrency(sale.returnAmount!)}</span></div>` : ''}
+    ${sale.discount > 0 ? `<div class="summary-row"><span>Discount:</span><span>-${formatCurrency(sale.discount)}</span></div>` : ''}
+    ${(sale.lessAmount ?? 0) > 0 ? `<div class="summary-row"><span>Less:</span><span>-${formatCurrency(sale.lessAmount!)}</span></div>` : ''}
+    ${(sale.delivery ?? 0) > 0 ? `<div class="summary-row"><span>Delivery:</span><span>+${formatCurrency(sale.delivery!)}</span></div>` : ''}
+    ${(sale.labour ?? 0) > 0 ? `<div class="summary-row"><span>Labour</span><span>${formatCurrency(sale.labour!)}</span></div>` : ''}
+    <div class="summary-row total"><span>PAYABLE:</span><span class="total-amount">${formatCurrency(sale.total)}</span></div>
+    <div class="summary-row" style="font-weight:700;color:#006120"><span>Paid:</span><span>${formatCurrency(sale.paid ?? sale.total)}</span></div>
+  </div>
 </div>
-<div class="thank-you">${settings.name ? `Thank you for shopping at ${settings.name}!` : 'Thank you!'}</div>
+<div style="margin-top:8px;font-size:11px">
+  <div><strong>Remark:</strong> ${sale.notes || ''}</div>
+  <div><strong>Total Quantity:</strong> ${sale.items.reduce((s, i) => s + i.qty, 0)}</div>
+  <div>In Word: <strong style="color:#005cc1">${numberToWords(sale.total)}</strong></div>
+</div>
+<div style="display:flex;justify-content:space-between;margin-top:60px;padding-top:8px;border-top:1px solid #ccc;font-size:12px;color:#005cc1;font-weight:700">
+  <span>Customer Signature</span>
+  <span>Authorized Signature</span>
+</div>
+<div style="text-align:center;margin-top:20px;font-size:11px;color:#9f403d;font-weight:700">বিক্রিত মাল ১ মাসের মধ্যে ফেরত নেওয়া হয়।চায়না/ইন্ডিয়ান মাল ফেরত নেওয়া হয় না।</div>
+<div class="thank-you">SOFTWARE: ${settings.name} | Printing @: ${new Date().toLocaleString()}</div>
 </div>
 </body></html>`;
   };
@@ -673,6 +692,19 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
               </div>
               {discountVal > 0 && <div className="flex justify-between text-destructive text-xs"><span>{t('discount')}</span><span>-{formatCurrency(discountVal)}</span></div>}
               
+              {/* Return */}
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-muted-foreground">Return</span>
+                <input type="number" value={returnAmt} onChange={e => setReturnAmt(e.target.value)} placeholder="0"
+                  className="w-20 bg-muted/30 border border-border rounded text-xs py-1 px-1.5 text-right outline-none focus:ring-1 focus:ring-ring" />
+              </div>
+              {/* Less */}
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-muted-foreground">Less</span>
+                <input type="number" value={lessAmt} onChange={e => setLessAmt(e.target.value)} placeholder="0"
+                  className="w-20 bg-muted/30 border border-border rounded text-xs py-1 px-1.5 text-right outline-none focus:ring-1 focus:ring-ring" />
+              </div>
+
               {/* Delivery */}
               <div className="flex justify-between items-center text-xs">
                 <span className="text-muted-foreground">{t('delivery')}</span>
@@ -702,6 +734,11 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
               <div className="flex justify-between items-center text-xs">
                 <span className="text-destructive font-bold">{t('due')}</span>
                 <span className={`font-bold text-sm ${dueVal > 0 ? 'text-destructive' : 'text-[hsl(125,60%,35%)]'}`}>{formatCurrency(dueVal)}</span>
+              </div>
+              {/* Balance */}
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-primary font-bold">Balance</span>
+                <span className={`font-bold text-sm ${balanceVal > 0 ? 'text-destructive' : 'text-[hsl(125,60%,35%)]'}`}>{formatCurrency(balanceVal)}</span>
               </div>
 
               <div className="flex justify-between items-center text-xs">
