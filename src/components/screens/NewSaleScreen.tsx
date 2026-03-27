@@ -194,13 +194,13 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
     if (found) {
       const existingRow = rows.find(r => r.productId === found.id);
       if (existingRow) {
-        updateRow(existingRow.id, 'qty', existingRow.qty + 1);
+        updateRow(existingRow.id, 'carton', existingRow.carton + 1);
       } else {
         const emptyRow = rows.find(r => !r.productId);
         if (emptyRow) {
-          setRows(prev => prev.map(r => r.id === emptyRow.id ? { ...r, productId: found.id, rate: found.pricePerBox, qty: 1, searchQuery: '' } : r));
+          setRows(prev => prev.map(r => r.id === emptyRow.id ? { ...r, productId: found.id, rate: found.pricePerBox, qty: 1, carton: 1, piece: 0, searchQuery: '' } : r));
         } else {
-          setRows(prev => [...prev, { id: Date.now(), productId: found.id, qty: 1, rate: found.pricePerBox, searchQuery: '', showDropdown: false, carton: 0, piece: 0 }]);
+          setRows(prev => [...prev, { id: Date.now(), productId: found.id, qty: 1, rate: found.pricePerBox, searchQuery: '', showDropdown: false, carton: 1, piece: 0 }]);
         }
       }
       toast.success(`${found.name} ${t('addedToCart')}`);
