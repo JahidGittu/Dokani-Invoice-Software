@@ -3,19 +3,35 @@ import { useI18n } from "@/lib/i18n";
 import { type Customer } from "@/lib/store";
 import { toast } from "sonner";
 
-interface SmsEmailScreenProps {
-  customers: Customer[];
+interface Contact {
+  id: string;
+  name: string;
+  phone: string;
+  type: 'customer' | 'supplier' | 'staff';
 }
 
-export default function SmsEmailScreen({ customers }: SmsEmailScreenProps) {
+interface SmsEmailScreenProps {
+  customers: Customer[];
+  suppliers?: { id: string; name: string; phone: string }[];
+  staffs?: { id: string; name: string; phone: string }[];
+}
+
+export default function SmsEmailScreen({ customers, suppliers = [], staffs = [] }: SmsEmailScreenProps) {
   const { t } = useI18n();
   const [tab, setTab] = useState<'sms' | 'email'>('sms');
+  const [recipientType, setRecipientType] = useState<'customer' | 'supplier' | 'staff'>('customer');
   const [selectedCustomers, setSelectedCustomers] = useState<string[]>([]);
   const [message, setMessage] = useState('');
   const [subject, setSubject] = useState('');
   const [search, setSearch] = useState('');
 
-  const filtered = customers.filter(c =>
+  const allContacts: Contact[] = recipientType === 'customer'
+    ? customers.map(c => ({ id: c.id, name: c.name, phone: c.phone, type: 'customer' as const }))
+    : recipientType === 'supplier'
+    ? suppliers.map(s => ({ id: s.id, name: s.name, phone: s.phone, type: 'supplier' as const }))
+    : staffs.map(s => ({ id: s.id, name: s.name, phone: s.phone, type: 'staff' as const }));
+
+  const filtered = allContacts.filter(c =>
     !search || c.name.toLowerCase().includes(search.toLowerCase()) || c.phone.includes(search)
   );
 
@@ -36,9 +52,8 @@ export default function SmsEmailScreen({ customers }: SmsEmailScreenProps) {
     if (!message.trim()) { toast.error('Enter a message'); return; }
 
     if (tab === 'sms') {
-      // Open WhatsApp for each selected customer
-      const selected = customers.filter(c => selectedCustomers.includes(c.id) && c.phone);
-      if (!selected.length) { toast.error('Selected customers have no phone numbers'); return; }
+      const selected = allContacts.filter(c => selectedCustomers.includes(c.id) && c.phone);
+      if (!selected.length) { toast.error('Selected contacts have no phone numbers'); return; }
       selected.forEach(c => {
         const phone = c.phone.replace(/[^0-9]/g, '');
         window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
@@ -60,15 +75,26 @@ export default function SmsEmailScreen({ customers }: SmsEmailScreenProps) {
       </div>
 
       {/* Tab Switcher */}
-      <div className="flex bg-muted rounded-lg p-0.5 w-fit">
-        <button onClick={() => setTab('sms')}
-          className={`px-5 py-2 rounded-md text-sm font-semibold transition-colors flex items-center gap-2 ${tab === 'sms' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'}`}>
-          <span className="material-symbols-outlined text-lg">sms</span>SMS / WhatsApp
-        </button>
-        <button onClick={() => setTab('email')}
-          className={`px-5 py-2 rounded-md text-sm font-semibold transition-colors flex items-center gap-2 ${tab === 'email' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'}`}>
-          <span className="material-symbols-outlined text-lg">mail</span>Email
-        </button>
+      {/* Recipient Type */}
+      <div className="flex flex-wrap gap-2">
+        <div className="flex bg-muted rounded-lg p-0.5">
+          {(['customer', 'supplier', 'staff'] as const).map(type => (
+            <button key={type} onClick={() => { setRecipientType(type); setSelectedCustomers([]); }}
+              className={`px-4 py-2 rounded-md text-sm font-semibold transition-colors ${recipientType === type ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'}`}>
+              {type === 'customer' ? '👥 Customers' : type === 'supplier' ? '🏭 Suppliers' : '👷 Staffs'}
+            </button>
+          ))}
+        </div>
+        <div className="flex bg-muted rounded-lg p-0.5">
+          <button onClick={() => setTab('sms')}
+            className={`px-5 py-2 rounded-md text-sm font-semibold transition-colors flex items-center gap-2 ${tab === 'sms' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'}`}>
+            <span className="material-symbols-outlined text-lg">sms</span>SMS / WhatsApp
+          </button>
+          <button onClick={() => setTab('email')}
+            className={`px-5 py-2 rounded-md text-sm font-semibold transition-colors flex items-center gap-2 ${tab === 'email' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'}`}>
+            <span className="material-symbols-outlined text-lg">mail</span>Email
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

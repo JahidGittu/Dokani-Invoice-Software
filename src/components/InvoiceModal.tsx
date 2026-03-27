@@ -1,9 +1,10 @@
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import { formatCurrency, numberToWords, type SaleRecord } from "@/lib/store";
 import { useI18n } from "@/lib/i18n";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
+import QRCode from "qrcode";
 
 interface InvoiceModalProps {
   sale: SaleRecord;
@@ -22,29 +23,21 @@ declare module "jspdf" {
   }
 }
 
-function generateQRSVG(data: string, size = 80): string {
-  const hash = data.split('').reduce((acc, char) => ((acc << 5) - acc + char.charCodeAt(0)) | 0, 0);
-  const grid = 11;
-  const cellSize = size / grid;
-  let rects = '';
-  for (let i = 0; i < grid; i++) {
-    for (let j = 0; j < grid; j++) {
-      const isCornerPattern = (i < 3 && j < 3) || (i < 3 && j >= grid - 3) || (i >= grid - 3 && j < 3);
-      const isCornerBorder = (i < 3 && j < 3) ? (i === 0 || i === 2 || j === 0 || j === 2 || (i === 1 && j === 1)) :
-        (i < 3 && j >= grid - 3) ? (i === 0 || i === 2 || j === grid - 1 || j === grid - 3 || (i === 1 && j === grid - 2)) :
-        (i >= grid - 3 && j < 3) ? (i === grid - 1 || i === grid - 3 || j === 0 || j === 2 || (i === grid - 2 && j === 1)) : false;
-      const bit = isCornerPattern ? isCornerBorder : ((hash * (i * grid + j + 1) * 7919) % 100) > 45;
-      if (bit) {
-        rects += `<rect x="${j * cellSize}" y="${i * cellSize}" width="${cellSize}" height="${cellSize}" fill="#2d3435"/>`;
-      }
-    }
-  }
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><rect width="${size}" height="${size}" fill="white"/>${rects}</svg>`;
+// Generate real QR code data URL
+async function generateQRDataURL(data: string, size = 80): Promise<string> {
+  try {
+    return await QRCode.toDataURL(data || 'N/A', { width: size, margin: 1, errorCorrectionLevel: 'M' });
+  } catch { return ''; }
 }
 
 export default function InvoiceModal({ sale, companyName, companyPhone, companyAddress, companyEmail, soldBy, onClose }: InvoiceModalProps) {
   const { t } = useI18n();
   const invoiceRef = useRef<HTMLDivElement>(null);
+  const [qrDataUrl, setQrDataUrl] = useState('');
+
+  useEffect(() => {
+    generateQRDataURL(`${sale.invoice}-${sale.total}-${sale.date}`, 80).then(url => setQrDataUrl(url));
+  }, [sale.invoice, sale.total, sale.date]);
 
   const dateStr = (() => {
     try {
@@ -53,7 +46,7 @@ export default function InvoiceModal({ sale, companyName, companyPhone, companyA
     } catch { return sale.date; }
   })();
 
-  const qrSVG = generateQRSVG(`${sale.invoice}-${sale.total}-${sale.date}`);
+  const qrImgTag = qrDataUrl ? `<img src="${qrDataUrl}" width="80" height="80" style="image-rendering:pixelated"/>` : '';
 
   const totalQty = sale.items.reduce((s, i) => s + (i.sqftQty ?? i.qty), 0);
   const dueInBill = sale.due ?? 0;
@@ -142,7 +135,7 @@ tbody tr:nth-child(even){background:#fafafa}
     ${companyPhone ? `<div class="company-phone">Phone# ${companyPhone}</div>` : ''}
     ${companyEmail ? `<div class="company-email">${companyEmail}</div>` : ''}
   </div>
-  <div class="header-right">${qrSVG}</div>
+  <div class="header-right">${qrImgTag}</div>
 </div>
 
 <!-- Bill Title -->
@@ -274,7 +267,7 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
     setTimeout(() => w.print(), 400);
   };
 
-  const handlePDF = () => {
+  const handlePDF = async () => {
     const doc = new jsPDF({ unit: 'mm', format: 'a4' });
     const pw = 210;
     let y = 18;
@@ -300,11 +293,17 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
       doc.text(`Phone# ${companyPhone}`, pw / 2, y + 14, { align: 'center' });
     }
 
-    // QR placeholder right
-    doc.setDrawColor(200);
-    doc.rect(pw - 33, y - 2, 18, 18);
-    doc.setFontSize(6); doc.setTextColor(150);
-    doc.text('QR', pw - 24, y + 8, { align: 'center' });
+    // QR Code right - real QR
+    try {
+      const QRCodeLib = await import('qrcode');
+      const qrDataUrl = await QRCodeLib.default.toDataURL(`${sale.invoice}-${sale.total}`, { width: 80, margin: 1 });
+      doc.addImage(qrDataUrl, 'PNG', pw - 33, y - 2, 18, 18);
+    } catch {
+      doc.setDrawColor(200);
+      doc.rect(pw - 33, y - 2, 18, 18);
+      doc.setFontSize(6); doc.setTextColor(150);
+      doc.text('QR', pw - 24, y + 8, { align: 'center' });
+    }
 
     y += 20;
     doc.setDrawColor(34); doc.setLineWidth(0.6);
@@ -464,7 +463,7 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
               {companyPhone && <div className="text-[10px] text-gray-600">Phone# {companyPhone}</div>}
               {companyEmail && <div className="text-[9px] text-gray-500">{companyEmail}</div>}
             </div>
-            <div className="shrink-0" dangerouslySetInnerHTML={{ __html: generateQRSVG(`${sale.invoice}-${sale.total}`, 60) }} />
+            {qrDataUrl ? <img src={qrDataUrl} alt="QR" width={60} height={60} style={{ imageRendering: 'pixelated' }} /> : <div className="w-[60px] h-[60px] bg-gray-100 rounded" />}
           </div>
 
           {/* BILL-INVOICE */}

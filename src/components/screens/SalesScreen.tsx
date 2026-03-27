@@ -129,6 +129,7 @@ export default function SalesScreen({ products, customers, sales, onSaleComplete
               placeholder={t('searchByName')} />
             <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-pos-on-surface-variant">search</span>
           </div>
+          <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('products')}</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {filteredProducts.length > 0 ? filteredProducts.map(p => (
               <div key={p.id} onClick={() => addToCart(p)}
@@ -230,6 +231,7 @@ export default function SalesScreen({ products, customers, sales, onSaleComplete
               <th className="px-3 sm:px-4 py-3 hidden lg:table-cell">Less</th>
               <th className="px-3 sm:px-4 py-3">{t('paid')}</th>
               <th className="px-3 sm:px-4 py-3">{t('due')}</th>
+              <th className="px-3 sm:px-4 py-3">{t('status')}</th>
               <th className="px-3 sm:px-4 py-3 text-right">{t('actions')}</th>
             </tr></thead>
             <tbody className="divide-y divide-pos-surface-container">
@@ -249,6 +251,13 @@ export default function SalesScreen({ products, customers, sales, onSaleComplete
                   <td className="px-3 sm:px-4 py-3 text-xs hidden lg:table-cell">{formatCurrency(s.lessAmount ?? 0)}</td>
                   <td className="px-3 sm:px-4 py-3 text-xs font-semibold text-[hsl(125,60%,35%)]">{formatCurrency(s.paid ?? s.total)}</td>
                   <td className={`px-3 sm:px-4 py-3 text-xs font-semibold ${saledue > 0 ? 'text-destructive' : 'text-[hsl(125,60%,35%)]'}`}>{formatCurrency(saledue)}</td>
+                  <td className="px-3 sm:px-4 py-3">
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                      s.status === 'paid' ? 'bg-[hsl(125,100%,90%)] text-[hsl(144,100%,19%)]' :
+                      s.status === 'pending' ? 'bg-[hsl(54,97%,90%)] text-[hsl(37,82%,29%)]' :
+                      'bg-[hsl(224,100%,92%)] text-[hsl(211,100%,26%)]'
+                    }`}>{s.status}</span>
+                  </td>
                   <td className="px-3 sm:px-4 py-3 text-right">
                     <div className="relative inline-block">
                       <button data-sale-id={s.id} className="px-3 py-1.5 bg-pos-error text-white rounded text-xs font-semibold flex items-center gap-1"
@@ -259,7 +268,7 @@ export default function SalesScreen({ products, customers, sales, onSaleComplete
                   </td>
                 </tr>
               )}) : (
-                <tr><td colSpan={12} className="px-8 py-8 text-center text-xs text-pos-on-surface-variant">{t('noSalesYet')}</td></tr>
+                <tr><td colSpan={13} className="px-8 py-8 text-center text-xs text-pos-on-surface-variant">{t('noSalesYet')}</td></tr>
               )}
             </tbody>
           </table>
@@ -271,12 +280,15 @@ export default function SalesScreen({ products, customers, sales, onSaleComplete
           if (!sale) return null;
           return (
             <div className="fixed inset-0 z-[999]" onClick={() => setOpenMenuId(null)}>
-              <div className="fixed z-[1000]" style={{ top: (() => {
+              <div className="fixed z-[1000]" style={(() => {
                 const btn = document.querySelector(`[data-sale-id="${openMenuId}"]`) as HTMLElement;
-                if (!btn) return '50%';
+                if (!btn) return { top: '50%', right: '2rem' };
                 const rect = btn.getBoundingClientRect();
-                return `${rect.bottom + 4}px`;
-              })(), right: '2rem' }}
+                const menuHeight = 140;
+                const spaceBelow = window.innerHeight - rect.bottom;
+                const top = spaceBelow < menuHeight ? rect.top - menuHeight - 4 : rect.bottom + 4;
+                return { top: `${top}px`, right: `${window.innerWidth - rect.right}px` };
+              })()}
                 onClick={e => e.stopPropagation()}>
                 <div className="bg-card border border-border rounded-lg shadow-xl min-w-[140px] py-1">
                   <button onClick={() => { reopenInvoice(sale); setOpenMenuId(null); }} className="w-full text-left px-4 py-2.5 text-xs hover:bg-accent flex items-center gap-2 transition-colors"><span className="material-symbols-outlined text-sm text-pos-secondary">visibility</span>{t('view')}</button>
