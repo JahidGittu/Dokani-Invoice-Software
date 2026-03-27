@@ -553,6 +553,12 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
                 <input type="number" value={delivery} onChange={e => setDelivery(e.target.value)} placeholder="0"
                   className="w-20 bg-transparent text-sm text-right outline-none font-bold text-pos-secondary" />
               </div>
+              {/* Labour */}
+              <div className="flex items-center justify-between border border-pos-surface-container rounded-lg px-3 py-2">
+                <span className="text-sm text-pos-on-surface-variant">Labour</span>
+                <input type="number" value={labourCost} onChange={e => setLabourCost(e.target.value)} placeholder="0"
+                  className="w-20 bg-transparent text-sm text-right outline-none font-bold text-pos-secondary" />
+              </div>
               {/* Payable */}
               <div className="flex items-center justify-between border border-pos-surface-container rounded-lg px-3 py-2.5 bg-pos-surface-high">
                 <span className="text-sm font-bold text-pos-on-surface">Payable</span>
