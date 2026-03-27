@@ -5,10 +5,11 @@ const navItems = [
   { id: 'dashboard', icon: 'dashboard', label: 'Dashboard' },
   { id: 'products', icon: 'inventory_2', label: 'Products' },
   { id: 'sales', icon: 'point_of_sale', label: 'Sales / POS' },
+  { id: 'new-sale', icon: 'receipt_long', label: 'New Sale Entry' },
   { id: 'inventory', icon: 'layers', label: 'Inventory' },
   { id: 'customers', icon: 'group', label: 'Customers' },
   { id: 'reports', icon: 'assessment', label: 'Reports' },
-  { id: 'settings', icon: 'settings', label: 'Settings' },
+  { id: 'excel', icon: 'file_upload', label: 'Excel Import' },
 ];
 
 interface SidebarProps {
@@ -17,14 +18,16 @@ interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
   products: Product[];
+  userName?: string;
+  userRole?: string;
 }
 
-export default function Sidebar({ activeScreen, onNavigate, isOpen, onClose, products }: SidebarProps) {
+export default function Sidebar({ activeScreen, onNavigate, isOpen, onClose, products, userName = 'Arif Rahman', userRole = 'Administrator' }: SidebarProps) {
   const lowStock = getLowStockProducts(products);
+  const initials = (userName || 'U').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
 
   return (
     <>
-      {/* Mobile overlay */}
       {isOpen && (
         <div className="fixed inset-0 bg-black/30 z-40 lg:hidden" onClick={onClose} />
       )}
@@ -72,14 +75,24 @@ export default function Sidebar({ activeScreen, onNavigate, isOpen, onClose, pro
           ))}
         </nav>
 
-        <div className="px-3 pb-4 border-t border-pos-surface-container pt-3">
+        <div className="px-3 pb-4 space-y-0.5 border-t border-pos-surface-container pt-3">
+          <a
+            onClick={() => { onNavigate('settings'); onClose(); }}
+            className={cn(
+              "flex items-center px-4 py-3 border-l-[3px] border-transparent hover:bg-slate-200 transition-all cursor-pointer",
+              activeScreen === 'settings' ? "border-l-pos-secondary bg-pos-surface-high text-slate-900 font-semibold" : "text-slate-500"
+            )}
+          >
+            <span className={cn("material-symbols-outlined mr-3 text-xl", activeScreen === 'settings' && "text-pos-secondary")}>settings</span>
+            <span>Settings</span>
+          </a>
           <div className="flex items-center px-4 py-3 gap-3">
             <div className="w-8 h-8 rounded-full bg-pos-secondary-container flex items-center justify-center">
-              <span className="text-xs font-bold text-pos-on-secondary-container">AR</span>
+              <span className="text-xs font-bold text-pos-on-secondary-container">{initials}</span>
             </div>
             <div>
-              <div className="text-xs font-semibold text-pos-on-surface">Arif Rahman</div>
-              <div className="text-[10px] text-pos-on-surface-variant">Administrator</div>
+              <div className="text-xs font-semibold text-pos-on-surface">{userName}</div>
+              <div className="text-[10px] text-pos-on-surface-variant">{userRole}</div>
             </div>
           </div>
         </div>

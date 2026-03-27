@@ -6,6 +6,7 @@ interface ProductsScreenProps {
   products: Product[];
   onAddProduct: (p: Omit<Product, 'id'>) => void;
   onUpdateProduct: (id: string, updates: Partial<Product>) => void;
+  onDeleteProduct?: (id: string) => void;
 }
 
 export default function ProductsScreen({ products, onAddProduct, onUpdateProduct }: ProductsScreenProps) {

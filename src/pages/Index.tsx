@@ -4,18 +4,20 @@ import Header from "@/components/Header";
 import DashboardScreen from "@/components/screens/DashboardScreen";
 import ProductsScreen from "@/components/screens/ProductsScreen";
 import SalesScreen from "@/components/screens/SalesScreen";
+import NewSaleScreen from "@/components/screens/NewSaleScreen";
 import InventoryScreen from "@/components/screens/InventoryScreen";
 import CustomersScreen from "@/components/screens/CustomersScreen";
 import ReportsScreen from "@/components/screens/ReportsScreen";
 import SettingsScreen from "@/components/screens/SettingsScreen";
-import { useProducts, useCustomers, useSales, useCompanySettings, type SaleRecord } from "@/lib/store";
+import ExcelImportScreen from "@/components/screens/ExcelImportScreen";
+import { useProducts, useCustomers, useSales, useCompanySettings, type SaleRecord, type Product } from "@/lib/store";
 
 export default function Index() {
   const [activeScreen, setActiveScreen] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { products, addProduct, updateProduct, deductStock } = useProducts();
-  const { customers, addCustomer, updateCustomerSpend } = useCustomers();
-  const { sales, addSale } = useSales();
+  const { products, addProduct, updateProduct, deleteProduct, deductStock, setProducts } = useProducts();
+  const { customers, addCustomer, deleteCustomer, updateCustomerSpend } = useCustomers();
+  const { sales, addSale, deleteSale } = useSales();
   const { settings, setSettings } = useCompanySettings();
 
   const handleSaleComplete = useCallback((sale: SaleRecord, stockDeductions: { productId: string; qty: number }[]) => {
@@ -26,27 +28,43 @@ export default function Index() {
     }
   }, [addSale, deductStock, updateCustomerSpend]);
 
-  // F2 shortcut to go to Sales
+  const handleAutoAddCustomer = useCallback((name: string, phone: string, address: string) => {
+    if (!customers.find(c => c.name === name)) {
+      addCustomer(name, phone, address);
+    }
+  }, [customers, addCustomer]);
+
+  const handleImportProducts = useCallback((newProducts: Omit<Product, 'id'>[]) => {
+    newProducts.forEach(p => addProduct(p));
+  }, [addProduct]);
+
+  // F2 shortcut to go to New Sale
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'F2' && activeScreen !== 'sales') {
+      if (e.key === 'F2') {
         e.preventDefault();
-        setActiveScreen('sales');
+        setActiveScreen('new-sale');
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        // Focus global search handled in Header
       }
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [activeScreen]);
+  }, []);
 
   const renderScreen = () => {
     switch (activeScreen) {
       case 'dashboard': return <DashboardScreen onNavigate={setActiveScreen} />;
-      case 'products': return <ProductsScreen products={products} onAddProduct={addProduct} onUpdateProduct={updateProduct} />;
-      case 'sales': return <SalesScreen products={products} customers={customers} onSaleComplete={handleSaleComplete} companyName={settings.name} />;
-      case 'inventory': return <InventoryScreen products={products} />;
-      case 'customers': return <CustomersScreen customers={customers} onAddCustomer={addCustomer} />;
-      case 'reports': return <ReportsScreen />;
+      case 'products': return <ProductsScreen products={products} onAddProduct={addProduct} onUpdateProduct={updateProduct} onDeleteProduct={deleteProduct} />;
+      case 'sales': return <SalesScreen products={products} customers={customers} sales={sales} onSaleComplete={handleSaleComplete} onDeleteSale={deleteSale} companyName={settings.name} companyPhone={settings.phone} companyAddress={settings.address} onNavigate={setActiveScreen} />;
+      case 'new-sale': return <NewSaleScreen products={products} customers={customers} settings={settings} onSaleComplete={handleSaleComplete} onAutoAddCustomer={handleAutoAddCustomer} />;
+      case 'inventory': return <InventoryScreen products={products} onUpdateProduct={updateProduct} />;
+      case 'customers': return <CustomersScreen customers={customers} onAddCustomer={addCustomer} onDeleteCustomer={deleteCustomer} />;
+      case 'reports': return <ReportsScreen sales={sales} />;
       case 'settings': return <SettingsScreen settings={settings} onUpdateSettings={setSettings} />;
+      case 'excel': return <ExcelImportScreen products={products} onImportProducts={handleImportProducts} />;
       default: return <DashboardScreen onNavigate={setActiveScreen} />;
     }
   };
@@ -59,6 +77,8 @@ export default function Index() {
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         products={products}
+        userName={settings.userName}
+        userRole={settings.userRole}
       />
       <main className="lg:ml-64 min-h-screen">
         <Header
@@ -67,15 +87,19 @@ export default function Index() {
           onNavigate={setActiveScreen}
           onSearch={() => {}}
           products={products}
+          sales={sales}
+          customers={customers}
+          userName={settings.userName}
         />
         {renderScreen()}
       </main>
       {/* FAB */}
       <button
-        onClick={() => setActiveScreen('sales')}
+        onClick={() => setActiveScreen('new-sale')}
         className="fixed bottom-8 right-8 w-14 h-14 bg-pos-secondary text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-110 active:scale-95 transition-all z-30"
+        title="New Sale (F2)"
       >
-        <span className="material-symbols-outlined text-2xl">point_of_sale</span>
+        <span className="material-symbols-outlined text-2xl">receipt_long</span>
       </button>
     </div>
   );

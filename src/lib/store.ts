@@ -17,19 +17,28 @@ export interface CartItem {
   qty: number;
 }
 
+export interface SaleItem {
+  productId: string;
+  name: string;
+  detail: string;
+  qty: number;
+  price: number;
+}
+
 export interface SaleRecord {
   id: string;
   invoice: string;
   customer: string;
   phone: string;
-  items: { productId: string; name: string; detail: string; qty: number; price: number }[];
+  address?: string;
+  items: SaleItem[];
   subtotal: number;
   discount: number;
   discountType: 'flat' | 'percent';
   total: number;
-  paymentMethod: 'cash' | 'credit' | 'mobile';
+  paymentMethod: string;
   notes: string;
-  status: 'Paid' | 'Pending';
+  status: 'paid' | 'pending' | 'credit';
   date: string;
   time: string;
 }
@@ -50,36 +59,39 @@ export interface CompanySettings {
   address: string;
   phone: string;
   email: string;
+  userName: string;
+  userRole: string;
+  lowStockThreshold: number;
+  invPrefix: string;
+  darkMode: boolean;
 }
 
 // ─── Default Data ───
 const defaultProducts: Product[] = [
-  { id: '1', name: 'Royal Marble', size: '24×24', finish: 'Glossy', pricePerBox: 1200, sqftPerBox: 9.2, stock: 345, batch: 'BT-2401' },
-  { id: '2', name: 'Ivory Stone', size: '12×24', finish: 'Matte', pricePerBox: 950, sqftPerBox: 7.7, stock: 12, batch: 'BT-2388' },
-  { id: '3', name: 'Dark Slate', size: '24×48', finish: 'Matte', pricePerBox: 1800, sqftPerBox: 15.6, stock: 210, batch: 'BT-2412' },
-  { id: '4', name: 'Pearl White', size: '30×30', finish: 'Glossy', pricePerBox: 780, sqftPerBox: 6.0, stock: 8, batch: 'BT-2395' },
-  { id: '5', name: 'Travertine', size: '60×60', finish: 'Lappato', pricePerBox: 2400, sqftPerBox: 25.0, stock: 438, batch: 'BT-2420' },
-  { id: '6', name: 'Sand Beige', size: '12×12', finish: 'Matte', pricePerBox: 650, sqftPerBox: 4.0, stock: 18, batch: 'BT-2378' },
+  { id: '1', name: 'Royal Marble', size: '60×60', finish: 'Glossy', pricePerBox: 1500, sqftPerBox: 9.6, stock: 80, batch: 'BT-2501' },
+  { id: '2', name: 'Ocean Blue', size: '30×60', finish: 'Matte', pricePerBox: 1200, sqftPerBox: 7.2, stock: 45, batch: 'BT-2502' },
+  { id: '3', name: 'Rustic Wood', size: '15×60', finish: 'Matte', pricePerBox: 890, sqftPerBox: 5.4, stock: 15, batch: 'BT-2503' },
+  { id: '4', name: 'Calacatta Gold', size: '60×120', finish: 'Glossy', pricePerBox: 2200, sqftPerBox: 14.4, stock: 30, batch: 'BT-2504' },
+  { id: '5', name: 'Pearl White', size: '30×30', finish: 'Glossy', pricePerBox: 750, sqftPerBox: 5.4, stock: 8, batch: 'BT-2505' },
 ];
 
 const defaultCustomers: Customer[] = [
-  { id: '1', name: 'Rahim Mia', initials: 'RM', phone: '01712-345678', address: 'Chattogram', totalSpent: 234500, lastOrder: '27 Mar 2026', color: 'secondary' },
-  { id: '2', name: 'Karim Ahmed', initials: 'KA', phone: '01822-987654', address: 'Dhaka', totalSpent: 189000, lastOrder: '25 Mar 2026', color: 'tertiary' },
-  { id: '3', name: 'Selim Brothers', initials: 'SB', phone: '01933-112233', address: 'Sylhet', totalSpent: 98750, lastOrder: '22 Mar 2026', color: 'primary' },
-  { id: '4', name: 'Nasir Traders', initials: 'NT', phone: '01555-667788', address: 'Rajshahi', totalSpent: 67200, lastOrder: '18 Mar 2026', color: 'error' },
+  { id: '1', name: 'Rahim Uddin', initials: 'RU', phone: '01711223344', address: 'Dhaka', totalSpent: 234500, lastOrder: '27 Mar 2026', color: 'secondary' },
+  { id: '2', name: 'Karim Trading', initials: 'KT', phone: '01922334455', address: 'Chittagong', totalSpent: 189000, lastOrder: '25 Mar 2026', color: 'tertiary' },
 ];
 
-const defaultSales: SaleRecord[] = [
-  { id: '1', invoice: 'INV-0090', customer: 'Rahim Mia', phone: '01712-345678', items: [{ productId: '1', name: 'Royal Marble', detail: '24×24 Glossy', qty: 10, price: 1200 }], subtotal: 12000, discount: 0, discountType: 'flat', total: 12000, paymentMethod: 'cash', notes: '', status: 'Paid', date: '27 Mar 2026', time: '10:34 AM' },
-  { id: '2', invoice: 'INV-0089', customer: 'Karim Ahmed', phone: '01822-987654', items: [{ productId: '3', name: 'Dark Slate', detail: '24×48 Matte', qty: 12, price: 1800 }], subtotal: 21600, discount: 0, discountType: 'flat', total: 21600, paymentMethod: 'cash', notes: '', status: 'Paid', date: '27 Mar 2026', time: '9:15 AM' },
-  { id: '3', invoice: 'INV-0088', customer: 'Selim Brothers', phone: '01933-112233', items: [{ productId: '5', name: 'Travertine', detail: '60×60 Lappato', qty: 3, price: 2400 }, { productId: '6', name: 'Sand Beige', detail: '12×12 Matte', qty: 2, price: 650 }], subtotal: 8500, discount: 0, discountType: 'flat', total: 8500, paymentMethod: 'credit', notes: '', status: 'Pending', date: '26 Mar 2026', time: '8:50 AM' },
-];
+const defaultSales: SaleRecord[] = [];
 
 const defaultSettings: CompanySettings = {
   name: 'TilePOS Lite',
   address: 'Chattogram, Bangladesh',
   phone: '01700-000000',
   email: 'info@tilepos.com',
+  userName: 'Arif Rahman',
+  userRole: 'Administrator',
+  lowStockThreshold: 20,
+  invPrefix: 'INV',
+  darkMode: false,
 };
 
 // ─── localStorage helpers ───
@@ -98,21 +110,25 @@ function saveJSON<T>(key: string, data: T): void {
 
 // ─── Invoice counter ───
 function getInvoiceCounter(): number {
-  return loadJSON<number>('tilepos_inv_counter', 91);
+  return loadJSON<number>('tilepos_inv_counter', 1);
 }
 function setInvoiceCounter(n: number) {
   saveJSON('tilepos_inv_counter', n);
 }
 
-export function getNextInvoiceNumber(): string {
+export function getNextInvoiceNumber(prefix = 'INV'): string {
   const c = getInvoiceCounter();
   setInvoiceCounter(c + 1);
-  return `INV-${String(c).padStart(4, '0')}`;
+  return `${prefix}-${String(c).padStart(4, '0')}`;
 }
 
 // ─── Format ───
 export function formatCurrency(amount: number): string {
   return '৳' + amount.toLocaleString('en-IN');
+}
+
+export function calcDiscount(subtotal: number, discountVal: number, discountType: 'flat' | 'percent'): number {
+  return discountType === 'percent' ? Math.round(subtotal * discountVal / 100) : discountVal;
 }
 
 // ─── Custom Hooks ───
@@ -129,6 +145,10 @@ export function useProducts() {
     setProducts(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
   }, []);
 
+  const deleteProduct = useCallback((id: string) => {
+    setProducts(prev => prev.filter(p => p.id !== id));
+  }, []);
+
   const deductStock = useCallback((items: { productId: string; qty: number }[]) => {
     setProducts(prev => prev.map(p => {
       const item = items.find(i => i.productId === p.id);
@@ -136,7 +156,7 @@ export function useProducts() {
     }));
   }, []);
 
-  return { products, setProducts, addProduct, updateProduct, deductStock };
+  return { products, setProducts, addProduct, updateProduct, deleteProduct, deductStock };
 }
 
 export function useCustomers() {
@@ -158,6 +178,10 @@ export function useCustomers() {
     return newC;
   }, []);
 
+  const deleteCustomer = useCallback((id: string) => {
+    setCustomers(prev => prev.filter(c => c.id !== id));
+  }, []);
+
   const updateCustomerSpend = useCallback((name: string, amount: number) => {
     setCustomers(prev => prev.map(c =>
       c.name === name ? {
@@ -168,7 +192,7 @@ export function useCustomers() {
     ));
   }, []);
 
-  return { customers, setCustomers, addCustomer, updateCustomerSpend };
+  return { customers, setCustomers, addCustomer, deleteCustomer, updateCustomerSpend };
 }
 
 export function useSales() {
@@ -180,7 +204,11 @@ export function useSales() {
     setSales(prev => [sale, ...prev]);
   }, []);
 
-  return { sales, setSales, addSale };
+  const deleteSale = useCallback((id: string) => {
+    setSales(prev => prev.filter(s => s.id !== id));
+  }, []);
+
+  return { sales, setSales, addSale, deleteSale };
 }
 
 export function useCompanySettings() {
@@ -205,7 +233,7 @@ export function exportAllData() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `tilepos-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  a.download = `tilepos_backup_${new Date().toISOString().slice(0, 10)}.json`;
   a.click();
   URL.revokeObjectURL(url);
 }
@@ -229,6 +257,24 @@ export function getLowStockProducts(products: Product[], threshold = 20): Produc
 }
 
 export function getTodaysSalesTotal(sales: SaleRecord[]): number {
-  const today = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-  return sales.filter(s => s.date === today).reduce((sum, s) => sum + s.total, 0);
+  const today = new Date().toDateString();
+  return sales.filter(s => {
+    try { return new Date(s.date).toDateString() === today; } catch { return false; }
+  }).reduce((sum, s) => sum + s.total, 0);
+}
+
+export function getTodaysSalesCount(sales: SaleRecord[]): number {
+  const today = new Date().toDateString();
+  return sales.filter(s => {
+    try { return new Date(s.date).toDateString() === today; } catch { return false; }
+  }).length;
+}
+
+export function downloadCSV(rows: string[][], filename: string) {
+  const csv = rows.map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
 }
