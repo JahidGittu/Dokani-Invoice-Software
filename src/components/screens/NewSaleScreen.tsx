@@ -567,22 +567,6 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
         {/* ── BILL-INVOICE Title ── */}
         <div className="text-center font-black text-lg tracking-[3px] py-2 underline underline-offset-4">BILL-INVOICE</div>
 
-        {/* ── Customer & Invoice Info ── */}
-        <div className="px-6 sm:px-10 py-3">
-          <div className="flex justify-between text-xs leading-relaxed">
-            <div className="space-y-0.5">
-              <div className="flex gap-1"><span className="w-16 text-muted-foreground">Name</span><span>:</span><strong className="text-foreground">{customerName || '—'}</strong></div>
-              {address && <div className="flex gap-1"><span className="w-16 text-muted-foreground">Address</span><span>:</span><strong className="text-foreground">{address}</strong></div>}
-              {phone && <div className="flex gap-1"><span className="w-16 text-muted-foreground">Mobile</span><span>:</span><strong className="text-foreground">{phone}</strong></div>}
-            </div>
-            <div className="text-right space-y-0.5">
-              <div className="flex gap-1 justify-end"><span className="text-muted-foreground">Invoice#</span><span>:</span><strong className="text-primary">#NEW</strong></div>
-              <div className="flex gap-1 justify-end"><span className="text-muted-foreground">Date</span><span>:</span><strong>{dateStr}</strong></div>
-              <div className="flex gap-1 justify-end"><span className="text-muted-foreground">Sold By</span><span>:</span><strong>{settings.userName || settings.name}</strong></div>
-            </div>
-          </div>
-        </div>
-
         {/* ── Editable Customer Fields (hidden inputs inside info area) ── */}
         <div className="px-6 sm:px-10 pb-3">
           <div className="flex justify-between text-xs">
