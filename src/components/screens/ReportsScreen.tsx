@@ -403,7 +403,99 @@ export default function ReportsScreen({ sales = [], products = [], customers = [
             </div>
           )}
 
-          {activeReport === 'account' && (
+          {/* General Transaction */}
+          {activeReport === 'general_transaction' && (
+            <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container overflow-hidden">
+              <div className="px-5 py-3 bg-pos-surface-low font-semibold text-sm">General Transaction</div>
+              <div className="grid grid-cols-3 gap-4 p-4">
+                <div className="bg-pos-surface-high rounded-lg p-3"><div className="text-[10px] text-pos-on-surface-variant uppercase font-bold">Sales Income</div><div className="text-xl font-black text-[hsl(125,60%,35%)]">{formatCurrency(stats.totalPaid)}</div></div>
+                <div className="bg-pos-surface-high rounded-lg p-3"><div className="text-[10px] text-pos-on-surface-variant uppercase font-bold">Purchase Expense</div><div className="text-xl font-black text-destructive">{formatCurrency(stats.purchasePaid)}</div></div>
+                <div className="bg-pos-surface-high rounded-lg p-3"><div className="text-[10px] text-pos-on-surface-variant uppercase font-bold">Net Balance</div><div className={`text-xl font-black ${stats.totalPaid - stats.purchasePaid >= 0 ? 'text-[hsl(125,60%,35%)]' : 'text-destructive'}`}>{formatCurrency(stats.totalPaid - stats.purchasePaid)}</div></div>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead><tr className="text-[11px] font-bold text-pos-on-surface-variant uppercase bg-pos-surface-low">
+                    <th className="px-4 py-2">Date</th><th className="px-4 py-2">Type</th><th className="px-4 py-2">Reference</th><th className="px-4 py-2">Party</th><th className="px-4 py-2 text-right">Amount</th>
+                  </tr></thead>
+                  <tbody className="divide-y divide-pos-surface-container">
+                    {[...filteredSales.map(s => ({ date: s.date, type: 'Sale' as const, ref: s.invoice, party: s.customer, amount: s.paid ?? s.total })),
+                      ...filteredPurchases.map(p => ({ date: p.date, type: 'Purchase' as const, ref: p.invoice, party: p.supplierName, amount: -p.paid }))]
+                      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                      .slice(0, 30).map((t, i) => (
+                      <tr key={i} className="hover:bg-pos-surface-low">
+                        <td className="px-4 py-2 text-xs">{(() => { try { return new Date(t.date).toLocaleDateString('en-GB'); } catch { return t.date; } })()}</td>
+                        <td className="px-4 py-2"><span className={`text-xs font-bold px-2 py-0.5 rounded ${t.type === 'Sale' ? 'bg-[hsl(125,60%,90%)] text-[hsl(125,60%,25%)]' : 'bg-[hsl(0,60%,90%)] text-destructive'}`}>{t.type}</span></td>
+                        <td className="px-4 py-2 text-xs font-bold text-pos-secondary">{t.ref}</td>
+                        <td className="px-4 py-2">{t.party}</td>
+                        <td className={`px-4 py-2 text-right font-bold ${t.amount >= 0 ? 'text-[hsl(125,60%,35%)]' : 'text-destructive'}`}>{t.amount >= 0 ? '+' : ''}{formatCurrency(t.amount)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* Staff Report */}
+          {activeReport === 'staff' && (
+            <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container overflow-hidden">
+              <div className="px-5 py-3 bg-pos-surface-low font-semibold text-sm">Staff Report</div>
+              <div className="p-6 text-center text-pos-on-surface-variant">
+                <span className="material-symbols-outlined text-4xl mb-2 block">badge</span>
+                <p className="text-sm">Staff management coming soon. Add staff from the Staff page to see reports here.</p>
+              </div>
+            </div>
+          )}
+
+          {/* Customer Advance */}
+          {activeReport === 'customer_advance' && (
+            <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container overflow-hidden">
+              <div className="px-5 py-3 bg-pos-surface-low font-semibold text-sm">Customer Advance</div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead><tr className="text-[11px] font-bold text-pos-on-surface-variant uppercase bg-pos-surface-low">
+                    <th className="px-4 py-2">{t('name')}</th><th className="px-4 py-2">{t('phoneLabel')}</th><th className="px-4 py-2 text-right">Total Paid</th><th className="px-4 py-2 text-right">Total Bill</th><th className="px-4 py-2 text-right">Advance</th>
+                  </tr></thead>
+                  <tbody className="divide-y divide-pos-surface-container">
+                    {customers.map(c => {
+                      const custSales = sales.filter(s => s.customer === c.name);
+                      const totalBill = custSales.reduce((sum, s) => sum + s.total, 0);
+                      const totalPaid = custSales.reduce((sum, s) => sum + (s.paid ?? s.total), 0);
+                      const advance = totalPaid - totalBill;
+                      if (advance <= 0) return null;
+                      return (
+                        <tr key={c.id} className="hover:bg-pos-surface-low">
+                          <td className="px-4 py-2 font-semibold">{c.name}</td>
+                          <td className="px-4 py-2 text-xs">{c.phone}</td>
+                          <td className="px-4 py-2 text-right">{formatCurrency(totalPaid)}</td>
+                          <td className="px-4 py-2 text-right">{formatCurrency(totalBill)}</td>
+                          <td className="px-4 py-2 text-right font-bold text-[hsl(125,60%,35%)]">{formatCurrency(advance)}</td>
+                        </tr>
+                      );
+                    })}
+                    {customers.every(c => {
+                      const custSales = sales.filter(s => s.customer === c.name);
+                      const totalBill = custSales.reduce((sum, s) => sum + s.total, 0);
+                      const totalPaid = custSales.reduce((sum, s) => sum + (s.paid ?? s.total), 0);
+                      return totalPaid - totalBill <= 0;
+                    }) && <tr><td colSpan={5} className="px-4 py-8 text-center text-pos-on-surface-variant text-sm">No customer advances found</td></tr>}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* Staff Balance */}
+          {activeReport === 'staff_balance' && (
+            <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container overflow-hidden">
+              <div className="px-5 py-3 bg-pos-surface-low font-semibold text-sm">Staff Balance</div>
+              <div className="p-6 text-center text-pos-on-surface-variant">
+                <span className="material-symbols-outlined text-4xl mb-2 block">account_balance_wallet</span>
+                <p className="text-sm">Staff balance tracking will be available after staff salary management is implemented.</p>
+              </div>
+            </div>
+          )}
+
             <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container overflow-hidden">
               <div className="px-5 py-3 bg-pos-surface-low font-semibold text-sm">Account Reports</div>
               <div className="overflow-x-auto">
