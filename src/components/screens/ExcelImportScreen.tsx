@@ -99,7 +99,7 @@ export default function ExcelImportScreen({ products, onImportProducts }: ExcelI
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-8">
         <div className="space-y-5">
           <div onClick={() => fileRef.current?.click()} className="border-2 border-dashed border-pos-outline-variant rounded-xl p-10 text-center cursor-pointer hover:border-pos-secondary hover:bg-pos-secondary-container/30 transition-all">
             <span className="material-symbols-outlined text-5xl text-pos-on-surface-variant mb-3 block">cloud_upload</span>
