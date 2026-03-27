@@ -312,12 +312,6 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
                 </table>
               </div>
             </div>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
             {/* Remark */}
             <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container p-4">
               <div className="flex items-center gap-2">
