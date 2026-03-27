@@ -618,9 +618,10 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
               </thead>
               <tbody>
                 {rows.map((row, idx) => {
-                  const rowTotal = row.qty * row.rate;
                   const product = products.find(p => p.id === row.productId);
-                  const sqftQty = row.qty * (product?.sqftPerBox || 1);
+                  const sqftQty = row.carton * (product?.sqftPerBox || 0);
+                  const rowTotal = row.carton * row.rate;
+                  return (
                   return (
                     <tr key={row.id} className="border-b border-border/50 hover:bg-muted/20 transition-colors align-top">
                       <td className="py-2 px-2 text-xs font-semibold text-muted-foreground">{idx + 1}</td>
