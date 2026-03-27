@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef, useMemo } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useI18n } from "@/lib/i18n";
-import { formatCurrency, getNextInvoiceNumber, calcDiscount, type Product, type SaleRecord, type Customer, type CompanySettings } from "@/lib/store";
+import { formatCurrency, getNextInvoiceNumber, calcDiscount, numberToWords, type Product, type SaleRecord, type Customer, type CompanySettings } from "@/lib/store";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
