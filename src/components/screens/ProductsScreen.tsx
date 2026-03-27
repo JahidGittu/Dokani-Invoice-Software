@@ -47,6 +47,7 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
     const data = {
       name: form.name, size: form.size, finish: form.finish,
       pricePerBox: parseFloat(form.pricePerBox), sqftPerBox: parseFloat(form.sqftPerBox) || 0,
+      piecesPerBox: parseInt(form.piecesPerBox) || 4,
       stock: parseInt(form.stock) || 0, batch: form.batch,
       barcode: form.barcode, category: form.category, brand: form.brand,
       buyRate: parseFloat(form.buyRate) || 0,
