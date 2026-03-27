@@ -405,10 +405,11 @@ tbody tr:nth-child(even){background:#fafafa}
 </body></html>`;
   };
 
-  const handlePrintSale = (sale: SaleRecord) => {
+  const handlePrintSale = async (sale: SaleRecord) => {
+    const html = await generatePrintHTML(sale);
     const w = window.open('', '_blank', 'width=800,height=1000');
     if (!w) { toast.error(t('popupBlocked')); return; }
-    w.document.write(generatePrintHTML(sale));
+    w.document.write(html);
     w.document.close();
     w.focus();
     setTimeout(() => w.print(), 500);
