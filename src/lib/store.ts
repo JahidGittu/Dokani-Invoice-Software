@@ -124,11 +124,11 @@ export interface CompanySettings {
 
 // ─── Default Data ───
 const defaultProducts: Product[] = [
-  { id: '1', name: 'Royal Marble', size: '60×60', finish: 'Glossy', pricePerBox: 1500, sqftPerBox: 9.6, stock: 80, batch: 'BT-2501', category: 'Floor Tiles', brand: 'RAK', buyRate: 1200 },
-  { id: '2', name: 'Ocean Blue', size: '30×60', finish: 'Matte', pricePerBox: 1200, sqftPerBox: 7.2, stock: 45, batch: 'BT-2502', category: 'Wall Tiles', brand: 'Akij', buyRate: 900 },
-  { id: '3', name: 'Rustic Wood', size: '15×60', finish: 'Matte', pricePerBox: 890, sqftPerBox: 5.4, stock: 15, batch: 'BT-2503', category: 'Floor Tiles', brand: 'China', buyRate: 650 },
-  { id: '4', name: 'Calacatta Gold', size: '60×120', finish: 'Glossy', pricePerBox: 2200, sqftPerBox: 14.4, stock: 30, batch: 'BT-2504', category: 'Wall Tiles', brand: 'TYT', buyRate: 1800 },
-  { id: '5', name: 'Pearl White', size: '30×30', finish: 'Glossy', pricePerBox: 750, sqftPerBox: 5.4, stock: 8, batch: 'BT-2505', category: 'Wall Tiles', brand: 'Fresh', buyRate: 550 },
+  { id: '1', name: 'Royal Marble', size: '60×60', finish: 'Glossy', pricePerBox: 1500, sqftPerBox: 9.6, piecesPerBox: 4, stock: 80, batch: 'BT-2501', category: 'Floor Tiles', brand: 'RAK', buyRate: 1200 },
+  { id: '2', name: 'Ocean Blue', size: '30×60', finish: 'Matte', pricePerBox: 1200, sqftPerBox: 7.2, piecesPerBox: 6, stock: 45, batch: 'BT-2502', category: 'Wall Tiles', brand: 'Akij', buyRate: 900 },
+  { id: '3', name: 'Rustic Wood', size: '15×60', finish: 'Matte', pricePerBox: 890, sqftPerBox: 5.4, piecesPerBox: 8, stock: 15, batch: 'BT-2503', category: 'Floor Tiles', brand: 'China', buyRate: 650 },
+  { id: '4', name: 'Calacatta Gold', size: '60×120', finish: 'Glossy', pricePerBox: 2200, sqftPerBox: 14.4, piecesPerBox: 2, stock: 30, batch: 'BT-2504', category: 'Wall Tiles', brand: 'TYT', buyRate: 1800 },
+  { id: '5', name: 'Pearl White', size: '30×30', finish: 'Glossy', pricePerBox: 750, sqftPerBox: 5.4, piecesPerBox: 10, stock: 8, batch: 'BT-2505', category: 'Wall Tiles', brand: 'Fresh', buyRate: 550 },
 ];
 
 const defaultCustomers: Customer[] = [
