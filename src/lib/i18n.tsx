@@ -146,6 +146,7 @@ const translations = {
   productNotFound: { en: 'Product not found!', bn: 'প্রোডাক্ট পাওয়া যায়নি!' },
   scanOrType: { en: 'Scan barcode or type name & Enter', bn: 'বারকোড স্ক্যান করুন বা নাম লিখে Enter দিন' },
   scan: { en: 'Scan', bn: 'স্ক্যান' },
+  scanBarcodeHint: { en: 'Scan barcode with scanner or type product name/batch code', bn: 'স্ক্যানার দিয়ে বারকোড স্ক্যান করুন অথবা প্রোডাক্ট নাম/ব্যাচ কোড লিখুন' },
 
   // Invoice
   print: { en: 'Print', bn: 'প্রিন্ট' },
