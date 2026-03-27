@@ -299,11 +299,22 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
                   ), 'text-center')}
                   {renderCell(p, 'batch', <span className="text-[10px] font-mono text-muted-foreground">{p.barcode || p.batch || '—'}</span>)}
                   <td className="px-2 py-2.5 text-center">
-                    {onDeleteProduct && (
-                      <button onClick={() => setShowDeleteConfirm(p.id)} className="w-5 h-5 rounded bg-pos-error text-white flex items-center justify-center opacity-60 group-hover:opacity-100 transition-opacity" title={t('delete')}>
-                        <span className="material-symbols-outlined text-xs">delete</span>
+                    <div className="flex items-center gap-1 justify-center">
+                      <button onClick={() => {
+                        const w = window.open('', '_blank', 'width=400,height=300');
+                        if (!w) return;
+                        w.document.write(`<!DOCTYPE html><html><head><title>Barcode</title><style>body{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;font-family:monospace;text-align:center}h2{margin:0;font-size:18px}p{font-size:24px;letter-spacing:4px;font-weight:900;margin:8px 0}@media print{body{margin:0}}</style></head><body><h2>${p.name}</h2><p>${p.barcode || p.batch || p.id.slice(0,8)}</p><div style="font-size:12px">${p.size} · ${p.category || ''}</div></body></html>`);
+                        w.document.close(); w.focus(); setTimeout(() => w.print(), 300);
+                      }}
+                        className="w-5 h-5 rounded bg-[hsl(25,95%,53%)] text-white flex items-center justify-center opacity-60 group-hover:opacity-100 transition-opacity" title="Barcode Print">
+                        <span className="material-symbols-outlined text-xs">barcode</span>
                       </button>
-                    )}
+                      {onDeleteProduct && (
+                        <button onClick={() => setShowDeleteConfirm(p.id)} className="w-5 h-5 rounded bg-pos-error text-white flex items-center justify-center opacity-60 group-hover:opacity-100 transition-opacity" title={t('delete')}>
+                          <span className="material-symbols-outlined text-xs">delete</span>
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
