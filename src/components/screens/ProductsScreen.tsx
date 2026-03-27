@@ -162,21 +162,87 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
       <div className="bg-pos-surface-lowest rounded-xl shadow-sm overflow-hidden border border-pos-surface-container">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[1100px]">
-            <thead>
+             <thead className="sticky top-0 z-10">
               <tr className="text-[9px] font-bold text-pos-on-surface-variant uppercase tracking-wider bg-pos-surface-low border-b border-pos-surface-container">
                 <th className="px-2 py-2.5 w-8 text-center">#</th>
-                <th className="px-2 py-2.5">{t('productName')}</th>
-                <th className="px-2 py-2.5">{t('categoryLabel')}</th>
-                <th className="px-2 py-2.5">{t('brandLabel')}</th>
+                <th className="px-2 py-2.5 cursor-pointer select-none" onClick={() => toggleSort('name')}>
+                  <span className="inline-flex items-center gap-0.5">{t('productName')} <span className="material-symbols-outlined text-[10px]">{sortIcon('name')}</span></span>
+                </th>
+                <th className="px-2 py-2.5 cursor-pointer select-none" onClick={() => toggleSort('category')}>
+                  <span className="inline-flex items-center gap-0.5">{t('categoryLabel')} <span className="material-symbols-outlined text-[10px]">{sortIcon('category')}</span></span>
+                </th>
+                <th className="px-2 py-2.5 cursor-pointer select-none" onClick={() => toggleSort('brand')}>
+                  <span className="inline-flex items-center gap-0.5">{t('brandLabel')} <span className="material-symbols-outlined text-[10px]">{sortIcon('brand')}</span></span>
+                </th>
                 <th className="px-2 py-2.5">{t('size')}</th>
                 <th className="px-2 py-2.5">Finish</th>
                 <th className="px-2 py-2.5 text-right">{t('buyRateLabel')}</th>
-                <th className="px-2 py-2.5 text-right">{t('salesRateLabel')}</th>
+                <th className="px-2 py-2.5 text-right cursor-pointer select-none" onClick={() => toggleSort('pricePerBox')}>
+                  <span className="inline-flex items-center gap-0.5 justify-end">{t('salesRateLabel')} <span className="material-symbols-outlined text-[10px]">{sortIcon('pricePerBox')}</span></span>
+                </th>
                 <th className="px-2 py-2.5 text-center">Sqft</th>
                 <th className="px-2 py-2.5 text-center">Pcs</th>
-                <th className="px-2 py-2.5 text-center">{t('stock')}</th>
+                <th className="px-2 py-2.5 text-center cursor-pointer select-none" onClick={() => toggleSort('stock')}>
+                  <span className="inline-flex items-center gap-0.5">{t('stock')} <span className="material-symbols-outlined text-[10px]">{sortIcon('stock')}</span></span>
+                </th>
                 <th className="px-2 py-2.5">Batch</th>
                 <th className="px-2 py-2.5 text-center w-16">{t('action')}</th>
+              </tr>
+
+              {/* ═══ NEW ENTRY ROW (sticky at top) ═══ */}
+              <tr className="bg-[hsl(125,40%,96%)] dark:bg-[hsl(125,25%,12%)] border-b-2 border-[hsl(125,50%,70%)] hover:bg-[hsl(125,40%,94%)] dark:hover:bg-[hsl(125,25%,14%)] transition-colors"
+                onKeyDown={handleKeyDown}>
+                <td className="px-2 py-1 text-center">
+                  <span className="material-symbols-outlined text-[hsl(125,60%,35%)] text-base">add_circle</span>
+                </td>
+                <td className="px-0 py-1 border-r border-[hsl(125,30%,80%)]">
+                  <input ref={nameRef} value={newRow.name} onChange={e => updateNewRow('name', e.target.value)}
+                    className={`${inputCls} font-semibold`} placeholder="নাম লিখুন..." autoFocus />
+                </td>
+                <td className="px-0 py-1 border-r border-[hsl(125,30%,80%)]">
+                  <select value={newRow.category} onChange={e => updateNewRow('category', e.target.value)} className={selectCls}>
+                    {PRODUCT_CATEGORIES.map(c => <option key={c}>{c}</option>)}
+                  </select>
+                </td>
+                <td className="px-0 py-1 border-r border-[hsl(125,30%,80%)]">
+                  <select value={newRow.brand} onChange={e => updateNewRow('brand', e.target.value)} className={selectCls}>
+                    <option value="">—</option>
+                    {PRODUCT_BRANDS.map(b => <option key={b}>{b}</option>)}
+                  </select>
+                </td>
+                <td className="px-0 py-1 border-r border-[hsl(125,30%,80%)]">
+                  <input value={newRow.size} onChange={e => updateNewRow('size', e.target.value)} className={inputCls} placeholder="60×60" />
+                </td>
+                <td className="px-0 py-1 border-r border-[hsl(125,30%,80%)]">
+                  <select value={newRow.finish} onChange={e => updateNewRow('finish', e.target.value)} className={selectCls}>
+                    {FINISHES.map(f => <option key={f}>{f}</option>)}
+                  </select>
+                </td>
+                <td className="px-0 py-1 border-r border-[hsl(125,30%,80%)]">
+                  <input type="number" value={newRow.buyRate} onChange={e => updateNewRow('buyRate', e.target.value)} className={`${inputCls} text-right`} placeholder="৳ Buy" />
+                </td>
+                <td className="px-0 py-1 border-r border-[hsl(125,30%,80%)] bg-[hsl(54,97%,92%)] dark:bg-[hsl(54,30%,15%)]">
+                  <input type="number" value={newRow.pricePerBox} onChange={e => updateNewRow('pricePerBox', e.target.value)} className={`${inputCls} text-right font-bold`} placeholder="৳ Sale *" />
+                </td>
+                <td className="px-0 py-1 border-r border-[hsl(125,30%,80%)]">
+                  <input type="number" value={newRow.sqftPerBox} onChange={e => updateNewRow('sqftPerBox', e.target.value)} className={`${inputCls} text-center`} placeholder="sqft" />
+                </td>
+                <td className="px-0 py-1 border-r border-[hsl(125,30%,80%)]">
+                  <input type="number" value={newRow.piecesPerBox} onChange={e => updateNewRow('piecesPerBox', e.target.value)} className={`${inputCls} text-center`} placeholder="pcs" />
+                </td>
+                <td className="px-0 py-1 border-r border-[hsl(125,30%,80%)]">
+                  <input type="number" value={newRow.stock} onChange={e => updateNewRow('stock', e.target.value)} className={`${inputCls} text-center`} placeholder="qty" />
+                </td>
+                <td className="px-0 py-1 border-r border-[hsl(125,30%,80%)]">
+                  <input value={newRow.batch} onChange={e => updateNewRow('batch', e.target.value)} className={inputCls} placeholder="batch" />
+                </td>
+                <td className="px-2 py-1 text-center">
+                  <button onClick={autoSaveRow} disabled={!isRowComplete(newRow)}
+                    className="w-7 h-7 rounded-lg bg-[hsl(125,60%,35%)] text-white flex items-center justify-center disabled:opacity-30 hover:bg-[hsl(125,60%,28%)] transition-colors mx-auto"
+                    title="Save (Enter)">
+                    <span className="material-symbols-outlined text-sm">check</span>
+                  </button>
+                </td>
               </tr>
             </thead>
             <tbody className="divide-y divide-pos-surface-container">
