@@ -561,7 +561,9 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
               {settings.email && <div className="text-[10px] text-muted-foreground">{settings.email}</div>}
             </div>
             {/* Right: QR Code */}
-            <div className="shrink-0" dangerouslySetInnerHTML={{ __html: generateQRSVG(`NEW-${dateStr}`, 64) }} />
+            <div className="shrink-0">
+              <QRCodeSVG data={`${settings.name}-${settings.phone || ''}-${dateStr}`} size={64} />
+            </div>
           </div>
         </div>
 
