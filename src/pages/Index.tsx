@@ -17,9 +17,11 @@ import { useProducts, useCustomers, useSales, useSuppliers, usePurchases, useCom
 export default function Index() {
   const [activeScreen, setActiveScreen] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { products, addProduct, updateProduct, deleteProduct, deductStock, setProducts } = useProducts();
+  const { products, addProduct, updateProduct, deleteProduct, deductStock, addStock, setProducts } = useProducts();
   const { customers, addCustomer, deleteCustomer, updateCustomerSpend } = useCustomers();
   const { sales, addSale, deleteSale } = useSales();
+  const { suppliers, addSupplier, deleteSupplier, updateSupplierDue } = useSuppliers();
+  const { purchases, addPurchase, deletePurchase } = usePurchases();
   const { settings, setSettings } = useCompanySettings();
 
   const handleSaleComplete = useCallback((sale: SaleRecord, stockDeductions: { productId: string; qty: number }[]) => {
