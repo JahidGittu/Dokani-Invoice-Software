@@ -196,7 +196,11 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
   // Calculations
   const subtotal = rows.reduce((sum, r) => sum + (r.qty * r.rate), 0);
   const discountVal = calcDiscount(subtotal, parseFloat(discount) || 0, discountType);
-  const total = Math.max(0, subtotal - discountVal);
+  const deliveryVal = parseFloat(delivery) || 0;
+  const labourVal = parseFloat(labour) || 0;
+  const total = Math.max(0, subtotal - discountVal + deliveryVal + labourVal);
+  const paidVal = parseFloat(paidAmount) || 0;
+  const dueVal = Math.max(0, total - paidVal);
   const receivedNum = parseFloat(received) || 0;
   const change = receivedNum > 0 && receivedNum >= total ? receivedNum - total : 0;
 
