@@ -173,6 +173,12 @@ export default function SettingsScreen({ settings, onUpdateSettings, onSignOut }
         <span className="material-symbols-outlined">save</span>{t('saveAllSettings')}
       </button>
 
+      {onSignOut && (
+        <button onClick={onSignOut} className="w-full py-3 bg-pos-error-container text-pos-on-error-container rounded-xl font-bold flex items-center justify-center gap-2 hover:-translate-y-0.5 transition-transform">
+          <span className="material-symbols-outlined">logout</span>{t('logout') || 'Logout'}
+        </button>
+      )}
+
       <div className="bg-pos-surface-lowest rounded-xl p-4 sm:p-6 border border-pos-surface-container">
         <h3 className="text-sm font-bold text-pos-on-surface-variant uppercase tracking-widest mb-4">{t('dataManagement')}</h3>
         <p className="text-xs text-pos-on-surface-variant mb-4">{t('dataStoredLocally')}</p>
