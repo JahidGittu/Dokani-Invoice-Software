@@ -32,10 +32,10 @@ export default function TransactionsScreen({ sales, purchases }: TransactionsScr
         id: p.id,
         date: p.date,
         type: 'expense',
-        description: `Purchase from ${p.supplier}`,
+        description: `Purchase from ${p.supplierName}`,
         amount: p.total,
         method: p.paymentMethod || 'Cash',
-        reference: p.id.slice(0, 8),
+        reference: p.invoice || p.id.slice(0, 8),
       });
     });
 
