@@ -15,17 +15,18 @@ import SupplierScreen from "@/components/screens/SupplierScreen";
 import TransactionsScreen from "@/components/screens/TransactionsScreen";
 import StaffsScreen from "@/components/screens/StaffsScreen";
 import SmsEmailScreen from "@/components/screens/SmsEmailScreen";
-import { useProducts, useCustomers, useSales, useSuppliers, usePurchases, useCompanySettings, type SaleRecord, type Product } from "@/lib/store";
+import { useSupabaseProducts, useSupabaseCustomers, useSupabaseSales, useSupabaseSuppliers, useSupabasePurchases, useSupabaseSettings } from "@/lib/supabase-store";
+import { type SaleRecord, type Product } from "@/lib/store";
 
 export default function Index() {
   const [activeScreen, setActiveScreen] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { products, addProduct, updateProduct, deleteProduct, deductStock, addStock, setProducts } = useProducts();
-  const { customers, addCustomer, deleteCustomer, updateCustomerSpend } = useCustomers();
-  const { sales, addSale, deleteSale } = useSales();
-  const { suppliers, addSupplier, deleteSupplier, updateSupplierDue } = useSuppliers();
-  const { purchases, addPurchase, deletePurchase } = usePurchases();
-  const { settings, setSettings } = useCompanySettings();
+  const { products, addProduct, updateProduct, deleteProduct, deductStock, addStock, setProducts } = useSupabaseProducts();
+  const { customers, addCustomer, deleteCustomer, updateCustomerSpend } = useSupabaseCustomers();
+  const { sales, addSale, deleteSale } = useSupabaseSales();
+  const { suppliers, addSupplier, deleteSupplier, updateSupplierDue } = useSupabaseSuppliers();
+  const { purchases, addPurchase, deletePurchase } = useSupabasePurchases();
+  const { settings, setSettings } = useSupabaseSettings();
 
   const handleSaleComplete = useCallback((sale: SaleRecord, stockDeductions: { productId: string; qty: number }[]) => {
     addSale(sale);
