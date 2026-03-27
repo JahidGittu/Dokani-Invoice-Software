@@ -23,6 +23,7 @@ interface NewSaleRow {
   showDropdown: boolean;
   carton: number;
   piece: number;
+  sqftInput: string; // user-entered sqft for auto-calc
 }
 
 interface NewSaleScreenProps {
@@ -144,7 +145,7 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
   const [returnAmt, setReturnAmt] = useState('');
   const [lessAmt, setLessAmt] = useState('');
   const [paidAmount, setPaidAmount] = useState('');
-  const [rows, setRows] = useState<NewSaleRow[]>([{ id: Date.now(), productId: '', qty: 1, rate: 0, searchQuery: '', showDropdown: false, carton: 0, piece: 0 }]);
+  const [rows, setRows] = useState<NewSaleRow[]>([{ id: Date.now(), productId: '', qty: 1, rate: 0, searchQuery: '', showDropdown: false, carton: 0, piece: 0, sqftInput: '' }]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [barcodeInput, setBarcodeInput] = useState('');
   const [showScanModal, setShowScanModal] = useState(false);
@@ -165,27 +166,53 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
     setCustomerName(c.name); setPhone(c.phone || ''); setAddress(c.address || ''); setShowSuggestions(false);
   };
 
-  const addRow = () => setRows(prev => [...prev, { id: Date.now(), productId: '', qty: 1, rate: 0, searchQuery: '', showDropdown: false, carton: 0, piece: 0 }]);
+  const addRow = () => setRows(prev => [...prev, { id: Date.now(), productId: '', qty: 1, rate: 0, searchQuery: '', showDropdown: false, carton: 0, piece: 0, sqftInput: '' }]);
   const removeRow = (id: number) => setRows(prev => prev.length <= 1 ? prev : prev.filter(r => r.id !== id));
   const updateRow = (id: number, field: keyof NewSaleRow, value: string | number | boolean) => {
     setRows(prev => prev.map(r => {
       if (r.id !== id) return r;
       const updated = { ...r, [field]: value };
-      // Sync: carton change → qty = carton, recalc sqft
-      if (field === 'carton') {
-        const ctn = Number(value) || 0;
-        updated.qty = ctn; // qty = total cartons (boxes)
+      const product = products.find(p => p.id === updated.productId);
+      const piecesPerBox = product?.piecesPerBox || 4;
+      const sqftPerBox = product?.sqftPerBox || 0;
+      const sqftPerPiece = piecesPerBox > 0 ? sqftPerBox / piecesPerBox : 0;
+
+      if (field === 'sqftInput') {
+        // User entered sqft → auto-calculate cartons and pieces
+        const totalSqft = parseFloat(String(value)) || 0;
+        if (sqftPerBox > 0 && totalSqft > 0) {
+          const totalBoxes = totalSqft / sqftPerBox;
+          updated.carton = Math.floor(totalBoxes);
+          const remainingSqft = totalSqft - (updated.carton * sqftPerBox);
+          updated.piece = sqftPerPiece > 0 ? Math.round(remainingSqft / sqftPerPiece) : 0;
+          // If pieces equal a full box, convert
+          if (updated.piece >= piecesPerBox) {
+            updated.carton += 1;
+            updated.piece = 0;
+          }
+        } else {
+          updated.carton = 0;
+          updated.piece = 0;
+        }
+        updated.qty = updated.carton;
+      } else if (field === 'carton' || field === 'piece') {
+        // User changed carton/piece → update sqft display
+        const ctn = field === 'carton' ? (Number(value) || 0) : updated.carton;
+        const pc = field === 'piece' ? (Number(value) || 0) : updated.piece;
+        const totalSqft = (ctn * sqftPerBox) + (pc * sqftPerPiece);
+        updated.sqftInput = totalSqft > 0 ? totalSqft.toFixed(1) : '';
+        updated.qty = ctn;
       }
       return updated;
     }));
   };
   const selectProduct = (rowId: number, productId: string) => {
     if (!productId) {
-      setRows(prev => prev.map(r => r.id === rowId ? { ...r, productId: '', rate: 0, carton: 0, piece: 0, qty: 0 } : r));
+      setRows(prev => prev.map(r => r.id === rowId ? { ...r, productId: '', rate: 0, carton: 0, piece: 0, sqftInput: '', qty: 0 } : r));
       return;
     }
     const p = products.find(x => x.id === productId);
-    if (p) setRows(prev => prev.map(r => r.id === rowId ? { ...r, productId, rate: p.pricePerBox, qty: 1, carton: 1, piece: 0 } : r));
+    if (p) setRows(prev => prev.map(r => r.id === rowId ? { ...r, productId, rate: p.pricePerBox, qty: 1, carton: 1, piece: 0, sqftInput: '' } : r));
   };
 
   const handleBarcode = (e: React.KeyboardEvent) => {
@@ -199,9 +226,9 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
       } else {
         const emptyRow = rows.find(r => !r.productId);
         if (emptyRow) {
-          setRows(prev => prev.map(r => r.id === emptyRow.id ? { ...r, productId: found.id, rate: found.pricePerBox, qty: 1, carton: 1, piece: 0, searchQuery: '' } : r));
+          setRows(prev => prev.map(r => r.id === emptyRow.id ? { ...r, productId: found.id, rate: found.pricePerBox, qty: 1, carton: 1, piece: 0, sqftInput: '', searchQuery: '' } : r));
         } else {
-          setRows(prev => [...prev, { id: Date.now(), productId: found.id, qty: 1, rate: found.pricePerBox, searchQuery: '', showDropdown: false, carton: 1, piece: 0 }]);
+          setRows(prev => [...prev, { id: Date.now(), productId: found.id, qty: 1, rate: found.pricePerBox, searchQuery: '', showDropdown: false, carton: 1, piece: 0, sqftInput: '' }]);
         }
       }
       toast.success(`${found.name} ${t('addedToCart')}`);
@@ -211,7 +238,12 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
     setBarcodeInput('');
   };
 
-  const subtotal = rows.reduce((sum, r) => sum + (r.carton * r.rate), 0);
+  const subtotal = rows.reduce((sum, r) => {
+    const product = products.find(p => p.id === r.productId);
+    const piecesPerBox = product?.piecesPerBox || 4;
+    const pricePerPiece = piecesPerBox > 0 ? r.rate / piecesPerBox : 0;
+    return sum + (r.carton * r.rate) + (r.piece * pricePerPiece);
+  }, 0);
   const discountVal = calcDiscount(subtotal, parseFloat(discount) || 0, discountType);
   const returnVal = parseFloat(returnAmt) || 0;
   const lessVal = parseFloat(lessAmt) || 0;
@@ -230,10 +262,15 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
   const bizInfoLine = [settings.phone, settings.address].filter(Boolean).join(' · ');
 
   const collectSaleData = (): { sale: SaleRecord; deductions: { productId: string; qty: number }[] } | null => {
-    const items = rows.filter(r => r.productId && r.carton > 0 && r.rate > 0).map(r => {
+    const items = rows.filter(r => r.productId && (r.carton > 0 || r.piece > 0) && r.rate > 0).map(r => {
       const p = products.find(x => x.id === r.productId);
       const ctn = r.carton;
-      return { productId: r.productId, name: p?.name || 'Custom Item', detail: p ? `${p.size} · ${p.finish}` : '', qty: ctn, price: r.rate, stock: p?.stock ?? 999, carton: ctn, piece: r.piece, sqftQty: ctn * (p?.sqftPerBox || 1), category: p?.category || '', itemType: 'Sale' as const };
+      const piecesPerBox = p?.piecesPerBox || 4;
+      const sqftPerPiece = piecesPerBox > 0 ? (p?.sqftPerBox || 0) / piecesPerBox : 0;
+      const sqftQty = (ctn * (p?.sqftPerBox || 0)) + (r.piece * sqftPerPiece);
+      const pricePerPiece = piecesPerBox > 0 ? r.rate / piecesPerBox : 0;
+      const itemTotal = (ctn * r.rate) + (r.piece * pricePerPiece);
+      return { productId: r.productId, name: p?.name || 'Custom Item', detail: p ? `${p.size} · ${p.finish}` : '', qty: ctn, price: r.rate, stock: p?.stock ?? 999, carton: ctn, piece: r.piece, sqftQty, category: p?.category || '', itemType: 'Sale' as const };
     });
     if (!items.length) { toast.error(t('addAtLeastOneItem')); return null; }
     const overStock = items.find(i => i.qty > i.stock);
@@ -269,8 +306,8 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
     setCustomerName(''); setPhone(''); setAddress(''); setNotes('');
     setDiscount(''); setReceived(''); setPayment('cash'); setStatus('paid');
     setDelivery(''); setLabour(''); setPaidAmount(''); setReturnAmt(''); setLessAmt('');
-    setRows([{ id: Date.now(), productId: '', qty: 1, rate: 0, searchQuery: '', showDropdown: false, carton: 0, piece: 0 }]);
-    setRows([{ id: Date.now(), productId: '', qty: 1, rate: 0, searchQuery: '', showDropdown: false, carton: 0, piece: 0 }]);
+    setRows([{ id: Date.now(), productId: '', qty: 1, rate: 0, searchQuery: '', showDropdown: false, carton: 0, piece: 0, sqftInput: '' }]);
+    setRows([{ id: Date.now(), productId: '', qty: 1, rate: 0, searchQuery: '', showDropdown: false, carton: 0, piece: 0, sqftInput: '' }]);
   };
 
   const handleSaveAndPrint = () => {
@@ -658,8 +695,11 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
               <tbody>
                 {rows.map((row, idx) => {
                   const product = products.find(p => p.id === row.productId);
-                  const sqftQty = row.carton * (product?.sqftPerBox || 0);
-                  const rowTotal = row.carton * row.rate;
+                  const piecesPerBox = product?.piecesPerBox || 4;
+                  const sqftPerPiece = piecesPerBox > 0 ? (product?.sqftPerBox || 0) / piecesPerBox : 0;
+                  const sqftQty = (row.carton * (product?.sqftPerBox || 0)) + (row.piece * sqftPerPiece);
+                  const pricePerPiece = piecesPerBox > 0 ? row.rate / piecesPerBox : 0;
+                  const rowTotal = (row.carton * row.rate) + (row.piece * pricePerPiece);
                   return (
                     <tr key={row.id} className="border-b border-border/50 hover:bg-muted/20 transition-colors align-top">
                       <td className="py-2 px-2 text-xs font-semibold text-muted-foreground">{idx + 1}</td>
@@ -673,6 +713,7 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
                             className="w-10 bg-muted/30 border border-border rounded text-xs py-1 text-center outline-none focus:border-primary" placeholder="0" />
                           <span className="text-[8px] text-muted-foreground">Pc</span>
                         </div>
+                        {product && <div className="text-[8px] text-muted-foreground mt-0.5">{piecesPerBox} pcs/box</div>}
                       </td>
                       <td className="py-2 px-2 text-[10px] text-muted-foreground">{product?.category || '-'}</td>
                       <td className="py-2 px-2 relative">
@@ -687,15 +728,18 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
                           t={t as (key: string) => string}
                         />
                       </td>
-                      <td className="py-2 px-2 text-right">
-                        <div className="text-xs font-semibold">{sqftQty > 0 ? `${sqftQty.toFixed(1)} sqft` : '-'}</div>
+                      <td className="py-2 px-2">
+                        <input type="number" min={0} step="0.1" value={row.sqftInput} onChange={e => updateRow(row.id, 'sqftInput', e.target.value)}
+                          className="w-16 bg-[hsl(200,100%,96%)] border border-[hsl(200,60%,70%)] rounded text-xs py-1 text-center outline-none focus:border-primary" placeholder="sqft" />
+                        {sqftQty > 0 && <div className="text-[8px] text-muted-foreground text-center mt-0.5">{sqftQty.toFixed(1)} sqft</div>}
                       </td>
                       <td className="py-2 px-2">
                         <input type="number" value={row.rate || ''} onChange={e => updateRow(row.id, 'rate', parseFloat(e.target.value) || 0)}
                           className="w-16 bg-muted/30 border border-border rounded text-xs py-1 text-right outline-none focus:border-primary px-1" />
+                        {product && piecesPerBox > 0 && <div className="text-[8px] text-muted-foreground text-right mt-0.5">৳{Math.round(row.rate / piecesPerBox)}/pc</div>}
                       </td>
                       <td className="py-2 px-2 text-right">
-                        <span className="text-xs font-bold text-foreground">{formatCurrency(rowTotal)}</span>
+                        <span className="text-xs font-bold text-foreground">{formatCurrency(Math.round(rowTotal))}</span>
                       </td>
                       <td className="py-2 px-1">
                         <button onClick={() => removeRow(row.id)} className="w-5 h-5 rounded hover:bg-destructive/10 text-destructive flex items-center justify-center">
@@ -908,7 +952,7 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
                           if (emptyRow) {
                             setRows(prev => prev.map(r => r.id === emptyRow.id ? { ...r, productId: found.id, rate: found.pricePerBox, qty: 1, searchQuery: '' } : r));
                           } else {
-                            setRows(prev => [...prev, { id: Date.now(), productId: found.id, qty: 1, rate: found.pricePerBox, searchQuery: '', showDropdown: false, carton: 0, piece: 0 }]);
+                            setRows(prev => [...prev, { id: Date.now(), productId: found.id, qty: 1, rate: found.pricePerBox, searchQuery: '', showDropdown: false, carton: 0, piece: 0, sqftInput: '' }]);
                           }
                         }
                         setTimeout(() => { setShowScanModal(false); toast.success(`${found.name} ${t('addedToCart')}`); }, 1200);

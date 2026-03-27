@@ -21,7 +21,7 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
   const [editId, setEditId] = useState<string | null>(null);
   const [page, setPage] = useState(0);
   const [form, setForm] = useState({
-    name: '', size: '', finish: 'Glossy', pricePerBox: '', sqftPerBox: '', stock: '', batch: '',
+    name: '', size: '', finish: 'Glossy', pricePerBox: '', sqftPerBox: '', piecesPerBox: '4', stock: '', batch: '',
     barcode: '', category: 'Wall Tiles', brand: '', buyRate: '',
   });
 
@@ -40,13 +40,14 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginatedProducts = useMemo(() => filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE), [filtered, page]);
 
-  const resetForm = () => setForm({ name: '', size: '', finish: 'Glossy', pricePerBox: '', sqftPerBox: '', stock: '', batch: '', barcode: '', category: 'Wall Tiles', brand: '', buyRate: '' });
+  const resetForm = () => setForm({ name: '', size: '', finish: 'Glossy', pricePerBox: '', sqftPerBox: '', piecesPerBox: '4', stock: '', batch: '', barcode: '', category: 'Wall Tiles', brand: '', buyRate: '' });
 
   const handleSave = () => {
     if (!form.name || !form.pricePerBox) { toast.error(t('nameAndPriceReq')); return; }
     const data = {
       name: form.name, size: form.size, finish: form.finish,
       pricePerBox: parseFloat(form.pricePerBox), sqftPerBox: parseFloat(form.sqftPerBox) || 0,
+      piecesPerBox: parseInt(form.piecesPerBox) || 4,
       stock: parseInt(form.stock) || 0, batch: form.batch,
       barcode: form.barcode, category: form.category, brand: form.brand,
       buyRate: parseFloat(form.buyRate) || 0,
@@ -65,6 +66,7 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
     setForm({
       name: p.name, size: p.size, finish: p.finish,
       pricePerBox: String(p.pricePerBox), sqftPerBox: String(p.sqftPerBox),
+      piecesPerBox: String(p.piecesPerBox || 4),
       stock: String(p.stock), batch: p.batch,
       barcode: p.barcode || '', category: p.category || 'Wall Tiles',
       brand: p.brand || '', buyRate: String(p.buyRate || 0),
@@ -189,6 +191,7 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
               <div><label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">{t('buyRateLabel')} (৳)</label><input value={form.buyRate} onChange={e => setForm(f => ({ ...f, buyRate: e.target.value }))} type="number" className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" placeholder="900" /></div>
               <div><label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">{t('salesRateLabel')} (৳) *</label><input value={form.pricePerBox} onChange={e => setForm(f => ({ ...f, pricePerBox: e.target.value }))} type="number" className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" placeholder="1200" /></div>
               <div><label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">{t('sqftPerBox')}</label><input value={form.sqftPerBox} onChange={e => setForm(f => ({ ...f, sqftPerBox: e.target.value }))} type="number" className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" placeholder="9.2" /></div>
+              <div><label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">Pieces/Box (পিস/বক্স)</label><input value={form.piecesPerBox} onChange={e => setForm(f => ({ ...f, piecesPerBox: e.target.value }))} type="number" className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" placeholder="4" /></div>
               <div><label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">{t('stock')} ({t('boxes')})</label><input value={form.stock} onChange={e => setForm(f => ({ ...f, stock: e.target.value }))} type="number" className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" placeholder="100" /></div>
               <div><label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">{t('barcode')}</label><input value={form.barcode} onChange={e => setForm(f => ({ ...f, barcode: e.target.value }))} className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" placeholder="01" /></div>
               <div><label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">{t('batchNo')}</label><input value={form.batch} onChange={e => setForm(f => ({ ...f, batch: e.target.value }))} className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" placeholder="BT-2501" /></div>

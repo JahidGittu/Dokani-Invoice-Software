@@ -118,6 +118,7 @@ export type Database = {
           finish: string
           id: string
           name: string
+          pieces_per_box: number
           price_per_box: number
           size: string
           sqft_per_box: number
@@ -135,6 +136,7 @@ export type Database = {
           finish?: string
           id?: string
           name: string
+          pieces_per_box?: number
           price_per_box?: number
           size?: string
           sqft_per_box?: number
@@ -152,6 +154,7 @@ export type Database = {
           finish?: string
           id?: string
           name?: string
+          pieces_per_box?: number
           price_per_box?: number
           size?: string
           sqft_per_box?: number

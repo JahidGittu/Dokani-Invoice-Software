@@ -24,6 +24,7 @@ export function useSupabaseProducts() {
       finish: p.finish,
       pricePerBox: Number(p.price_per_box),
       sqftPerBox: Number(p.sqft_per_box),
+      piecesPerBox: Number((p as any).pieces_per_box) || 4,
       stock: p.stock,
       batch: p.batch,
       barcode: p.barcode || '',
@@ -43,7 +44,7 @@ export function useSupabaseProducts() {
       price_per_box: p.pricePerBox, sqft_per_box: p.sqftPerBox,
       stock: p.stock, batch: p.batch, barcode: (p as any).barcode || '',
       category: (p as any).category || '', brand: (p as any).brand || '',
-      buy_rate: (p as any).buyRate || 0,
+      buy_rate: (p as any).buyRate || 0, pieces_per_box: p.piecesPerBox || 4,
     } as any);
     if (error) { toast.error('Failed to add product'); return; }
     fetchProducts();
@@ -62,6 +63,7 @@ export function useSupabaseProducts() {
     if ((updates as any).category !== undefined) dbUpdates.category = (updates as any).category;
     if ((updates as any).brand !== undefined) dbUpdates.brand = (updates as any).brand;
     if ((updates as any).buyRate !== undefined) dbUpdates.buy_rate = (updates as any).buyRate;
+    if (updates.piecesPerBox !== undefined) dbUpdates.pieces_per_box = updates.piecesPerBox;
     const { error } = await supabase.from('products').update(dbUpdates as any).eq('id', id);
     if (error) { toast.error('Failed to update product'); return; }
     fetchProducts();
