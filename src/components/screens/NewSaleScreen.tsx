@@ -108,9 +108,10 @@ function ProductPicker({
             <button key={p.id} onMouseDown={() => handleSelect(p)}
               disabled={p.stock <= 0}
               className={`w-full text-left px-3 py-2 text-xs hover:bg-accent transition-colors flex items-center gap-2 ${p.stock <= 0 ? 'opacity-40 cursor-not-allowed' : ''}`}>
+              <div className="w-8 text-[10px] text-muted-foreground font-mono">{p.barcode || '—'}</div>
               <div className="flex-1 min-w-0">
-                <div className="font-semibold truncate">{p.name}</div>
-                <div className="text-[10px] text-muted-foreground">{p.size} · {p.finish} · {p.batch}</div>
+                <div className="font-semibold truncate">{p.name} <span className="text-muted-foreground font-normal">({p.size})</span></div>
+                <div className="text-[10px] text-muted-foreground">{p.category || ''} · {p.brand || ''} · {p.finish}</div>
               </div>
               <div className="text-right shrink-0">
                 <div className="font-bold text-primary text-[11px]">৳{p.pricePerBox}</div>

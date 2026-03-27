@@ -133,9 +133,12 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
                       {p.stock} {t('boxes')} {p.stock <= 20 && '⚠'}
                     </span>
                   </td>
-                  <td className="px-4 sm:px-6 py-4 text-right space-x-2">
-                    <button onClick={() => openEdit(p)} className="text-pos-secondary text-xs font-semibold hover:underline">{t('edit')}</button>
-                    {onDeleteProduct && <button onClick={() => setShowDeleteConfirm(p.id)} className="text-pos-error text-xs font-semibold hover:underline">{t('delete')}</button>}
+                  <td className="px-4 sm:px-6 py-4 text-right">
+                    <div className="flex justify-end gap-1">
+                      <button onClick={() => openEdit(p)} className="w-7 h-7 rounded bg-[hsl(125,60%,35%)] text-white flex items-center justify-center" title={t('edit')}><span className="material-symbols-outlined text-sm">edit</span></button>
+                      <button className="w-7 h-7 rounded bg-pos-secondary text-white flex items-center justify-center" title={t('barcode')}><span className="material-symbols-outlined text-sm">barcode</span></button>
+                      {onDeleteProduct && <button onClick={() => setShowDeleteConfirm(p.id)} className="w-7 h-7 rounded bg-pos-error text-white flex items-center justify-center" title={t('delete')}><span className="material-symbols-outlined text-sm">delete</span></button>}
+                    </div>
                   </td>
                 </tr>
               ))}
