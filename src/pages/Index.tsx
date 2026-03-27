@@ -1,6 +1,4 @@
 import { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import DashboardScreen from "@/components/screens/DashboardScreen";
@@ -12,48 +10,33 @@ import CustomersScreen from "@/components/screens/CustomersScreen";
 import ReportsScreen from "@/components/screens/ReportsScreen";
 import SettingsScreen from "@/components/screens/SettingsScreen";
 import ExcelImportScreen from "@/components/screens/ExcelImportScreen";
-import { useSupabaseProducts, useSupabaseCustomers, useSupabaseSales, useSupabaseSettings } from "@/lib/supabase-store";
-import { formatCurrency, calcDiscount, getLowStockProducts } from "@/lib/store";
-import type { SaleRecord, Product } from "@/lib/store";
+import { useProducts, useCustomers, useSales, useCompanySettings, type SaleRecord, type Product } from "@/lib/store";
 
 export default function Index() {
-  const { user, loading: authLoading, signOut } = useAuth();
-  const navigate = useNavigate();
-  
   const [activeScreen, setActiveScreen] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  
-  const { products, addProduct, updateProduct, deleteProduct, deductStock } = useSupabaseProducts();
-  const { customers, addCustomer, deleteCustomer, updateCustomerSpend } = useSupabaseCustomers();
-  const { sales, addSale, deleteSale } = useSupabaseSales();
-  const { settings, setSettings, getNextInvoiceNumber } = useSupabaseSettings();
+  const { products, addProduct, updateProduct, deleteProduct, deductStock, setProducts } = useProducts();
+  const { customers, addCustomer, deleteCustomer, updateCustomerSpend } = useCustomers();
+  const { sales, addSale, deleteSale } = useSales();
+  const { settings, setSettings } = useCompanySettings();
 
-  // Redirect to auth if not logged in
-  useEffect(() => {
-    if (!authLoading && !user) {
-      navigate('/auth');
-    }
-  }, [user, authLoading, navigate]);
-
-  const handleSaleComplete = useCallback(async (sale: SaleRecord, stockDeductions: { productId: string; qty: number }[]) => {
-    await addSale(sale);
-    await deductStock(stockDeductions);
+  const handleSaleComplete = useCallback((sale: SaleRecord, stockDeductions: { productId: string; qty: number }[]) => {
+    addSale(sale);
+    deductStock(stockDeductions);
     const walkInNames = ['Walk-in Customer', 'সরাসরি কাস্টমার'];
     if (!walkInNames.includes(sale.customer) && sale.customer.trim()) {
-      await updateCustomerSpend(sale.customer, sale.total);
+      updateCustomerSpend(sale.customer, sale.total);
     }
   }, [addSale, deductStock, updateCustomerSpend]);
 
-  const handleAutoAddCustomer = useCallback(async (name: string, phone: string, address: string) => {
+  const handleAutoAddCustomer = useCallback((name: string, phone: string, address: string) => {
     if (!customers.find(c => c.name === name)) {
-      await addCustomer(name, phone, address);
+      addCustomer(name, phone, address);
     }
   }, [customers, addCustomer]);
 
-  const handleImportProducts = useCallback(async (newProducts: Omit<Product, 'id'>[]) => {
-    for (const p of newProducts) {
-      await addProduct(p);
-    }
+  const handleImportProducts = useCallback((newProducts: Omit<Product, 'id'>[]) => {
+    newProducts.forEach(p => addProduct(p));
   }, [addProduct]);
 
   // Dark mode init
@@ -65,39 +48,32 @@ export default function Index() {
     }
   }, [settings.darkMode]);
 
-  // F2 shortcut
+  // F2 shortcut to go to New Sale
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'F2') { e.preventDefault(); setActiveScreen('new-sale'); }
-      if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); document.getElementById('global-search')?.focus(); }
+      if (e.key === 'F2') {
+        e.preventDefault();
+        setActiveScreen('new-sale');
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        document.getElementById('global-search')?.focus();
+      }
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
   }, []);
-
-  if (authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-pos-surface">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-pos-secondary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-pos-on-surface-variant text-sm">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) return null;
 
   const renderScreen = () => {
     switch (activeScreen) {
       case 'dashboard': return <DashboardScreen onNavigate={setActiveScreen} products={products} customers={customers} sales={sales} />;
       case 'products': return <ProductsScreen products={products} onAddProduct={addProduct} onUpdateProduct={updateProduct} onDeleteProduct={deleteProduct} />;
       case 'sales': return <SalesScreen products={products} customers={customers} sales={sales} onSaleComplete={handleSaleComplete} onDeleteSale={deleteSale} companyName={settings.name} companyPhone={settings.phone} companyAddress={settings.address} onNavigate={setActiveScreen} />;
-      case 'new-sale': return <NewSaleScreen products={products} customers={customers} settings={settings} onSaleComplete={handleSaleComplete} onAutoAddCustomer={handleAutoAddCustomer} getNextInvoiceNumber={getNextInvoiceNumber} />;
+      case 'new-sale': return <NewSaleScreen products={products} customers={customers} settings={settings} onSaleComplete={handleSaleComplete} onAutoAddCustomer={handleAutoAddCustomer} />;
       case 'inventory': return <InventoryScreen products={products} onUpdateProduct={updateProduct} />;
       case 'customers': return <CustomersScreen customers={customers} onAddCustomer={addCustomer} onDeleteCustomer={deleteCustomer} />;
       case 'reports': return <ReportsScreen sales={sales} products={products} customers={customers} />;
-      case 'settings': return <SettingsScreen settings={settings} onUpdateSettings={setSettings} onSignOut={signOut} />;
+      case 'settings': return <SettingsScreen settings={settings} onUpdateSettings={setSettings} />;
       case 'excel': return <ExcelImportScreen products={products} onImportProducts={handleImportProducts} />;
       default: return <DashboardScreen onNavigate={setActiveScreen} products={products} customers={customers} sales={sales} />;
     }
@@ -127,6 +103,7 @@ export default function Index() {
         />
         {renderScreen()}
       </main>
+      {/* FAB */}
       <button
         onClick={() => setActiveScreen('new-sale')}
         className="fixed bottom-8 right-8 w-14 h-14 bg-pos-secondary text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-110 active:scale-95 transition-all z-30"
