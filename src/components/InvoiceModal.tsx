@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { formatCurrency, type SaleRecord } from "@/lib/store";
+import { formatCurrency, numberToWords, type SaleRecord } from "@/lib/store";
 import { useI18n } from "@/lib/i18n";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
@@ -65,84 +65,86 @@ export default function InvoiceModal({ sale, companyName, companyPhone, companyA
   const generatePrintHTML = () => `<!DOCTYPE html><html><head><title>${sale.invoice}</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Inter','Segoe UI',Arial,sans-serif;padding:40px;color:#2d3435;font-size:13px;max-width:700px;margin:0 auto}
-.header{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:16px;border-bottom:3px solid #005cc1;margin-bottom:16px}
-.logo-area{display:flex;align-items:center;gap:12px}
-.logo-box{width:44px;height:44px;background:#005cc1;border-radius:8px;display:flex;align-items:center;justify-content:center;color:white;font-weight:900;font-size:16px}
-.title{font-size:22px;font-weight:900;letter-spacing:-.5px;color:#2d3435}
-.subtitle{font-size:10px;color:#5a6061;margin-top:2px}
-.inv-info{text-align:right}
-.inv-num{font-size:14px;font-weight:800;color:#005cc1;letter-spacing:.5px}
-.inv-date{font-size:11px;color:#5a6061;margin-top:2px}
-.inv-label{font-size:9px;font-weight:700;color:#5a6061;text-transform:uppercase;letter-spacing:1px}
-.customer-block{display:flex;justify-content:space-between;background:#f5f7f8;border-radius:8px;padding:14px 16px;margin-bottom:16px}
-.customer-block .label{font-size:9px;font-weight:700;text-transform:uppercase;color:#5a6061;letter-spacing:.5px;margin-bottom:4px}
-.customer-block .value{font-size:12px;font-weight:600;color:#2d3435}
-table{width:100%;border-collapse:collapse;margin-bottom:16px}
-thead tr{background:#f5f7f8}
-th{font-size:10px;font-weight:700;text-transform:uppercase;color:#5a6061;padding:10px 12px;text-align:left;letter-spacing:.5px}
-th:nth-child(2),th:nth-child(3){text-align:center}
+body{font-family:'Inter','Segoe UI',Arial,sans-serif;color:#2d3435;font-size:12px;background:#fff}
+.page{width:210mm;min-height:297mm;margin:0 auto;padding:15mm 18mm 12mm;position:relative}
+.header{text-align:center;padding-bottom:10px;border-bottom:2px solid #333;margin-bottom:12px;position:relative}
+.header .qr{position:absolute;right:0;top:0}
+.header .logo-box{width:48px;height:48px;background:#005cc1;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;color:white;font-weight:900;font-size:18px;margin-bottom:4px}
+.header .company{font-size:24px;font-weight:900;letter-spacing:-.5px}
+.header .subtitle{font-size:11px;color:#5a6061}
+.bill-title{text-align:center;font-size:18px;font-weight:900;margin:10px 0;letter-spacing:1px}
+.info-row{display:flex;justify-content:space-between;margin-bottom:10px;font-size:12px}
+.info-row .left div,.info-row .right div{margin-bottom:2px}
+.info-row .label{font-weight:400;min-width:80px;display:inline-block}
+.info-row .val{font-weight:700}
+table{width:100%;border-collapse:collapse;margin-bottom:10px}
+thead tr{background:#c0392b;color:#fff}
+th{font-size:10px;font-weight:700;text-transform:uppercase;padding:8px 6px;text-align:left}
 th:last-child{text-align:right}
-td{padding:10px 12px;font-size:12px;border-bottom:1px solid #f0f2f3}
-td:nth-child(2),td:nth-child(3){text-align:center}
+td{padding:7px 6px;font-size:11px;border-bottom:1px solid #e0e0e0}
 td:last-child{text-align:right;font-weight:600}
-.detail{font-size:10px;color:#5a6061}
-.summary{display:flex;justify-content:flex-end}
-.summary-table{width:220px}
-.summary-row{display:flex;justify-content:space-between;padding:5px 0;font-size:12px}
-.summary-row.total{font-size:18px;font-weight:900;padding:10px 0;border-top:2px solid #2d3435;margin-top:6px}
-.total-amount{color:#005cc1}
-.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:10px;font-weight:700;text-transform:uppercase}
-.badge-paid{background:#86ff90;color:#006120}
-.badge-pending{background:#fef08a;color:#854f0b}
-.badge-credit{background:#d8e2ff;color:#003d85}
-.footer-area{display:flex;justify-content:space-between;align-items:flex-end;margin-top:24px;border-top:1px solid #f0f2f3;padding-top:16px}
-.qr-area{display:flex;align-items:center;gap:8px}
-.qr-label{font-size:8px;color:#5a6061;text-align:center}
-.terms{font-size:9px;color:#5a6061;max-width:320px;line-height:1.5}
-.terms strong{font-size:10px;color:#2d3435}
-.thank-you{text-align:center;font-size:10px;color:#5a6061;margin-top:16px;padding-top:12px;border-top:1px solid #f0f2f3}
-@media print{body{padding:24px}}
+.bottom-section{display:flex;justify-content:space-between;margin-top:8px}
+.due-box{border:1px solid #333;border-radius:4px;padding:8px 12px;font-size:11px;width:200px}
+.due-box div{display:flex;justify-content:space-between;margin-bottom:3px}
+.due-box .val{font-weight:800}
+.summary-right{width:220px;text-align:right}
+.summary-right .row{display:flex;justify-content:space-between;padding:3px 0;font-size:12px}
+.summary-right .payable{font-size:18px;font-weight:900;border-top:2px solid #333;padding-top:6px;margin-top:4px}
+.remark-section{font-size:11px;margin-top:10px}
+.remark-section .inword{color:#005cc1;font-weight:700}
+.sig-row{display:flex;justify-content:space-between;margin-top:50px;padding-top:6px;border-top:1px solid #999;font-size:12px;color:#005cc1;font-weight:700}
+.disclaimer{text-align:center;margin-top:16px;font-size:11px;color:#c0392b;font-weight:700}
+.footer-print{text-align:center;font-size:9px;color:#888;margin-top:8px}
+@media print{@page{size:A4;margin:0} .page{padding:12mm 15mm}}
 </style></head><body>
+<div class="page">
 <div class="header">
-  <div class="logo-area">
-    <div class="logo-box">${companyName.slice(0, 2).toUpperCase()}</div>
-    <div><div class="title">${companyName}</div>${bizInfoLine ? `<div class="subtitle">${bizInfoLine}</div>` : ''}</div>
+  <div class="qr">${qrSVG}</div>
+  <div class="logo-box">${companyName.slice(0, 2).toUpperCase()}</div>
+  <div class="company">${companyName}</div>
+  ${bizInfoLine ? `<div class="subtitle">${bizInfoLine}</div>` : ''}
+</div>
+<div class="bill-title">BILL-INVOICE</div>
+<div class="info-row">
+  <div class="left">
+    <div><span class="label">Name</span>: <span class="val">${sale.customer}</span></div>
+    ${sale.address ? `<div><span class="label">Address</span>: <span class="val">${sale.address}</span></div>` : ''}
+    ${sale.phone ? `<div><span class="label">Mobile</span>: <span class="val">${sale.phone}</span></div>` : ''}
   </div>
-  <div class="inv-info">
-    <div class="inv-label">INVOICE / CHALLAN</div>
-    <div class="inv-num">${sale.invoice}</div>
-    <div class="inv-date">${dateStr} · ${sale.time}</div>
+  <div class="right">
+    <div><span class="label">Invoice#</span>: <span class="val">${sale.invoice}</span></div>
+    <div><span class="label">Date</span>: <span class="val">${dateStr}</span></div>
   </div>
 </div>
-<div class="customer-block">
-  <div><div class="label">Customer</div><div class="value">${sale.customer}</div></div>
-  ${sale.phone ? `<div><div class="label">Phone</div><div class="value">${sale.phone}</div></div>` : ''}
-  ${sale.address ? `<div><div class="label">Address</div><div class="value">${sale.address}</div></div>` : ''}
-  <div><div class="label">Payment</div><div class="value" style="text-transform:capitalize">${sale.paymentMethod}</div></div>
-</div>
-${sale.notes ? `<div style="font-size:11px;color:#5a6061;margin-bottom:12px;font-style:italic">Notes: ${sale.notes}</div>` : ''}
 <table>
-  <thead><tr><th>Product</th><th>Qty</th><th>Rate</th><th>Total</th></tr></thead>
-  <tbody>${sale.items.map((item, i) => `
-    <tr><td>${item.name}<div class="detail">${item.detail}</div></td><td>${item.qty}</td><td>${formatCurrency(item.price)}</td><td>${formatCurrency(item.price * item.qty)}</td></tr>
+  <thead><tr><th>SN</th><th>Type</th><th>Carton/Piece</th><th>Category</th><th>Product Name</th><th>Sqft./Qty.</th><th>Price</th><th>Sub Total</th></tr></thead>
+  <tbody>${sale.items.map((item, idx) => `
+    <tr><td>${idx + 1}</td><td>Sale</td><td>${item.carton ?? item.qty} Carton ${item.piece ?? 0} Piece</td><td>${item.category || '-'}</td><td>${item.name}</td><td>${item.sqftQty ?? item.qty}</td><td>${sale.items[idx] ? String(item.price) : '0'}</td><td>${String(item.price * item.qty)}</td></tr>
   `).join('')}</tbody>
 </table>
-<div class="summary"><div class="summary-table">
-  <div class="summary-row"><span>Subtotal</span><span>${formatCurrency(sale.subtotal)}</span></div>
-  ${sale.discount > 0 ? `<div class="summary-row" style="color:#9f403d"><span>Discount</span><span>-${formatCurrency(sale.discount)}</span></div>` : ''}
-  ${(sale.delivery ?? 0) > 0 ? `<div class="summary-row"><span>Delivery</span><span>+${formatCurrency(sale.delivery!)}</span></div>` : ''}
-  ${(sale.labour ?? 0) > 0 ? `<div class="summary-row"><span>Labour</span><span>+${formatCurrency(sale.labour!)}</span></div>` : ''}
-  <div class="summary-row total"><span>TOTAL</span><span class="total-amount">${formatCurrency(sale.total)}</span></div>
-  <div class="summary-row" style="font-weight:700;color:#006120"><span>Paid</span><span>${formatCurrency(sale.paid ?? sale.total)}</span></div>
-  ${(sale.due ?? 0) > 0 ? `<div class="summary-row" style="font-weight:700;color:#9f403d"><span>Due</span><span>${formatCurrency(sale.due!)}</span></div>` : ''}
-  <div class="summary-row"><span>Status</span><span class="badge badge-${sale.status}">${sale.status.toUpperCase()}</span></div>
-</div></div>
-<div class="footer-area">
-  <div class="qr-area">${qrSVG}<div class="qr-label">Scan to verify</div></div>
-  <div class="terms"><strong>Terms & Conditions</strong><br>• Goods once delivered cannot be returned.<br>• Prices subject to change without notice.<br>• Credit payment due within 30 days.</div>
+<div class="bottom-section">
+  <div class="due-box">
+    <div><span>Due In This Bill:</span><span class="val">${sale.due ?? 0}/-</span></div>
+    <div><span>Previous Dues:</span><span class="val">${sale.previousDues ?? 0}/-</span></div>
+    <div><span>Balance:</span><span class="val">${sale.balance ?? (sale.due ?? 0)}/-</span></div>
+  </div>
+  <div class="summary-right">
+    <div class="row"><span>Total:</span><span>${sale.subtotal}</span></div>
+    ${sale.discount > 0 ? `<div class="row"><span>Discount:</span><span>-${sale.discount}</span></div>` : ''}
+    ${(sale.labour ?? 0) > 0 ? `<div class="row"><span>Labour:</span><span>${sale.labour}</span></div>` : ''}
+    <div class="row payable"><span>PAYABLE:</span><span>${sale.total}</span></div>
+    <div class="row" style="color:#006120;font-weight:700"><span>Paid:</span><span>${sale.paid ?? sale.total}</span></div>
+  </div>
 </div>
-<div class="thank-you">${companyName ? `Thank you for shopping at ${companyName}!` : 'Thank you for your business!'}</div>
+<div class="remark-section">
+  <div><strong>Remark:</strong> ${sale.notes || ''}</div>
+  <div><strong>Total Quantity:</strong> ${sale.items.reduce((s: number, i: any) => s + i.qty, 0)}</div>
+  <div>In Word: <span class="inword">${typeof numberToWords === 'function' ? numberToWords(sale.total) : sale.total}</span></div>
+</div>
+<div class="sig-row"><span>Customer Signature</span><span>Authorized Signature</span></div>
+<div class="disclaimer">বিক্রিত মাল ১ মাসের মধ্যে ফেরত নেওয়া হয়।চায়না/ইন্ডিয়ান মাল ফেরত নেওয়া হয় না।</div>
+<div class="footer-print">SOFTWARE: ${companyName} | Printing @: ${new Date().toLocaleString()}</div>
+</div>
 </body></html>`;
 
   // Thermal receipt HTML (80mm width)
@@ -403,122 +405,98 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
     <div className="fixed inset-0 bg-black/35 flex items-center justify-center z-[1000]" onClick={onClose}>
       <div className="bg-pos-surface-lowest rounded-xl w-[95vw] max-w-[500px] shadow-2xl p-5 sm:p-7 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div ref={invoiceRef}>
-          {/* Professional Invoice Header */}
-          <div className="flex justify-between items-start mb-3 pb-3 border-b-[3px] border-pos-secondary">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-pos-secondary rounded-lg flex items-center justify-center text-white font-black text-sm">
-                {companyName.slice(0, 2).toUpperCase()}
-              </div>
-              <div>
-                <div className="text-lg font-black tracking-tighter">{companyName}</div>
-                {bizInfoLine && <div className="text-[10px] text-pos-on-surface-variant">{bizInfoLine}</div>}
-              </div>
+          {/* Header with QR */}
+          <div className="text-center pb-3 mb-3 border-b-2 border-foreground relative">
+            <div className="absolute right-0 top-0" dangerouslySetInnerHTML={{ __html: qrSVG }} />
+            <div className="w-10 h-10 bg-pos-secondary rounded-lg flex items-center justify-center text-white font-black text-sm mx-auto mb-1">
+              {companyName.slice(0, 2).toUpperCase()}
             </div>
-            <div className="text-right">
-              <div className="text-[9px] font-bold text-pos-on-surface-variant uppercase tracking-wider">Invoice / Challan</div>
-              <div className="text-sm font-black text-pos-secondary">{sale.invoice}</div>
-              <div className="text-[10px] text-pos-on-surface-variant">{dateStr} · {sale.time}</div>
+            <div className="text-lg font-black tracking-tighter">{companyName}</div>
+            {bizInfoLine && <div className="text-[10px] text-muted-foreground">{bizInfoLine}</div>}
+          </div>
+
+          <div className="text-center font-black text-base mb-3 tracking-wider">BILL-INVOICE</div>
+
+          {/* Customer & Invoice Info */}
+          <div className="flex justify-between text-[11px] mb-3">
+            <div className="space-y-0.5">
+              <div>Name : <strong>{sale.customer}</strong></div>
+              {sale.address && <div>Address : <strong>{sale.address}</strong></div>}
+              {sale.phone && <div>Mobile : <strong>{sale.phone}</strong></div>}
+            </div>
+            <div className="text-right space-y-0.5">
+              <div>Invoice# : <strong>{sale.invoice}</strong></div>
+              <div>Date : <strong>{dateStr}</strong></div>
             </div>
           </div>
 
-          {/* Customer Block */}
-          <div className="bg-pos-surface-high rounded-lg p-3 mb-3 grid grid-cols-3 gap-3">
-            <div>
-              <div className="text-[9px] font-bold text-pos-on-surface-variant uppercase">{t('customer')}</div>
-              <div className="text-xs font-semibold">{sale.customer}</div>
-            </div>
-            {sale.phone && (
-              <div>
-                <div className="text-[9px] font-bold text-pos-on-surface-variant uppercase">{t('phone').replace(' (optional)', '')}</div>
-                <div className="text-xs font-semibold">{sale.phone}</div>
-              </div>
-            )}
-            <div>
-              <div className="text-[9px] font-bold text-pos-on-surface-variant uppercase">{t('payment')}</div>
-              <div className="text-xs font-semibold capitalize">{sale.paymentMethod}</div>
-            </div>
-          </div>
-          {sale.notes && <div className="text-[10px] text-pos-on-surface-variant italic mb-3">Notes: {sale.notes}</div>}
-
-          {/* Items Table */}
+          {/* Items Table - matching reference */}
           <table className="w-full text-left mb-3">
             <thead>
-              <tr className="text-[9px] font-bold text-pos-on-surface-variant uppercase bg-pos-surface-high">
-                <th className="py-2 px-2 rounded-l">Product</th><th className="py-2 px-2 text-center">Qty</th><th className="py-2 px-2 text-right">Rate</th><th className="py-2 px-2 text-right rounded-r">{t('total')}</th>
+              <tr className="text-[8px] font-bold uppercase bg-destructive text-white">
+                <th className="py-1.5 px-1.5">SN</th>
+                <th className="py-1.5 px-1.5">Type</th>
+                <th className="py-1.5 px-1.5">Carton/Piece</th>
+                <th className="py-1.5 px-1.5">Category</th>
+                <th className="py-1.5 px-1.5">Product Name</th>
+                <th className="py-1.5 px-1.5 text-right">Sqft./Qty.</th>
+                <th className="py-1.5 px-1.5 text-right">Price</th>
+                <th className="py-1.5 px-1.5 text-right">Sub Total</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-pos-surface-container text-xs">
+            <tbody className="divide-y divide-border text-[10px]">
               {sale.items.map((item, i) => (
                 <tr key={i}>
-                  <td className="py-2 px-2">
-                    <div className="font-semibold">{item.name}</div>
-                    <div className="text-[10px] text-pos-on-surface-variant">{item.detail}</div>
-                  </td>
-                  <td className="py-2 px-2 text-center">{item.qty}</td>
-                  <td className="py-2 px-2 text-right text-pos-on-surface-variant">{formatCurrency(item.price)}</td>
-                  <td className="py-2 px-2 text-right font-semibold">{formatCurrency(item.price * item.qty)}</td>
+                  <td className="py-1.5 px-1.5">{i + 1}</td>
+                  <td className="py-1.5 px-1.5">Sale</td>
+                  <td className="py-1.5 px-1.5">{item.carton ?? item.qty} Carton {item.piece ?? 0} Piece</td>
+                  <td className="py-1.5 px-1.5">{item.category || '-'}</td>
+                  <td className="py-1.5 px-1.5 font-semibold">{item.name}</td>
+                  <td className="py-1.5 px-1.5 text-right">{item.sqftQty ?? item.qty}</td>
+                  <td className="py-1.5 px-1.5 text-right">{formatCurrency(item.price)}</td>
+                  <td className="py-1.5 px-1.5 text-right font-semibold">{formatCurrency(item.price * item.qty)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
 
-          {/* Totals */}
-          <div className="flex justify-end mb-3">
-            <div className="w-48 space-y-1">
-              <div className="flex justify-between text-xs text-pos-on-surface-variant">
-                <span>{t('subtotal')}</span><span>{formatCurrency(sale.subtotal)}</span>
+          {/* Due Box + Summary */}
+          <div className="flex justify-between mb-3">
+            <div className="border border-foreground rounded p-2 text-[10px] w-[170px] space-y-0.5">
+              <div className="flex justify-between"><span>Due In This Bill:</span><strong>{formatCurrency(sale.due ?? 0)}/-</strong></div>
+              <div className="flex justify-between"><span>Previous Dues:</span><strong>{formatCurrency(sale.previousDues ?? 0)}/-</strong></div>
+              <div className="flex justify-between"><span>Balance:</span><strong>{formatCurrency(sale.balance ?? (sale.due ?? 0))}/-</strong></div>
+            </div>
+            <div className="w-[170px] space-y-0.5 text-[11px]">
+              <div className="flex justify-between"><span>Total:</span><span>{formatCurrency(sale.subtotal)}</span></div>
+              {sale.discount > 0 && <div className="flex justify-between text-destructive"><span>Discount:</span><span>-{formatCurrency(sale.discount)}</span></div>}
+              {(sale.labour ?? 0) > 0 && <div className="flex justify-between"><span>Labour:</span><span>{formatCurrency(sale.labour!)}</span></div>}
+              <div className="flex justify-between font-black text-sm pt-1 border-t-2 border-foreground">
+                <span>PAYABLE:</span><span>{formatCurrency(sale.total)}</span>
               </div>
-              {sale.discount > 0 && (
-                <div className="flex justify-between text-xs text-pos-error">
-                  <span>{t('discount')}</span><span>-{formatCurrency(sale.discount)}</span>
-                </div>
-              )}
-              {(sale.delivery ?? 0) > 0 && (
-                <div className="flex justify-between text-xs text-pos-on-surface-variant">
-                  <span>{t('delivery')}</span><span>+{formatCurrency(sale.delivery!)}</span>
-                </div>
-              )}
-              {(sale.labour ?? 0) > 0 && (
-                <div className="flex justify-between text-xs text-pos-on-surface-variant">
-                  <span>{t('labour')}</span><span>+{formatCurrency(sale.labour!)}</span>
-                </div>
-              )}
-              <div className="flex justify-between font-black text-base pt-1 border-t-2 border-pos-on-surface">
-                <span>{t('total')}</span><span className="text-pos-secondary">{formatCurrency(sale.total)}</span>
-              </div>
-              <div className="flex justify-between text-xs font-bold text-[hsl(125,60%,35%)]">
-                <span>{t('paid')}</span><span>{formatCurrency(sale.paid ?? sale.total)}</span>
-              </div>
-              {(sale.due ?? 0) > 0 && (
-                <div className="flex justify-between text-xs font-bold text-pos-error">
-                  <span>{t('due')}</span><span>{formatCurrency(sale.due!)}</span>
-                </div>
-              )}
-              <div className="flex justify-between text-[10px] text-pos-on-surface-variant">
-                <span>{t('status')}</span>
-                <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${statusBadgeClass}`}>{sale.status}</span>
-              </div>
+              <div className="flex justify-between font-bold text-[hsl(125,60%,35%)]"><span>Paid:</span><span>{formatCurrency(sale.paid ?? sale.total)}</span></div>
             </div>
           </div>
 
-          {/* QR + Terms */}
-          <div className="flex justify-between items-end border-t border-pos-surface-container pt-3 mb-3">
-            <div className="flex items-center gap-2">
-              <div dangerouslySetInnerHTML={{ __html: generateQRSVG(`${sale.invoice}-${sale.total}`, 50) }} />
-              <div className="text-[8px] text-pos-on-surface-variant">Scan to<br/>verify</div>
-            </div>
-            <div className="text-right max-w-[240px]">
-              <div className="text-[9px] font-bold text-pos-on-surface mb-1">{t('termsAndConditions')}</div>
-              <div className="text-[8px] text-pos-on-surface-variant leading-relaxed">
-                • {t('goodsOnceDelivered')}<br/>
-                • {t('priceSubjectToChange')}<br/>
-                • {t('paymentDueWithin')}
-              </div>
-            </div>
+          {/* Remark & In Word */}
+          <div className="text-[10px] mb-2 space-y-0.5">
+            {sale.notes && <div><strong>Remark:</strong> {sale.notes}</div>}
+            <div><strong>Total Quantity:</strong> {sale.items.reduce((s, i) => s + i.qty, 0)}</div>
+            <div>In Word: <strong className="text-primary">{numberToWords(sale.total)}</strong></div>
           </div>
 
-          <div className="text-[10px] text-center text-pos-on-surface-variant border-t border-pos-surface-container pt-2 mb-3">
-            {companyName ? `${t('thankYou').replace('!', '')} ${companyName}!` : t('thankYou')}
+          {/* Signatures */}
+          <div className="flex justify-between mt-10 pt-1 border-t border-muted-foreground text-[11px] text-primary font-bold">
+            <span>Customer Signature</span>
+            <span>Authorized Signature</span>
+          </div>
+
+          {/* Disclaimer */}
+          <div className="text-center mt-4 text-[10px] text-destructive font-bold">
+            বিক্রিত মাল ১ মাসের মধ্যে ফেরত নেওয়া হয়।চায়না/ইন্ডিয়ান মাল ফেরত নেওয়া হয় না।
+          </div>
+          <div className="text-[8px] text-center text-muted-foreground mt-2 border-t border-border pt-1">
+            SOFTWARE: {companyName} | {new Date().toLocaleString()}
           </div>
         </div>
 

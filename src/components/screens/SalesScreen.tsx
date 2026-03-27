@@ -249,9 +249,21 @@ export default function SalesScreen({ products, customers, sales, onSaleComplete
                   <td className="px-3 sm:px-4 py-3 text-xs hidden lg:table-cell">{formatCurrency(s.lessAmount ?? 0)}</td>
                   <td className="px-3 sm:px-4 py-3 text-xs font-semibold text-[hsl(125,60%,35%)]">{formatCurrency(s.paid ?? s.total)}</td>
                   <td className={`px-3 sm:px-4 py-3 text-xs font-semibold ${saledue > 0 ? 'text-destructive' : 'text-[hsl(125,60%,35%)]'}`}>{formatCurrency(saledue)}</td>
-                  <td className="px-3 sm:px-4 py-3 text-right flex justify-end gap-2">
-                    <button onClick={() => reopenInvoice(s)} className="text-pos-secondary text-xs hover:underline">{t('view')}</button>
-                    <button onClick={() => setShowDeleteConfirm(s.id)} className="text-pos-error text-xs hover:underline">{t('delete')}</button>
+                  <td className="px-3 sm:px-4 py-3 text-right">
+                    <div className="relative inline-block">
+                      <button className="px-3 py-1.5 bg-pos-error text-white rounded text-xs font-semibold flex items-center gap-1"
+                        onClick={(e) => {
+                          const menu = e.currentTarget.nextElementSibling;
+                          if (menu) menu.classList.toggle('hidden');
+                        }}>
+                        Options <span className="material-symbols-outlined text-xs">arrow_drop_down</span>
+                      </button>
+                      <div className="hidden absolute right-0 top-full mt-1 bg-card border border-border rounded-lg shadow-xl z-20 min-w-[120px]">
+                        <button onClick={() => reopenInvoice(s)} className="w-full text-left px-3 py-2 text-xs hover:bg-accent flex items-center gap-2"><span className="material-symbols-outlined text-sm text-pos-secondary">visibility</span>{t('view')}</button>
+                        <button onClick={() => { /* edit logic */ }} className="w-full text-left px-3 py-2 text-xs hover:bg-accent flex items-center gap-2"><span className="material-symbols-outlined text-sm text-pos-secondary">edit</span>{t('edit')}</button>
+                        <button onClick={() => setShowDeleteConfirm(s.id)} className="w-full text-left px-3 py-2 text-xs hover:bg-accent flex items-center gap-2 text-destructive"><span className="material-symbols-outlined text-sm">delete</span>{t('delete')}</button>
+                      </div>
+                    </div>
                   </td>
                 </tr>
               )}) : (
