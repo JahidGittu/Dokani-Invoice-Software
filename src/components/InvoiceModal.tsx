@@ -46,7 +46,7 @@ export default function InvoiceModal({ sale, companyName, companyPhone, companyA
     } catch { return sale.date; }
   })();
 
-  const qrSVG = generateQRSVG(`${sale.invoice}-${sale.total}-${sale.date}`);
+  const qrImgTag = qrDataUrl ? `<img src="${qrDataUrl}" width="80" height="80" style="image-rendering:pixelated"/>` : '';
 
   const totalQty = sale.items.reduce((s, i) => s + (i.sqftQty ?? i.qty), 0);
   const dueInBill = sale.due ?? 0;
