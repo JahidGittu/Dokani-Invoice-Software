@@ -114,13 +114,18 @@ export default function ExcelImportScreen({ products, onImportProducts }: ExcelI
             <div className="space-y-3">
               {[
                 { label: t('tileName'), value: mapName, set: setMapName },
-                { label: t('rateArrow'), value: mapPrice, set: setMapPrice },
-                { label: t('qtyArrow'), value: mapQty, set: setMapQty },
+                { label: t('category'), value: mapCategory, set: setMapCategory },
+                { label: t('brand'), value: mapBrand, set: setMapBrand },
                 { label: t('sizeArrow'), value: mapSize, set: setMapSize },
                 { label: t('finishArrow'), value: mapFinish, set: setMapFinish },
+                { label: 'Sqft/Box →', value: mapSqft, set: setMapSqft },
+                { label: t('buyRate') + ' →', value: mapBuyRate, set: setMapBuyRate },
+                { label: t('rateArrow'), value: mapPrice, set: setMapPrice },
+                { label: t('qtyArrow'), value: mapQty, set: setMapQty },
+                { label: 'Batch →', value: mapBatch, set: setMapBatch },
               ].map(({ label, value, set }) => (
                 <div key={label} className="flex items-center gap-3">
-                  <span className="text-xs font-semibold text-pos-on-surface w-32 flex-shrink-0">{label}</span>
+                  <span className="text-xs font-semibold text-pos-on-surface w-28 flex-shrink-0">{label}</span>
                   <select value={value} onChange={e => set(e.target.value)} className="flex-1 bg-pos-surface-high border-none rounded-lg text-xs py-2 px-3 outline-none">
                     {colOptions.map((c, i) => <option key={i} value={String(i)}>{c}</option>)}
                   </select>
