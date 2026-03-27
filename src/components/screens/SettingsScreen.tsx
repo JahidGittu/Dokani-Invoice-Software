@@ -144,149 +144,172 @@ export default function SettingsScreen({ settings, onUpdateSettings }: SettingsS
   ];
 
   return (
-    <section className="p-4 sm:p-8 max-w-3xl mx-auto space-y-8">
-      <div>
-        <span className="text-xs text-pos-on-surface-variant uppercase tracking-widest block mb-2">{t('configuration')}</span>
-        <h2 className="text-3xl sm:text-5xl font-bold text-pos-on-surface leading-tight tracking-tighter">{t('settings')}</h2>
+    <section className="p-4 sm:p-6 max-w-7xl mx-auto">
+      <div className="mb-4">
+        <span className="text-xs text-pos-on-surface-variant uppercase tracking-widest block mb-1">{t('configuration')}</span>
+        <h2 className="text-2xl sm:text-3xl font-bold text-pos-on-surface leading-tight tracking-tighter">{t('settings')}</h2>
       </div>
 
-      {/* Appearance / Dark Mode */}
-      <div className="bg-pos-surface-lowest rounded-xl p-4 sm:p-6 border border-pos-surface-container">
-        <h3 className="text-sm font-bold text-pos-on-surface-variant uppercase tracking-widest mb-4">{t('appearance')}</h3>
-        <button
-          onClick={toggleDarkMode}
-          className="flex items-center gap-4 w-full p-4 rounded-xl hover:bg-pos-surface-high transition-colors"
-        >
-          <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${form.darkMode ? 'bg-indigo-900/30 text-indigo-400' : 'bg-amber-100 text-amber-600'}`}>
-            <span className="material-symbols-outlined text-2xl">{form.darkMode ? 'dark_mode' : 'light_mode'}</span>
-          </div>
-          <div className="text-left flex-1">
-            <div className="font-semibold text-pos-on-surface">{form.darkMode ? t('darkMode') : t('lightMode')}</div>
-            <div className="text-xs text-pos-on-surface-variant">{form.darkMode ? 'Switch to light theme' : 'Switch to dark theme'}</div>
-          </div>
-          <div className={`w-12 h-7 rounded-full relative transition-colors ${form.darkMode ? 'bg-pos-secondary' : 'bg-pos-surface-container-highest'}`}>
-            <div className={`absolute top-0.5 w-6 h-6 rounded-full bg-white shadow-md transition-transform ${form.darkMode ? 'translate-x-5' : 'translate-x-0.5'}`} />
-          </div>
-        </button>
-      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
-      <div className="bg-pos-surface-lowest rounded-xl p-4 sm:p-6 border border-pos-surface-container">
-        <h3 className="text-sm font-bold text-pos-on-surface-variant uppercase tracking-widest mb-4">{t('businessInfo')}</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="sm:col-span-2">
-            <label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">{t('businessName')}</label>
-            <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none text-pos-on-surface" />
-          </div>
-          <div>
-            <label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">{t('phoneLabel')}</label>
-            <input value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none text-pos-on-surface" />
-          </div>
-          <div>
-            <label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">{t('email')}</label>
-            <input value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} type="email" className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none text-pos-on-surface" />
-          </div>
-          <div className="sm:col-span-2">
-            <label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">{t('addressLabel')}</label>
-            <input value={form.address} onChange={e => setForm(f => ({ ...f, address: e.target.value }))} className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none text-pos-on-surface" />
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-pos-surface-lowest rounded-xl p-4 sm:p-6 border border-pos-surface-container">
-        <h3 className="text-sm font-bold text-pos-on-surface-variant uppercase tracking-widest mb-4">{t('userProfile')}</h3>
-        <div className="flex items-center gap-4 mb-4">
-          <div className="w-14 h-14 rounded-full bg-pos-secondary-container flex items-center justify-center">
-            <span className="text-lg font-bold text-pos-on-secondary-container">{initials}</span>
-          </div>
-          <div>
-            <div className="font-semibold text-pos-on-surface">{form.userName || 'User'}</div>
-            <div className="text-xs text-pos-on-surface-variant">{form.userRole}</div>
-          </div>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">{t('fullName')}</label>
-            <input value={form.userName} onChange={e => setForm(f => ({ ...f, userName: e.target.value }))} className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none text-pos-on-surface" />
-          </div>
-          <div>
-            <label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">{t('role')}</label>
-            <input value={form.userRole} onChange={e => setForm(f => ({ ...f, userRole: e.target.value }))} className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none text-pos-on-surface" />
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-pos-surface-lowest rounded-xl p-4 sm:p-6 border border-pos-surface-container">
-        <h3 className="text-sm font-bold text-pos-on-surface-variant uppercase tracking-widest mb-4">{t('systemSettings')}</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">{t('invoicePrefix')}</label>
-            <input value={form.invPrefix} onChange={e => setForm(f => ({ ...f, invPrefix: e.target.value }))} className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none text-pos-on-surface" placeholder="INV" />
-          </div>
-          <div>
-            <label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">{t('lowStockThreshold')}</label>
-            <input type="number" value={form.lowStockThreshold} onChange={e => setForm(f => ({ ...f, lowStockThreshold: parseInt(e.target.value) || 20 }))} className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none text-pos-on-surface" />
-          </div>
-        </div>
-      </div>
-
-      <button onClick={handleSave} className="w-full py-3 bg-gradient-to-b from-pos-secondary to-pos-secondary-dim text-white rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg hover:-translate-y-0.5 transition-transform">
-        <span className="material-symbols-outlined">save</span>{t('saveAllSettings')}
-      </button>
-
-      {/* ☁️ Cloud Backup Section */}
-      <div className="bg-pos-surface-lowest rounded-xl p-4 sm:p-6 border border-pos-surface-container">
-        <h3 className="text-sm font-bold text-pos-on-surface-variant uppercase tracking-widest mb-4">
-          {lang === 'bn' ? '☁️ ক্লাউড ব্যাকআপ' : '☁️ Cloud Backup'}
-        </h3>
-        {user ? (
-          <div className="space-y-3">
-            <div className="flex items-center gap-3 p-3 bg-pos-tertiary-container/30 rounded-lg">
-              <span className="material-symbols-outlined text-pos-tertiary">check_circle</span>
-              <div className="flex-1">
-                <div className="text-sm font-semibold text-pos-on-surface">
-                  {lang === 'bn' ? 'লগইন করা আছে' : 'Logged in'}
+        {/* ── Column 1: Business Info + User Profile ── */}
+        <div className="space-y-4">
+          {/* Business Info */}
+          <div className="bg-pos-surface-lowest rounded-xl p-4 border border-pos-surface-container">
+            <h3 className="text-[10px] font-bold text-pos-on-surface-variant uppercase tracking-widest mb-3 flex items-center gap-1.5">
+              <span className="material-symbols-outlined text-sm">store</span>{t('businessInfo')}
+            </h3>
+            <div className="space-y-2.5">
+              <div>
+                <label className="block text-[10px] font-bold text-pos-on-surface-variant uppercase mb-1">{t('businessName')}</label>
+                <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2 px-3 focus:ring-2 focus:ring-pos-secondary outline-none text-pos-on-surface" />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-[10px] font-bold text-pos-on-surface-variant uppercase mb-1">{t('phoneLabel')}</label>
+                  <input value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2 px-3 focus:ring-2 focus:ring-pos-secondary outline-none text-pos-on-surface" />
                 </div>
-                <div className="text-xs text-pos-on-surface-variant">{user.email}</div>
+                <div>
+                  <label className="block text-[10px] font-bold text-pos-on-surface-variant uppercase mb-1">{t('email')}</label>
+                  <input value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} type="email" className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2 px-3 focus:ring-2 focus:ring-pos-secondary outline-none text-pos-on-surface" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-pos-on-surface-variant uppercase mb-1">{t('addressLabel')}</label>
+                <input value={form.address} onChange={e => setForm(f => ({ ...f, address: e.target.value }))} className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2 px-3 focus:ring-2 focus:ring-pos-secondary outline-none text-pos-on-surface" />
               </div>
             </div>
-            <button onClick={handleCloudBackupClick} className="w-full py-2.5 bg-pos-tertiary-container text-pos-on-tertiary-container rounded-lg font-semibold text-sm flex items-center justify-center gap-2">
-              <span className="material-symbols-outlined text-base">cloud_upload</span>
-              {lang === 'bn' ? 'ড্রাইভে ব্যাকআপ নিন' : 'Backup to Drive'}
-            </button>
-            <button onClick={handleSignOut} className="w-full py-2.5 bg-pos-surface-container text-pos-on-surface-variant rounded-lg font-semibold text-sm flex items-center justify-center gap-2">
-              <span className="material-symbols-outlined text-base">logout</span>
-              {t('logout')}
-            </button>
           </div>
-        ) : (
-          <div className="space-y-3">
-            <p className="text-xs text-pos-on-surface-variant">
-              {lang === 'bn' 
-                ? 'Google Drive এ আপনার সব ডাটা নিরাপদে ব্যাকআপ রাখুন। লগইন করলেই এই ফিচার ব্যবহার করতে পারবেন।'
-                : 'Securely backup all your data to Google Drive. Sign in to enable this feature.'}
-            </p>
-            <button onClick={() => setShowAuthModal(true)} className="w-full py-2.5 bg-pos-secondary text-white rounded-lg font-semibold text-sm flex items-center justify-center gap-2">
-              <span className="material-symbols-outlined text-base">cloud_upload</span>
-              {lang === 'bn' ? 'ক্লাউড ব্যাকআপ চালু করুন' : 'Enable Cloud Backup'}
-            </button>
-          </div>
-        )}
-      </div>
 
-      <div className="bg-pos-surface-lowest rounded-xl p-4 sm:p-6 border border-pos-surface-container">
-        <h3 className="text-sm font-bold text-pos-on-surface-variant uppercase tracking-widest mb-4">{t('dataManagement')}</h3>
-        <p className="text-xs text-pos-on-surface-variant mb-4">{t('dataStoredLocally')}</p>
-        <div className="flex flex-wrap gap-3">
-          <button onClick={exportAllData} className="px-5 py-2.5 bg-pos-tertiary-container text-pos-on-tertiary-container rounded-lg font-semibold text-sm flex items-center gap-2">
-            <span className="material-symbols-outlined text-base">file_download</span>{t('exportBackup')}
+          {/* User Profile */}
+          <div className="bg-pos-surface-lowest rounded-xl p-4 border border-pos-surface-container">
+            <h3 className="text-[10px] font-bold text-pos-on-surface-variant uppercase tracking-widest mb-3 flex items-center gap-1.5">
+              <span className="material-symbols-outlined text-sm">person</span>{t('userProfile')}
+            </h3>
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-full bg-pos-secondary-container flex items-center justify-center">
+                <span className="text-sm font-bold text-pos-on-secondary-container">{initials}</span>
+              </div>
+              <div>
+                <div className="text-sm font-semibold text-pos-on-surface">{form.userName || 'User'}</div>
+                <div className="text-[10px] text-pos-on-surface-variant">{form.userRole}</div>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="block text-[10px] font-bold text-pos-on-surface-variant uppercase mb-1">{t('fullName')}</label>
+                <input value={form.userName} onChange={e => setForm(f => ({ ...f, userName: e.target.value }))} className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2 px-3 focus:ring-2 focus:ring-pos-secondary outline-none text-pos-on-surface" />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-pos-on-surface-variant uppercase mb-1">{t('role')}</label>
+                <input value={form.userRole} onChange={e => setForm(f => ({ ...f, userRole: e.target.value }))} className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2 px-3 focus:ring-2 focus:ring-pos-secondary outline-none text-pos-on-surface" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Column 2: System + Appearance + Save ── */}
+        <div className="space-y-4">
+          {/* System Settings */}
+          <div className="bg-pos-surface-lowest rounded-xl p-4 border border-pos-surface-container">
+            <h3 className="text-[10px] font-bold text-pos-on-surface-variant uppercase tracking-widest mb-3 flex items-center gap-1.5">
+              <span className="material-symbols-outlined text-sm">tune</span>{t('systemSettings')}
+            </h3>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="block text-[10px] font-bold text-pos-on-surface-variant uppercase mb-1">{t('invoicePrefix')}</label>
+                <input value={form.invPrefix} onChange={e => setForm(f => ({ ...f, invPrefix: e.target.value }))} className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2 px-3 focus:ring-2 focus:ring-pos-secondary outline-none text-pos-on-surface" placeholder="INV" />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-pos-on-surface-variant uppercase mb-1">{t('lowStockThreshold')}</label>
+                <input type="number" value={form.lowStockThreshold} onChange={e => setForm(f => ({ ...f, lowStockThreshold: parseInt(e.target.value) || 20 }))} className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2 px-3 focus:ring-2 focus:ring-pos-secondary outline-none text-pos-on-surface" />
+              </div>
+            </div>
+          </div>
+
+          {/* Appearance */}
+          <div className="bg-pos-surface-lowest rounded-xl p-4 border border-pos-surface-container">
+            <h3 className="text-[10px] font-bold text-pos-on-surface-variant uppercase tracking-widest mb-3 flex items-center gap-1.5">
+              <span className="material-symbols-outlined text-sm">palette</span>{t('appearance')}
+            </h3>
+            <button onClick={toggleDarkMode}
+              className="flex items-center gap-3 w-full p-3 rounded-xl hover:bg-pos-surface-high transition-colors">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${form.darkMode ? 'bg-indigo-900/30 text-indigo-400' : 'bg-amber-100 text-amber-600'}`}>
+                <span className="material-symbols-outlined text-xl">{form.darkMode ? 'dark_mode' : 'light_mode'}</span>
+              </div>
+              <div className="text-left flex-1">
+                <div className="font-semibold text-sm text-pos-on-surface">{form.darkMode ? t('darkMode') : t('lightMode')}</div>
+                <div className="text-[10px] text-pos-on-surface-variant">{form.darkMode ? 'Switch to light' : 'Switch to dark'}</div>
+              </div>
+              <div className={`w-11 h-6 rounded-full relative transition-colors ${form.darkMode ? 'bg-pos-secondary' : 'bg-pos-surface-container-highest'}`}>
+                <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-md transition-transform ${form.darkMode ? 'translate-x-5' : 'translate-x-0.5'}`} />
+              </div>
+            </button>
+          </div>
+
+          {/* Save Button */}
+          <button onClick={handleSave} className="w-full py-3 bg-gradient-to-b from-pos-secondary to-pos-secondary-dim text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-lg hover:-translate-y-0.5 transition-transform">
+            <span className="material-symbols-outlined text-lg">save</span>{t('saveAllSettings')}
           </button>
-          <button onClick={() => fileRef.current?.click()} className="px-5 py-2.5 bg-pos-secondary-container text-pos-on-secondary-container rounded-lg font-semibold text-sm flex items-center gap-2">
-            <span className="material-symbols-outlined text-base">file_upload</span>{t('importBackup')}
-          </button>
-          <input ref={fileRef} type="file" accept=".json" className="hidden" onChange={handleImport} />
-          <button onClick={() => setShowClearModal(true)} className="px-5 py-2.5 bg-pos-error-container text-pos-on-error-container rounded-lg font-semibold text-sm flex items-center gap-2">
-            <span className="material-symbols-outlined text-base">delete_forever</span>{t('clearAllData')}
-          </button>
+        </div>
+
+        {/* ── Column 3: Cloud Backup + Data Management ── */}
+        <div className="space-y-4">
+          {/* Cloud Backup */}
+          <div className="bg-pos-surface-lowest rounded-xl p-4 border border-pos-surface-container">
+            <h3 className="text-[10px] font-bold text-pos-on-surface-variant uppercase tracking-widest mb-3 flex items-center gap-1.5">
+              <span className="material-symbols-outlined text-sm">cloud</span>
+              {lang === 'bn' ? 'ক্লাউড ব্যাকআপ' : 'Cloud Backup'}
+            </h3>
+            {user ? (
+              <div className="space-y-2.5">
+                <div className="flex items-center gap-2 p-2.5 bg-pos-tertiary-container/30 rounded-lg">
+                  <span className="material-symbols-outlined text-pos-tertiary text-lg">check_circle</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs font-semibold text-pos-on-surface">{lang === 'bn' ? 'লগইন করা আছে' : 'Logged in'}</div>
+                    <div className="text-[10px] text-pos-on-surface-variant truncate">{user.email}</div>
+                  </div>
+                </div>
+                <button onClick={handleCloudBackupClick} className="w-full py-2 bg-pos-tertiary-container text-pos-on-tertiary-container rounded-lg font-semibold text-xs flex items-center justify-center gap-1.5">
+                  <span className="material-symbols-outlined text-sm">cloud_upload</span>
+                  {lang === 'bn' ? 'ড্রাইভে ব্যাকআপ' : 'Backup to Drive'}
+                </button>
+                <button onClick={handleSignOut} className="w-full py-2 bg-pos-surface-container text-pos-on-surface-variant rounded-lg font-semibold text-xs flex items-center justify-center gap-1.5">
+                  <span className="material-symbols-outlined text-sm">logout</span>{t('logout')}
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-2.5">
+                <p className="text-[10px] text-pos-on-surface-variant leading-relaxed">
+                  {lang === 'bn' ? 'Google Drive এ ডাটা ব্যাকআপ রাখুন। লগইন করলেই ব্যবহার করতে পারবেন।' : 'Backup data to Google Drive. Sign in to enable.'}
+                </p>
+                <button onClick={() => setShowAuthModal(true)} className="w-full py-2.5 bg-pos-secondary text-white rounded-lg font-semibold text-xs flex items-center justify-center gap-1.5">
+                  <span className="material-symbols-outlined text-sm">cloud_upload</span>
+                  {lang === 'bn' ? 'ক্লাউড ব্যাকআপ চালু করুন' : 'Enable Cloud Backup'}
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Data Management */}
+          <div className="bg-pos-surface-lowest rounded-xl p-4 border border-pos-surface-container">
+            <h3 className="text-[10px] font-bold text-pos-on-surface-variant uppercase tracking-widest mb-3 flex items-center gap-1.5">
+              <span className="material-symbols-outlined text-sm">database</span>{t('dataManagement')}
+            </h3>
+            <p className="text-[10px] text-pos-on-surface-variant mb-3">{t('dataStoredLocally')}</p>
+            <div className="space-y-2">
+              <button onClick={exportAllData} className="w-full py-2 bg-pos-tertiary-container text-pos-on-tertiary-container rounded-lg font-semibold text-xs flex items-center justify-center gap-1.5">
+                <span className="material-symbols-outlined text-sm">file_download</span>{t('exportBackup')}
+              </button>
+              <button onClick={() => fileRef.current?.click()} className="w-full py-2 bg-pos-secondary-container text-pos-on-secondary-container rounded-lg font-semibold text-xs flex items-center justify-center gap-1.5">
+                <span className="material-symbols-outlined text-sm">file_upload</span>{t('importBackup')}
+              </button>
+              <input ref={fileRef} type="file" accept=".json" className="hidden" onChange={handleImport} />
+              <button onClick={() => setShowClearModal(true)} className="w-full py-2 bg-pos-error-container text-pos-on-error-container rounded-lg font-semibold text-xs flex items-center justify-center gap-1.5">
+                <span className="material-symbols-outlined text-sm">delete_forever</span>{t('clearAllData')}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
