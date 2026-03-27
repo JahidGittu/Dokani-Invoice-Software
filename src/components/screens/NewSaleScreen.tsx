@@ -347,26 +347,39 @@ td:last-child{text-align:right;font-weight:600}
 </div>
 ${sale.notes ? `<div style="font-size:11px;color:#5a6061;margin-bottom:12px;font-style:italic">Notes: ${sale.notes}</div>` : ''}
 <table>
-  <thead><tr><th>Product</th><th>Qty</th><th>Rate</th><th>Total</th></tr></thead>
-  <tbody>${sale.items.map(item => `
-    <tr><td>${item.name}<div class="detail">${item.detail}</div></td><td>${item.qty}</td><td>${formatCurrency(item.price)}</td><td>${formatCurrency(item.price * item.qty)}</td></tr>
+  <thead><tr><th>SN</th><th>Product</th><th>Carton/Piece</th><th>Sqft/Qty</th><th>Rate</th><th>Sub Total</th></tr></thead>
+  <tbody>${sale.items.map((item, idx) => `
+    <tr><td>${idx + 1}</td><td>${item.name}<div class="detail">${item.detail}</div></td><td>${item.carton ?? item.qty} Carton ${item.piece ?? 0} Piece</td><td>${item.sqftQty ?? item.qty}</td><td>${formatCurrency(item.price)}</td><td>${formatCurrency(item.price * item.qty)}</td></tr>
   `).join('')}</tbody>
 </table>
-<div class="summary"><div class="summary-table">
-  <div class="summary-row"><span>Subtotal</span><span>${formatCurrency(sale.subtotal)}</span></div>
-  ${sale.discount > 0 ? `<div class="summary-row" style="color:#9f403d"><span>Discount</span><span>-${formatCurrency(sale.discount)}</span></div>` : ''}
-  ${(sale.delivery ?? 0) > 0 ? `<div class="summary-row"><span>Delivery</span><span>+${formatCurrency(sale.delivery!)}</span></div>` : ''}
-  ${(sale.labour ?? 0) > 0 ? `<div class="summary-row"><span>Labour</span><span>+${formatCurrency(sale.labour!)}</span></div>` : ''}
-  <div class="summary-row total"><span>TOTAL</span><span class="total-amount">${formatCurrency(sale.total)}</span></div>
-  <div class="summary-row" style="font-weight:700;color:#006120"><span>Paid</span><span>${formatCurrency(sale.paid ?? sale.total)}</span></div>
-  ${(sale.due ?? 0) > 0 ? `<div class="summary-row" style="font-weight:700;color:#9f403d"><span>Due</span><span>${formatCurrency(sale.due!)}</span></div>` : ''}
-  <div class="summary-row"><span>Status</span><span class="badge badge-${sale.status}">${sale.status.toUpperCase()}</span></div>
-</div></div>
-<div class="footer-area">
-  <div class="qr-area">${qrSVG}<div class="qr-label">Scan to verify</div></div>
-  <div class="terms"><strong>Terms & Conditions</strong><br>• Goods once delivered cannot be returned.<br>• Prices subject to change without notice.<br>• Credit payment due within 30 days.</div>
+<div style="display:flex;justify-content:space-between;margin-top:12px">
+  <div style="border:1px solid #ccc;border-radius:6px;padding:10px;font-size:11px;width:220px">
+    <div style="display:flex;justify-content:space-between"><span>Due In This Bill:</span><strong>${formatCurrency(sale.due ?? 0)}/-</strong></div>
+    <div style="display:flex;justify-content:space-between"><span>Previous Dues:</span><strong>${formatCurrency(sale.previousDues ?? 0)}/-</strong></div>
+    <div style="display:flex;justify-content:space-between"><span>Balance:</span><strong>${formatCurrency(sale.balance ?? (sale.due ?? 0))}/-</strong></div>
+  </div>
+  <div class="summary-table">
+    <div class="summary-row"><span>Total:</span><span>${formatCurrency(sale.subtotal)}</span></div>
+    ${(sale.returnAmount ?? 0) > 0 ? `<div class="summary-row"><span>Return:</span><span>-${formatCurrency(sale.returnAmount!)}</span></div>` : ''}
+    ${sale.discount > 0 ? `<div class="summary-row"><span>Discount:</span><span>-${formatCurrency(sale.discount)}</span></div>` : ''}
+    ${(sale.lessAmount ?? 0) > 0 ? `<div class="summary-row"><span>Less:</span><span>-${formatCurrency(sale.lessAmount!)}</span></div>` : ''}
+    ${(sale.delivery ?? 0) > 0 ? `<div class="summary-row"><span>Delivery:</span><span>+${formatCurrency(sale.delivery!)}</span></div>` : ''}
+    ${(sale.labour ?? 0) > 0 ? `<div class="summary-row"><span>Labour</span><span>${formatCurrency(sale.labour!)}</span></div>` : ''}
+    <div class="summary-row total"><span>PAYABLE:</span><span class="total-amount">${formatCurrency(sale.total)}</span></div>
+    <div class="summary-row" style="font-weight:700;color:#006120"><span>Paid:</span><span>${formatCurrency(sale.paid ?? sale.total)}</span></div>
+  </div>
 </div>
-<div class="thank-you">${settings.name ? `Thank you for shopping at ${settings.name}!` : 'Thank you!'}</div>
+<div style="margin-top:8px;font-size:11px">
+  <div><strong>Remark:</strong> ${sale.notes || ''}</div>
+  <div><strong>Total Quantity:</strong> ${sale.items.reduce((s, i) => s + i.qty, 0)}</div>
+  <div>In Word: <strong style="color:#005cc1">${numberToWords(sale.total)}</strong></div>
+</div>
+<div style="display:flex;justify-content:space-between;margin-top:60px;padding-top:8px;border-top:1px solid #ccc;font-size:12px;color:#005cc1;font-weight:700">
+  <span>Customer Signature</span>
+  <span>Authorized Signature</span>
+</div>
+<div style="text-align:center;margin-top:20px;font-size:11px;color:#9f403d;font-weight:700">বিক্রিত মাল ১ মাসের মধ্যে ফেরত নেওয়া হয়।চায়না/ইন্ডিয়ান মাল ফেরত নেওয়া হয় না।</div>
+<div class="thank-you">SOFTWARE: ${settings.name} | Printing @: ${new Date().toLocaleString()}</div>
 </div>
 </body></html>`;
   };
