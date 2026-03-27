@@ -80,6 +80,7 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
   const [discount, setDiscount] = useState('');
   const [discountType, setDiscountType] = useState<'flat' | 'percent'>('percent');
   const [delivery, setDelivery] = useState('');
+  const [labourCost, setLabourCost] = useState('');
   const [returnAmt, setReturnAmt] = useState('');
   const [lessAmt, setLessAmt] = useState('');
   const [paidAmount, setPaidAmount] = useState('');
@@ -177,10 +178,14 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
   const discountVal = discountType === 'percent' ? Math.round(total * (parseFloat(discount) || 0) / 100) : (parseFloat(discount) || 0);
   const lessVal = parseFloat(lessAmt) || 0;
   const deliveryVal = parseFloat(delivery) || 0;
-  const payable = Math.max(0, total - returnVal - discountVal - lessVal + deliveryVal);
+  const labourVal = parseFloat(labourCost) || 0;
+  const payable = Math.max(0, total - returnVal - discountVal - lessVal + deliveryVal + labourVal);
   const paidVal = parseFloat(paidAmount) || 0;
   const dueVal = Math.max(0, payable - paidVal);
-  const balanceVal = dueVal;
+  // Previous dues from customer
+  const selectedCustomer = customers.find(c => c.name === customerName);
+  const prevDues = selectedCustomer?.totalDue || 0;
+  const balanceVal = dueVal + prevDues;
 
   const openAddSale = () => {
     setView('add');
@@ -188,7 +193,7 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
     setCustomerName(''); setPhone(''); setAddress('');
     setItems([]); setDiscount(''); setDelivery(''); setPaidAmount('');
     setRemark(''); setSaleStatus('Complete'); setPaymentMode('Cash');
-    setReturnAmt(''); setLessAmt('');
+    setReturnAmt(''); setLessAmt(''); setLabourCost('');
   };
 
   const handleSave = () => {
@@ -215,7 +220,8 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
       notes: remark, status: autoStatus as SaleRecord['status'],
       date: now.toISOString(), time: now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
       paid: paidVal, due: dueVal, delivery: deliveryVal, returnAmount: returnVal,
-      lessAmount: lessVal, balance: balanceVal,
+      lessAmount: lessVal, balance: balanceVal, labour: labourVal,
+      previousDues: prevDues, soldBy: settings.userName || '',
     };
 
     onSaleComplete(sale, items.map(i => ({ productId: i.productId, qty: i.carton })));
@@ -254,14 +260,15 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
 <div class="page">
 <div class="header"><div class="header-left"><div class="logo-box">${settings.name.slice(0,3).toUpperCase()}</div></div><div class="header-center"><div class="cn">${settings.name.toUpperCase()}</div>${settings.address ? `<div class="sub">${settings.address}</div>` : ''}${settings.phone ? `<div class="sub">Phone# ${settings.phone}</div>` : ''}</div><div>${qrImg}</div></div>
 <div class="bill-title">BILL-INVOICE</div>
-<div class="info-row"><div><div class="field"><span class="lbl">Name</span><span>:</span><span class="val">${sale.customer}</span></div>${sale.address ? `<div class="field"><span class="lbl">Address</span><span>:</span><span class="val">${sale.address}</span></div>` : ''}${sale.phone ? `<div class="field"><span class="lbl">Mobile</span><span>:</span><span class="val">${sale.phone}</span></div>` : ''}</div><div style="text-align:right"><div class="field" style="justify-content:flex-end"><span class="lbl">Invoice#</span><span>:</span><span class="val">${sale.invoice}</span></div><div class="field" style="justify-content:flex-end"><span class="lbl">Date</span><span>:</span><span class="val">${printDateStr}</span></div></div></div>
-<table><thead><tr><th>SN</th><th>TYPE</th><th>BARCODE</th><th>DESCRIPTION</th><th class="r">CARTON</th><th class="r">PIECE</th><th class="r">SQFT/QTY</th><th class="r">RATE</th><th class="r">SUB TOTAL</th></tr></thead><tbody>${sale.items.map((item, idx) => {
+<div class="info-row"><div><div class="field"><span class="lbl">Name</span><span>:</span><span class="val">${sale.customer}</span></div>${sale.address ? `<div class="field"><span class="lbl">Address</span><span>:</span><span class="val">${sale.address}</span></div>` : ''}${sale.phone ? `<div class="field"><span class="lbl">Mobile</span><span>:</span><span class="val">${sale.phone}</span></div>` : ''}</div><div style="text-align:right"><div class="field" style="justify-content:flex-end"><span class="lbl">Invoice#</span><span>:</span><span class="val">${sale.invoice}</span></div><div class="field" style="justify-content:flex-end"><span class="lbl">Date</span><span>:</span><span class="val">${printDateStr}</span></div>${sale.soldBy ? `<div class="field" style="justify-content:flex-end"><span class="lbl">Sold By</span><span>:</span><span class="val">${sale.soldBy}</span></div>` : ''}</div></div>
+<table><thead><tr><th>SN</th><th>TYPE</th><th>CARTON/PIECE</th><th>CATEGORY</th><th>PRODUCT NAME</th><th class="r">SQFT/QTY</th><th class="r">PRICE</th><th class="r">SUB TOTAL</th></tr></thead><tbody>${sale.items.map((item, idx) => {
   const p = products.find(x => x.id === item.productId);
-  return `<tr><td>${idx+1}</td><td>Sale</td><td>${p?.barcode || p?.batch || '-'}</td><td class="b">${item.name}</td><td class="r">${item.carton ?? item.qty}</td><td class="r">${item.piece ?? 0}</td><td class="r">${Number(item.sqftQty ?? 0).toFixed(1)}</td><td class="r">${item.price}</td><td class="r b">${Math.round((item.carton ?? item.qty) * item.price)}</td></tr>`;
+  const cartonPiece = (item.carton ?? item.qty) + ' Carton ' + (item.piece ?? 0) + ' Piece';
+  return '<tr><td>' + (idx+1) + '</td><td>' + (item.itemType || 'Sale') + '</td><td>' + cartonPiece + '</td><td>' + (item.category || p?.category || '') + '</td><td class="b">' + item.name + (p?.size ? ' (Size: ' + p.size + ')' : '') + '</td><td class="r">' + Number(item.sqftQty ?? 0).toFixed(2) + '</td><td class="r">' + item.price + '</td><td class="r b">' + Math.round((item.carton ?? item.qty) * item.price) + '</td></tr>';
 }).join('')}</tbody></table>
-<div class="bottom"><div><div style="font-size:11px;margin-top:8px"><strong>Remark:</strong> ${sale.notes || ''}</div><div style="font-size:11px"><strong>Total Qty:</strong> ${totalQty}</div><div style="font-size:11px">In Word: <span style="color:#005cc1;font-weight:700">${numberToWords(sale.total)}</span></div></div><div class="sb"><div class="sr"><span>Total:</span><span class="sv">${sale.subtotal}</span></div>${sale.discount > 0 ? `<div class="sr"><span>Discount:</span><span class="sv">-${sale.discount}</span></div>` : ''}${(sale.delivery ?? 0) > 0 ? `<div class="sr"><span>Delivery:</span><span class="sv">+${sale.delivery}</span></div>` : ''}<div class="sr pay"><span>PAYABLE:</span><span class="sv">${sale.total}</span></div><div class="sr"><span>Paid:</span><span class="sv">${sale.paid ?? sale.total}</span></div>${(sale.due ?? 0) > 0 ? `<div class="sr" style="color:red"><span>Due:</span><span class="sv">${sale.due}</span></div>` : ''}</div></div>
+<div class="bottom"><div><div style="font-size:11px;border:1px solid #999;padding:6px;margin-top:4px"><div>Due In This Bill: <strong>${sale.due ?? 0}/-</strong></div><div>Previous Dues: <strong>${sale.previousDues ?? 0}/-</strong></div><div>Balance: <strong>${(sale.due ?? 0) + (sale.previousDues ?? 0)}/-</strong></div></div><div style="font-size:11px;margin-top:6px"><strong>Remark:</strong> ${sale.notes || ''}</div><div style="font-size:11px"><strong>Total Quantity:</strong> ${totalQty}</div><div style="font-size:11px">In Word: <span style="color:#005cc1;font-weight:700">${numberToWords(sale.total)}</span></div></div><div class="sb"><div class="sr"><span>Total:</span><span class="sv">${sale.subtotal}</span></div>${(sale.labour ?? 0) > 0 ? `<div class="sr"><span>Labour:</span><span class="sv">${sale.labour}</span></div>` : ''}${sale.discount > 0 ? `<div class="sr"><span>Discount:</span><span class="sv">-${sale.discount}</span></div>` : ''}${(sale.delivery ?? 0) > 0 ? `<div class="sr"><span>Delivery:</span><span class="sv">+${sale.delivery}</span></div>` : ''}<div class="sr pay"><span>PAYABLE:</span><span class="sv">${sale.total}</span></div><div class="sr"><span>Paid:</span><span class="sv">${sale.paid ?? sale.total}</span></div>${(sale.due ?? 0) > 0 ? `<div class="sr" style="color:red"><span>Due:</span><span class="sv">${sale.due}</span></div>` : ''}</div></div>
 <div class="sig-row"><div class="sig">Customer Signature</div><div class="sig">Authorized Signature</div></div>
-<div class="disclaimer">বিক্রিত মাল ১ মাসের মধ্যে ফেরত নেওয়া হয়।</div>
+<div class="disclaimer">বিক্রিত মাল ১ মাসের মধ্যে ফেরত নেওয়া হয়।চায়না/ইন্ডিয়ান মাল ফেরত নেওয়া হয় না।</div>
 </div></body></html>`;
     const w = window.open('', '_blank', 'width=800,height=1000');
     if (!w) { toast.error('Popup blocked'); return; }
@@ -544,6 +551,12 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
               <div className="flex items-center justify-between border border-pos-surface-container rounded-lg px-3 py-2">
                 <span className="text-sm text-pos-on-surface-variant">Delivery</span>
                 <input type="number" value={delivery} onChange={e => setDelivery(e.target.value)} placeholder="0"
+                  className="w-20 bg-transparent text-sm text-right outline-none font-bold text-pos-secondary" />
+              </div>
+              {/* Labour */}
+              <div className="flex items-center justify-between border border-pos-surface-container rounded-lg px-3 py-2">
+                <span className="text-sm text-pos-on-surface-variant">Labour</span>
+                <input type="number" value={labourCost} onChange={e => setLabourCost(e.target.value)} placeholder="0"
                   className="w-20 bg-transparent text-sm text-right outline-none font-bold text-pos-secondary" />
               </div>
               {/* Payable */}

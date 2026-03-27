@@ -83,7 +83,18 @@ export default function DashboardScreen({ onNavigate, products, customers, sales
           <span className="text-xs text-pos-on-surface-variant uppercase tracking-widest block mb-2">{t('today')} — {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
           <h2 className="text-3xl sm:text-5xl font-bold text-pos-on-surface leading-tight tracking-tighter">{t('businessOverview')}</h2>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2 items-center">
+          <select onChange={e => { if (e.target.value) onNavigate(e.target.value); e.target.value = ''; }}
+            className="bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2 px-3 outline-none" defaultValue="">
+            <option value="" disabled>Quick Link</option>
+            <option value="products">Products</option>
+            <option value="purchase">Purchase</option>
+            <option value="sales">Sales</option>
+            <option value="customers">Customers</option>
+            <option value="suppliers">Suppliers</option>
+            <option value="reports">Reports</option>
+            <option value="transactions">Transactions</option>
+          </select>
           <button onClick={() => onNavigate('sales')} className="px-4 py-2 bg-pos-error text-white rounded-lg font-medium text-sm flex items-center gap-1">
             <span className="material-symbols-outlined text-sm">list</span>{t('recentTransactions')}
           </button>
@@ -91,7 +102,7 @@ export default function DashboardScreen({ onNavigate, products, customers, sales
             <span className="material-symbols-outlined text-sm">layers</span>{t('stock')}
           </button>
           <button onClick={() => onNavigate('new-sale')} className="px-4 py-2 bg-gradient-to-b from-pos-secondary to-pos-secondary-dim text-white rounded-lg font-medium text-sm flex items-center gap-1 shadow-lg">
-            <span className="material-symbols-outlined text-sm">add_shopping_cart</span>{t('newSale')}
+            <span className="material-symbols-outlined text-sm">add_shopping_cart</span>SALES
           </button>
         </div>
       </div>
