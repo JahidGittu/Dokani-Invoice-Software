@@ -54,7 +54,7 @@ export default function Header({ activeScreen, onToggleSidebar, onNavigate, onSe
   return (
     <header className="flex justify-between items-center w-full px-4 lg:px-8 h-16 sticky top-0 z-40 bg-white/80 dark:bg-[hsl(220,15%,10%)]/80 backdrop-blur-md shadow-sm">
       <div className="flex items-center gap-3 lg:gap-4">
-        <button className="lg:hidden p-2 text-slate-500 hover:text-slate-900" onClick={onToggleSidebar}>
+        <button className="lg:hidden p-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white" onClick={onToggleSidebar}>
           <span className="material-symbols-outlined">menu</span>
         </button>
         <span className="text-lg sm:text-xl font-black text-slate-900">{headings[activeScreen] || t('dashboard')}</span>
