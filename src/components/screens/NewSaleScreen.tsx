@@ -287,99 +287,94 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
     return `<!DOCTYPE html><html><head><title>${sale.invoice}</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Inter','Segoe UI',Arial,sans-serif;color:#2d3435;font-size:13px;background:#fff}
-.page{width:210mm;min-height:297mm;margin:0 auto;padding:20mm 20mm 15mm;position:relative}
-.header{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:16px;border-bottom:3px solid #005cc1;margin-bottom:16px}
-.logo-area{display:flex;align-items:center;gap:12px}
-.logo-box{width:44px;height:44px;background:#005cc1;border-radius:8px;display:flex;align-items:center;justify-content:center;color:white;font-weight:900;font-size:16px}
-.title{font-size:22px;font-weight:900;letter-spacing:-.5px}
-.subtitle{font-size:10px;color:#5a6061;margin-top:2px}
-.inv-info{text-align:right}
-.inv-num{font-size:14px;font-weight:800;color:#005cc1}
-.inv-date{font-size:11px;color:#5a6061;margin-top:2px}
-.inv-label{font-size:9px;font-weight:700;color:#5a6061;text-transform:uppercase;letter-spacing:1px}
-.customer-block{display:flex;justify-content:space-between;background:#f5f7f8;border-radius:8px;padding:14px 16px;margin-bottom:16px}
-.customer-block .label{font-size:9px;font-weight:700;text-transform:uppercase;color:#5a6061;letter-spacing:.5px;margin-bottom:4px}
-.customer-block .value{font-size:12px;font-weight:600}
-table{width:100%;border-collapse:collapse;margin-bottom:16px}
-thead tr{background:#f5f7f8}
-th{font-size:10px;font-weight:700;text-transform:uppercase;color:#5a6061;padding:10px 12px;text-align:left}
-th:nth-child(2),th:nth-child(3){text-align:center}
+body{font-family:'Inter','Segoe UI',Arial,sans-serif;color:#2d3435;font-size:12px;background:#fff}
+.page{width:210mm;min-height:297mm;margin:0 auto;padding:15mm 18mm 12mm;position:relative}
+.header{text-align:center;padding-bottom:10px;border-bottom:2px solid #333;margin-bottom:12px;position:relative}
+.header .qr{position:absolute;right:0;top:0}
+.header .logo-box{width:48px;height:48px;background:#005cc1;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;color:white;font-weight:900;font-size:18px;margin-bottom:4px}
+.header .company{font-size:24px;font-weight:900;letter-spacing:-.5px}
+.header .subtitle{font-size:11px;color:#5a6061}
+.bill-title{text-align:center;font-size:18px;font-weight:900;margin:10px 0;letter-spacing:1px}
+.info-row{display:flex;justify-content:space-between;margin-bottom:10px;font-size:12px}
+.info-row .left div,.info-row .right div{margin-bottom:2px}
+.info-row .label{font-weight:400;min-width:80px;display:inline-block}
+.info-row .val{font-weight:700}
+table{width:100%;border-collapse:collapse;margin-bottom:10px}
+thead tr{background:#c0392b;color:#fff}
+th{font-size:10px;font-weight:700;text-transform:uppercase;padding:8px 6px;text-align:left}
 th:last-child{text-align:right}
-td{padding:10px 12px;font-size:12px;border-bottom:1px solid #f0f2f3}
-td:nth-child(2),td:nth-child(3){text-align:center}
+td{padding:7px 6px;font-size:11px;border-bottom:1px solid #e0e0e0}
 td:last-child{text-align:right;font-weight:600}
-.detail{font-size:10px;color:#5a6061}
-.summary{display:flex;justify-content:flex-end}
-.summary-table{width:220px}
-.summary-row{display:flex;justify-content:space-between;padding:5px 0;font-size:12px}
-.summary-row.total{font-size:18px;font-weight:900;padding:10px 0;border-top:2px solid #2d3435;margin-top:6px}
-.total-amount{color:#005cc1}
-.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:10px;font-weight:700;text-transform:uppercase}
-.badge-paid{background:#86ff90;color:#006120}
-.badge-pending{background:#fef08a;color:#854f0b}
-.badge-credit{background:#d8e2ff;color:#003d85}
-.footer-area{display:flex;justify-content:space-between;align-items:flex-end;margin-top:24px;border-top:1px solid #f0f2f3;padding-top:16px}
-.qr-area{display:flex;align-items:center;gap:8px}
-.qr-label{font-size:8px;color:#5a6061}
-.terms{font-size:9px;color:#5a6061;max-width:320px;line-height:1.5}
-.terms strong{font-size:10px;color:#2d3435}
-.thank-you{text-align:center;font-size:10px;color:#5a6061;margin-top:16px;padding-top:12px;border-top:1px solid #f0f2f3}
-@media print{@page{size:A4;margin:0} .page{padding:15mm 18mm}}
+.bottom-section{display:flex;justify-content:space-between;margin-top:8px}
+.due-box{border:1px solid #333;border-radius:4px;padding:8px 12px;font-size:11px;width:200px}
+.due-box div{display:flex;justify-content:space-between;margin-bottom:3px}
+.due-box .val{font-weight:800}
+.summary-right{width:220px;text-align:right}
+.summary-right .row{display:flex;justify-content:space-between;padding:3px 0;font-size:12px}
+.summary-right .payable{font-size:18px;font-weight:900;border-top:2px solid #333;padding-top:6px;margin-top:4px}
+.remark-section{font-size:11px;margin-top:10px}
+.remark-section .inword{color:#005cc1;font-weight:700}
+.sig-row{display:flex;justify-content:space-between;margin-top:50px;padding-top:6px;border-top:1px solid #999;font-size:12px;color:#005cc1;font-weight:700}
+.disclaimer{text-align:center;margin-top:16px;font-size:11px;color:#c0392b;font-weight:700}
+.footer-print{text-align:center;font-size:9px;color:#888;margin-top:8px}
+@media print{@page{size:A4;margin:0} .page{padding:12mm 15mm}}
 </style></head><body>
 <div class="page">
 <div class="header">
-  <div class="logo-area">
-    <div class="logo-box">${settings.name.slice(0, 2).toUpperCase()}</div>
-    <div><div class="title">${settings.name}</div>${bizInfoLine ? `<div class="subtitle">${bizInfoLine}</div>` : ''}</div>
+  <div class="qr">${qrSVG}</div>
+  <div class="logo-box">${settings.name.slice(0, 2).toUpperCase()}</div>
+  <div class="company">${settings.name}</div>
+  ${bizInfoLine ? `<div class="subtitle">${bizInfoLine}</div>` : ''}
+  ${settings.email ? `<div class="subtitle">${settings.email}</div>` : ''}
+</div>
+<div class="bill-title">BILL-INVOICE</div>
+<div class="info-row">
+  <div class="left">
+    <div><span class="label">Name</span>: <span class="val">${sale.customer}</span></div>
+    ${sale.address ? `<div><span class="label">Address</span>: <span class="val">${sale.address}</span></div>` : ''}
+    ${sale.phone ? `<div><span class="label">Mobile</span>: <span class="val">${sale.phone}</span></div>` : ''}
   </div>
-  <div class="inv-info">
-    <div class="inv-label">INVOICE / CHALLAN</div>
-    <div class="inv-num">${sale.invoice}</div>
-    <div class="inv-date">${dateStr} · ${sale.time}</div>
+  <div class="right">
+    <div><span class="label">Invoice#</span>: <span class="val">${sale.invoice}</span></div>
+    <div><span class="label">Date</span>: <span class="val">${dateStr}</span></div>
+    <div><span class="label">Sold By</span>: <span class="val">${settings.userName || settings.name}</span></div>
   </div>
 </div>
-<div class="customer-block">
-  <div><div class="label">Customer</div><div class="value">${sale.customer}</div></div>
-  ${sale.phone ? `<div><div class="label">Phone</div><div class="value">${sale.phone}</div></div>` : ''}
-  ${sale.address ? `<div><div class="label">Address</div><div class="value">${sale.address}</div></div>` : ''}
-  <div><div class="label">Payment</div><div class="value" style="text-transform:capitalize">${sale.paymentMethod}</div></div>
-</div>
-${sale.notes ? `<div style="font-size:11px;color:#5a6061;margin-bottom:12px;font-style:italic">Notes: ${sale.notes}</div>` : ''}
 <table>
-  <thead><tr><th>SN</th><th>Product</th><th>Carton/Piece</th><th>Sqft/Qty</th><th>Rate</th><th>Sub Total</th></tr></thead>
-  <tbody>${sale.items.map((item, idx) => `
-    <tr><td>${idx + 1}</td><td>${item.name}<div class="detail">${item.detail}</div></td><td>${item.carton ?? item.qty} Carton ${item.piece ?? 0} Piece</td><td>${item.sqftQty ?? item.qty}</td><td>${formatCurrency(item.price)}</td><td>${formatCurrency(item.price * item.qty)}</td></tr>
-  `).join('')}</tbody>
+  <thead><tr><th>SN</th><th>Type</th><th>Carton/Piece</th><th>Category</th><th>Product Name</th><th>Sqft./Qty.</th><th>Price</th><th>Sub Total</th></tr></thead>
+  <tbody>${sale.items.map((item, idx) => {
+    const p = products.find(x => x.id === item.productId);
+    return `<tr><td>${idx + 1}</td><td>Sale</td><td>${item.carton ?? item.qty} Carton ${item.piece ?? 0} Piece</td><td>${p?.category || '-'}</td><td>${item.name}${p ? ` (Size: ${p.size})` : ''}</td><td>${item.sqftQty ?? (item.qty * (p?.sqftPerBox || 1)).toFixed(2)}</td><td>${formatCurrency(item.price)}</td><td>${formatCurrency(item.price * item.qty)}</td></tr>`;
+  }).join('')}</tbody>
 </table>
-<div style="display:flex;justify-content:space-between;margin-top:12px">
-  <div style="border:1px solid #ccc;border-radius:6px;padding:10px;font-size:11px;width:220px">
-    <div style="display:flex;justify-content:space-between"><span>Due In This Bill:</span><strong>${formatCurrency(sale.due ?? 0)}/-</strong></div>
-    <div style="display:flex;justify-content:space-between"><span>Previous Dues:</span><strong>${formatCurrency(sale.previousDues ?? 0)}/-</strong></div>
-    <div style="display:flex;justify-content:space-between"><span>Balance:</span><strong>${formatCurrency(sale.balance ?? (sale.due ?? 0))}/-</strong></div>
+<div class="bottom-section">
+  <div class="due-box">
+    <div><span>Due In This Bill:</span><span class="val">${formatCurrency(sale.due ?? 0)}/-</span></div>
+    <div><span>Previous Dues:</span><span class="val">${formatCurrency(sale.previousDues ?? 0)}/-</span></div>
+    <div><span>Balance:</span><span class="val">${formatCurrency(sale.balance ?? (sale.due ?? 0))}/-</span></div>
   </div>
-  <div class="summary-table">
-    <div class="summary-row"><span>Total:</span><span>${formatCurrency(sale.subtotal)}</span></div>
-    ${(sale.returnAmount ?? 0) > 0 ? `<div class="summary-row"><span>Return:</span><span>-${formatCurrency(sale.returnAmount!)}</span></div>` : ''}
-    ${sale.discount > 0 ? `<div class="summary-row"><span>Discount:</span><span>-${formatCurrency(sale.discount)}</span></div>` : ''}
-    ${(sale.lessAmount ?? 0) > 0 ? `<div class="summary-row"><span>Less:</span><span>-${formatCurrency(sale.lessAmount!)}</span></div>` : ''}
-    ${(sale.delivery ?? 0) > 0 ? `<div class="summary-row"><span>Delivery:</span><span>+${formatCurrency(sale.delivery!)}</span></div>` : ''}
-    ${(sale.labour ?? 0) > 0 ? `<div class="summary-row"><span>Labour</span><span>${formatCurrency(sale.labour!)}</span></div>` : ''}
-    <div class="summary-row total"><span>PAYABLE:</span><span class="total-amount">${formatCurrency(sale.total)}</span></div>
-    <div class="summary-row" style="font-weight:700;color:#006120"><span>Paid:</span><span>${formatCurrency(sale.paid ?? sale.total)}</span></div>
+  <div class="summary-right">
+    <div class="row"><span>Total:</span><span>${formatCurrency(sale.subtotal)}</span></div>
+    ${(sale.returnAmount ?? 0) > 0 ? `<div class="row"><span>Return:</span><span>-${formatCurrency(sale.returnAmount!)}</span></div>` : ''}
+    ${sale.discount > 0 ? `<div class="row"><span>Discount:</span><span>-${formatCurrency(sale.discount)}</span></div>` : ''}
+    ${(sale.lessAmount ?? 0) > 0 ? `<div class="row"><span>Less:</span><span>-${formatCurrency(sale.lessAmount!)}</span></div>` : ''}
+    ${(sale.delivery ?? 0) > 0 ? `<div class="row"><span>Delivery:</span><span>+${formatCurrency(sale.delivery!)}</span></div>` : ''}
+    ${(sale.labour ?? 0) > 0 ? `<div class="row"><span>Labour:</span><span>${formatCurrency(sale.labour!)}</span></div>` : ''}
+    <div class="row payable"><span>PAYABLE:</span><span>${formatCurrency(sale.total)}</span></div>
+    <div class="row" style="color:#006120;font-weight:700"><span>Paid:</span><span>${formatCurrency(sale.paid ?? sale.total)}</span></div>
   </div>
 </div>
-<div style="margin-top:8px;font-size:11px">
+<div class="remark-section">
   <div><strong>Remark:</strong> ${sale.notes || ''}</div>
   <div><strong>Total Quantity:</strong> ${sale.items.reduce((s, i) => s + i.qty, 0)}</div>
-  <div>In Word: <strong style="color:#005cc1">${numberToWords(sale.total)}</strong></div>
+  <div>In Word: <span class="inword">${numberToWords(sale.total)}</span></div>
 </div>
-<div style="display:flex;justify-content:space-between;margin-top:60px;padding-top:8px;border-top:1px solid #ccc;font-size:12px;color:#005cc1;font-weight:700">
+<div class="sig-row">
   <span>Customer Signature</span>
   <span>Authorized Signature</span>
 </div>
-<div style="text-align:center;margin-top:20px;font-size:11px;color:#9f403d;font-weight:700">বিক্রিত মাল ১ মাসের মধ্যে ফেরত নেওয়া হয়।চায়না/ইন্ডিয়ান মাল ফেরত নেওয়া হয় না।</div>
-<div class="thank-you">SOFTWARE: ${settings.name} | Printing @: ${new Date().toLocaleString()}</div>
+<div class="disclaimer">বিক্রিত মাল ১ মাসের মধ্যে ফেরত নেওয়া হয়।চায়না/ইন্ডিয়ান মাল ফেরত নেওয়া হয় না।</div>
+<div class="footer-print">SOFTWARE: ${settings.name} | Printing @: ${new Date().toLocaleString()}</div>
 </div>
 </body></html>`;
   };

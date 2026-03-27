@@ -176,30 +176,34 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead><tr className="text-[11px] font-bold text-pos-on-surface-variant uppercase tracking-widest bg-pos-surface-low border-t border-pos-surface-container">
-              <th className="px-4 sm:px-6 py-3">{t('invoice')}</th>
+              <th className="px-4 sm:px-6 py-3">{t('invoice')} #</th>
+              <th className="px-4 sm:px-6 py-3">{t('date')}</th>
               <th className="px-4 sm:px-6 py-3">{t('supplierLabel')}</th>
-              <th className="px-4 sm:px-6 py-3 hidden sm:table-cell">{t('items')}</th>
+              <th className="px-4 sm:px-6 py-3 hidden sm:table-cell">QTY/SQFTQTY</th>
               <th className="px-4 sm:px-6 py-3">{t('total')}</th>
-              <th className="px-4 sm:px-6 py-3 hidden md:table-cell">{t('paid')}</th>
-              <th className="px-4 sm:px-6 py-3 hidden md:table-cell">{t('due')}</th>
-              <th className="px-4 sm:px-6 py-3 hidden lg:table-cell">{t('date')}</th>
+              <th className="px-4 sm:px-6 py-3">{t('paid')}</th>
+              <th className="px-4 sm:px-6 py-3">{t('due')}</th>
               <th className="px-4 sm:px-6 py-3 text-right">{t('actions')}</th>
             </tr></thead>
             <tbody className="divide-y divide-pos-surface-container">
-              {paginatedPurchases.length > 0 ? paginatedPurchases.map(p => (
+              {paginatedPurchases.length > 0 ? paginatedPurchases.map(p => {
+                const totalQty = p.items.reduce((s, i) => s + (i.carton || 0), 0);
+                return (
                 <tr key={p.id} className="hover:bg-pos-surface-low transition-colors">
                   <td className="px-4 sm:px-6 py-4 text-xs font-bold text-pos-secondary">{p.invoice}</td>
+                  <td className="px-4 sm:px-6 py-4 text-xs text-pos-on-surface-variant">{(() => { try { return new Date(p.date).toLocaleDateString('en-GB'); } catch { return p.date; } })()}</td>
                   <td className="px-4 sm:px-6 py-4 text-sm">{p.supplierName}</td>
-                  <td className="px-4 sm:px-6 py-4 text-xs hidden sm:table-cell">{p.items.length}</td>
+                  <td className="px-4 sm:px-6 py-4 text-xs hidden sm:table-cell">{totalQty}</td>
                   <td className="px-4 sm:px-6 py-4 font-bold">{formatCurrency(p.payable)}</td>
-                  <td className="px-4 sm:px-6 py-4 text-xs font-semibold text-[hsl(125,60%,35%)] hidden md:table-cell">{formatCurrency(p.paid)}</td>
-                  <td className={`px-4 sm:px-6 py-4 text-xs font-semibold hidden md:table-cell ${p.due > 0 ? 'text-destructive' : 'text-[hsl(125,60%,35%)]'}`}>{formatCurrency(p.due)}</td>
-                  <td className="px-4 sm:px-6 py-4 text-xs text-pos-on-surface-variant hidden lg:table-cell">{(() => { try { return new Date(p.date).toLocaleDateString('en-GB'); } catch { return p.date; } })()}</td>
-                  <td className="px-4 sm:px-6 py-4 text-right">
-                    <button onClick={() => setShowDeleteConfirm(p.id)} className="text-pos-error text-xs hover:underline">{t('delete')}</button>
+                  <td className="px-4 sm:px-6 py-4 text-xs font-semibold text-[hsl(125,60%,35%)]">{formatCurrency(p.paid)}</td>
+                  <td className={`px-4 sm:px-6 py-4 text-xs font-semibold ${p.due > 0 ? 'text-destructive' : 'text-[hsl(125,60%,35%)]'}`}>{formatCurrency(p.due)}</td>
+                  <td className="px-4 sm:px-6 py-4 text-right flex justify-end gap-1">
+                    <button className="w-7 h-7 rounded bg-[hsl(125,60%,35%)] text-white flex items-center justify-center text-xs" title="View"><span className="material-symbols-outlined text-sm">visibility</span></button>
+                    <button className="w-7 h-7 rounded bg-pos-secondary text-white flex items-center justify-center text-xs" title="Edit"><span className="material-symbols-outlined text-sm">edit</span></button>
+                    <button onClick={() => setShowDeleteConfirm(p.id)} className="w-7 h-7 rounded bg-pos-error text-white flex items-center justify-center text-xs" title="Delete"><span className="material-symbols-outlined text-sm">delete</span></button>
                   </td>
                 </tr>
-              )) : (
+              )}) : (
                 <tr><td colSpan={8} className="px-8 py-8 text-center text-xs text-pos-on-surface-variant">{t('noSalesYet')}</td></tr>
               )}
             </tbody>
