@@ -27,6 +27,9 @@ export function useSupabaseProducts() {
       stock: p.stock,
       batch: p.batch,
       barcode: p.barcode || '',
+      category: (p as any).category || '',
+      brand: (p as any).brand || '',
+      buyRate: Number((p as any).buy_rate) || 0,
     })));
     setLoading(false);
   }, [user]);
@@ -39,7 +42,9 @@ export function useSupabaseProducts() {
       user_id: user.id, name: p.name, size: p.size, finish: p.finish,
       price_per_box: p.pricePerBox, sqft_per_box: p.sqftPerBox,
       stock: p.stock, batch: p.batch, barcode: (p as any).barcode || '',
-    });
+      category: (p as any).category || '', brand: (p as any).brand || '',
+      buy_rate: (p as any).buyRate || 0,
+    } as any);
     if (error) { toast.error('Failed to add product'); return; }
     fetchProducts();
   }, [user, fetchProducts]);
@@ -54,7 +59,10 @@ export function useSupabaseProducts() {
     if (updates.sqftPerBox !== undefined) dbUpdates.sqft_per_box = updates.sqftPerBox;
     if (updates.stock !== undefined) dbUpdates.stock = updates.stock;
     if (updates.batch !== undefined) dbUpdates.batch = updates.batch;
-    const { error } = await supabase.from('products').update(dbUpdates).eq('id', id);
+    if ((updates as any).category !== undefined) dbUpdates.category = (updates as any).category;
+    if ((updates as any).brand !== undefined) dbUpdates.brand = (updates as any).brand;
+    if ((updates as any).buyRate !== undefined) dbUpdates.buy_rate = (updates as any).buyRate;
+    const { error } = await supabase.from('products').update(dbUpdates as any).eq('id', id);
     if (error) { toast.error('Failed to update product'); return; }
     fetchProducts();
   }, [user, fetchProducts]);

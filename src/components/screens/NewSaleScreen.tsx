@@ -167,15 +167,24 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
   const addRow = () => setRows(prev => [...prev, { id: Date.now(), productId: '', qty: 1, rate: 0, searchQuery: '', showDropdown: false, carton: 0, piece: 0 }]);
   const removeRow = (id: number) => setRows(prev => prev.length <= 1 ? prev : prev.filter(r => r.id !== id));
   const updateRow = (id: number, field: keyof NewSaleRow, value: string | number | boolean) => {
-    setRows(prev => prev.map(r => r.id === id ? { ...r, [field]: value } : r));
+    setRows(prev => prev.map(r => {
+      if (r.id !== id) return r;
+      const updated = { ...r, [field]: value };
+      // Sync: carton change → qty = carton, recalc sqft
+      if (field === 'carton') {
+        const ctn = Number(value) || 0;
+        updated.qty = ctn; // qty = total cartons (boxes)
+      }
+      return updated;
+    }));
   };
   const selectProduct = (rowId: number, productId: string) => {
     if (!productId) {
-      setRows(prev => prev.map(r => r.id === rowId ? { ...r, productId: '', rate: 0 } : r));
+      setRows(prev => prev.map(r => r.id === rowId ? { ...r, productId: '', rate: 0, carton: 0, piece: 0, qty: 0 } : r));
       return;
     }
     const p = products.find(x => x.id === productId);
-    if (p) setRows(prev => prev.map(r => r.id === rowId ? { ...r, productId, rate: p.pricePerBox, qty: r.qty || 1, carton: r.carton || (r.qty || 1) } : r));
+    if (p) setRows(prev => prev.map(r => r.id === rowId ? { ...r, productId, rate: p.pricePerBox, qty: 1, carton: 1, piece: 0 } : r));
   };
 
   const handleBarcode = (e: React.KeyboardEvent) => {
@@ -185,13 +194,13 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
     if (found) {
       const existingRow = rows.find(r => r.productId === found.id);
       if (existingRow) {
-        updateRow(existingRow.id, 'qty', existingRow.qty + 1);
+        updateRow(existingRow.id, 'carton', existingRow.carton + 1);
       } else {
         const emptyRow = rows.find(r => !r.productId);
         if (emptyRow) {
-          setRows(prev => prev.map(r => r.id === emptyRow.id ? { ...r, productId: found.id, rate: found.pricePerBox, qty: 1, searchQuery: '' } : r));
+          setRows(prev => prev.map(r => r.id === emptyRow.id ? { ...r, productId: found.id, rate: found.pricePerBox, qty: 1, carton: 1, piece: 0, searchQuery: '' } : r));
         } else {
-          setRows(prev => [...prev, { id: Date.now(), productId: found.id, qty: 1, rate: found.pricePerBox, searchQuery: '', showDropdown: false, carton: 0, piece: 0 }]);
+          setRows(prev => [...prev, { id: Date.now(), productId: found.id, qty: 1, rate: found.pricePerBox, searchQuery: '', showDropdown: false, carton: 1, piece: 0 }]);
         }
       }
       toast.success(`${found.name} ${t('addedToCart')}`);
@@ -201,8 +210,7 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
     setBarcodeInput('');
   };
 
-  // Calculations
-  const subtotal = rows.reduce((sum, r) => sum + (r.qty * r.rate), 0);
+  const subtotal = rows.reduce((sum, r) => sum + (r.carton * r.rate), 0);
   const discountVal = calcDiscount(subtotal, parseFloat(discount) || 0, discountType);
   const returnVal = parseFloat(returnAmt) || 0;
   const lessVal = parseFloat(lessAmt) || 0;
@@ -221,9 +229,10 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
   const bizInfoLine = [settings.phone, settings.address].filter(Boolean).join(' · ');
 
   const collectSaleData = (): { sale: SaleRecord; deductions: { productId: string; qty: number }[] } | null => {
-    const items = rows.filter(r => r.productId && r.qty > 0 && r.rate > 0).map(r => {
+    const items = rows.filter(r => r.productId && r.carton > 0 && r.rate > 0).map(r => {
       const p = products.find(x => x.id === r.productId);
-      return { productId: r.productId, name: p?.name || 'Custom Item', detail: p ? `${p.size} · ${p.finish}` : '', qty: r.qty, price: r.rate, stock: p?.stock ?? 999, carton: r.carton, piece: r.piece, sqftQty: r.qty * (p?.sqftPerBox || 1), category: p?.category || '', itemType: 'Sale' as const };
+      const ctn = r.carton;
+      return { productId: r.productId, name: p?.name || 'Custom Item', detail: p ? `${p.size} · ${p.finish}` : '', qty: ctn, price: r.rate, stock: p?.stock ?? 999, carton: ctn, piece: r.piece, sqftQty: ctn * (p?.sqftPerBox || 1), category: p?.category || '', itemType: 'Sale' as const };
     });
     if (!items.length) { toast.error(t('addAtLeastOneItem')); return null; }
     const overStock = items.find(i => i.qty > i.stock);
@@ -609,9 +618,9 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
               </thead>
               <tbody>
                 {rows.map((row, idx) => {
-                  const rowTotal = row.qty * row.rate;
                   const product = products.find(p => p.id === row.productId);
-                  const sqftQty = row.qty * (product?.sqftPerBox || 1);
+                  const sqftQty = row.carton * (product?.sqftPerBox || 0);
+                  const rowTotal = row.carton * row.rate;
                   return (
                     <tr key={row.id} className="border-b border-border/50 hover:bg-muted/20 transition-colors align-top">
                       <td className="py-2 px-2 text-xs font-semibold text-muted-foreground">{idx + 1}</td>
@@ -640,9 +649,7 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
                         />
                       </td>
                       <td className="py-2 px-2 text-right">
-                        <input type="number" min={1} value={row.qty || ''} onChange={e => updateRow(row.id, 'qty', parseInt(e.target.value) || 0)}
-                          className="w-16 bg-muted/30 border border-border rounded text-xs py-1 text-right outline-none focus:border-primary px-1" />
-                        {product && <div className="text-[8px] text-muted-foreground mt-0.5">{sqftQty.toFixed(1)} sqft</div>}
+                        <div className="text-xs font-semibold">{sqftQty > 0 ? `${sqftQty.toFixed(1)} sqft` : '-'}</div>
                       </td>
                       <td className="py-2 px-2">
                         <input type="number" value={row.rate || ''} onChange={e => updateRow(row.id, 'rate', parseFloat(e.target.value) || 0)}
