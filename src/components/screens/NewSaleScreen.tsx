@@ -219,11 +219,13 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
     if (overStock) { toast.error(`${overStock.name}: ${t('qty')} ${overStock.qty} > ${t('stock')} ${overStock.stock}`); return null; }
     const inv = getNextInvoiceNumber(settings.invPrefix);
     const now = new Date();
+    const autoStatus = paidVal >= total ? 'paid' : paidVal > 0 ? 'pending' : status === 'credit' ? 'credit' : 'pending';
     const sale: SaleRecord = {
       id: crypto.randomUUID(), invoice: inv, customer: customerName || t('walkInCustomer'),
       phone, address, items, subtotal, discount: discountVal, discountType, total,
-      paymentMethod: payment, notes, status: status as SaleRecord['status'],
+      paymentMethod: payment, notes, status: autoStatus as SaleRecord['status'],
       date: now.toISOString(), time: now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
+      paid: paidVal, due: dueVal, delivery: deliveryVal, labour: labourVal,
     };
     return { sale, deductions: items.filter(i => i.productId).map(i => ({ productId: i.productId, qty: i.qty })) };
   };
