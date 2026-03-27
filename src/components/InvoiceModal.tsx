@@ -418,11 +418,11 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
     doc.text('Authorized Signature', pw - 47, sigY + 5, { align: 'center' });
 
     // Disclaimer
-    doc.setTextColor(192, 57, 43); doc.setFontSize(9);
+    doc.setTextColor(192, 57, 43); doc.setFontSize(9); doc.setFont('helvetica', 'bold');
     doc.text('Goods once sold are not returnable. Chinese/Indian products are non-refundable.', pw / 2, sigY + 16, { align: 'center' });
 
     doc.setTextColor(150); doc.setFontSize(7); doc.setFont('helvetica', 'normal');
-    doc.text(`SOFTWARE: ${companyName} | Printing @: ${new Date().toLocaleString()}`, pw / 2, sigY + 22, { align: 'center' });
+    doc.text(`SOFTWARE: ${companyName} | ${companyPhone || ''} | Printing @: ${new Date().toLocaleString()}`, pw / 2, sigY + 22, { align: 'center' });
 
     doc.save(`${sale.invoice}.pdf`);
     toast.success('PDF downloaded!');
