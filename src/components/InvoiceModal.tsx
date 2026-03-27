@@ -33,6 +33,11 @@ async function generateQRDataURL(data: string, size = 80): Promise<string> {
 export default function InvoiceModal({ sale, companyName, companyPhone, companyAddress, companyEmail, soldBy, onClose }: InvoiceModalProps) {
   const { t } = useI18n();
   const invoiceRef = useRef<HTMLDivElement>(null);
+  const [qrDataUrl, setQrDataUrl] = useState('');
+
+  useEffect(() => {
+    generateQRDataURL(`${sale.invoice}-${sale.total}-${sale.date}`, 80).then(url => setQrDataUrl(url));
+  }, [sale.invoice, sale.total, sale.date]);
 
   const dateStr = (() => {
     try {
