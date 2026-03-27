@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { formatCurrency, type SaleRecord } from "@/lib/store";
+import { formatCurrency, numberToWords, type SaleRecord } from "@/lib/store";
 import { useI18n } from "@/lib/i18n";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
