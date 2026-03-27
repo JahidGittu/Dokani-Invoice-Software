@@ -1,18 +1,7 @@
 import { useState, useMemo } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useI18n } from "@/lib/i18n";
 import { type Product, type SaleRecord, type Customer, getLowStockProducts } from "@/lib/store";
-
-const headings: Record<string, string> = {
-  dashboard: 'Dashboard',
-  products: 'Products',
-  sales: 'Sales / POS',
-  'new-sale': 'New Sale Entry',
-  inventory: 'Inventory',
-  customers: 'Customers',
-  reports: 'Reports',
-  excel: 'Excel Import',
-  settings: 'Settings',
-};
 
 interface HeaderProps {
   activeScreen: string;
@@ -26,10 +15,23 @@ interface HeaderProps {
 }
 
 export default function Header({ activeScreen, onToggleSidebar, onNavigate, onSearch, products, sales = [], customers = [], userName = 'AR' }: HeaderProps) {
+  const { t, lang, setLang } = useI18n();
   const [searchQuery, setSearchQuery] = useState('');
   const [showResults, setShowResults] = useState(false);
   const lowStock = useMemo(() => getLowStockProducts(products), [products]);
   const initials = (userName || 'U').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+
+  const headings: Record<string, string> = {
+    dashboard: t('dashboard'),
+    products: t('products'),
+    sales: t('salesPOS'),
+    'new-sale': t('newSaleEntry'),
+    inventory: t('inventory'),
+    customers: t('customers'),
+    reports: t('reports'),
+    excel: t('excelImport'),
+    settings: t('settings'),
+  };
 
   const debouncedQuery = useDebounce(searchQuery, 250);
 
@@ -44,41 +46,37 @@ export default function Header({ activeScreen, onToggleSidebar, onNavigate, onSe
         label: `${s.invoice} · ${s.customer}`, sub: `৳${s.total.toLocaleString()}`, screen: 'sales', icon: 'receipt',
       })),
       ...customers.filter(c => c.name.toLowerCase().includes(q) || (c.phone && c.phone.includes(q))).slice(0, 2).map(c => ({
-        label: `${c.name}${c.phone ? ' · ' + c.phone : ''}`, sub: 'Customer', screen: 'customers', icon: 'person',
+        label: `${c.name}${c.phone ? ' · ' + c.phone : ''}`, sub: t('customer'), screen: 'customers', icon: 'person',
       })),
     ];
-  }, [debouncedQuery, products, sales, customers]);
+  }, [debouncedQuery, products, sales, customers, t]);
 
   return (
     <header className="flex justify-between items-center w-full px-4 lg:px-8 h-16 sticky top-0 z-40 bg-white/80 backdrop-blur-md shadow-sm">
-      <div className="flex items-center gap-4 lg:gap-4">
+      <div className="flex items-center gap-3 lg:gap-4">
         <button className="lg:hidden p-2 text-slate-500 hover:text-slate-900" onClick={onToggleSidebar}>
           <span className="material-symbols-outlined">menu</span>
         </button>
-        <span className="text-lg sm:text-xl font-black text-slate-900">{headings[activeScreen] || 'Dashboard'}</span>
-        <div className="relative w-48 lg:w-64 hidden sm:block">
+        <span className="text-lg sm:text-xl font-black text-slate-900">{headings[activeScreen] || t('dashboard')}</span>
+        <div className="relative w-44 lg:w-64 hidden sm:block">
           <input
             value={searchQuery}
             onChange={(e) => { setSearchQuery(e.target.value); setShowResults(true); }}
             onFocus={() => setShowResults(true)}
             onBlur={() => setTimeout(() => setShowResults(false), 200)}
             className="w-full bg-pos-surface-high border-none rounded-lg text-xs py-2 pl-10 focus:ring-2 focus:ring-pos-secondary transition-all outline-none"
-            placeholder="Search products, customers, invoices..."
+            placeholder={t('searchPlaceholder')}
             type="text"
             id="global-search"
           />
           <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-pos-on-surface-variant text-lg">search</span>
           {showResults && searchResults.length > 0 && (
-            <div className="absolute top-full left-0 right-0 bg-pos-surface-lowest border border-pos-surface-container rounded-lg shadow-xl z-50 mt-1 overflow-hidden" style={{ top: 'calc(100% + 4px)' }}>
+            <div className="absolute top-full left-0 right-0 bg-pos-surface-lowest border border-pos-surface-container rounded-lg shadow-xl z-50 mt-1 overflow-hidden">
               {searchResults.map((r, i) => (
                 <button
                   key={i}
                   className="w-full text-left px-4 py-2.5 text-xs hover:bg-pos-surface-high transition-colors flex items-center gap-3"
-                  onMouseDown={() => {
-                    onNavigate(r.screen);
-                    setSearchQuery('');
-                    setShowResults(false);
-                  }}
+                  onMouseDown={() => { onNavigate(r.screen); setSearchQuery(''); setShowResults(false); }}
                 >
                   <span className="material-symbols-outlined text-pos-on-surface-variant text-base">{r.icon}</span>
                   <div>
@@ -91,10 +89,18 @@ export default function Header({ activeScreen, onToggleSidebar, onNavigate, onSe
           )}
         </div>
       </div>
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3">
+        {/* Language Toggle */}
+        <button
+          onClick={() => setLang(lang === 'en' ? 'bn' : 'en')}
+          className="px-2 py-1 bg-pos-surface-high rounded-lg text-[10px] font-bold text-pos-on-surface-variant hover:bg-pos-surface-container transition-colors"
+          title="Toggle Language"
+        >
+          {lang === 'en' ? 'বাং' : 'EN'}
+        </button>
         {lowStock.length > 0 && (
           <button onClick={() => onNavigate('inventory')} className="px-2.5 py-1 bg-pos-error-container text-pos-on-error-container rounded-full text-[10px] font-bold flex items-center gap-1 animate-pulse">
-            <span className="material-symbols-outlined text-sm">warning</span> {lowStock.length} Low Stock
+            <span className="material-symbols-outlined text-sm">warning</span> {lowStock.length} {t('lowStock')}
           </button>
         )}
         <button onClick={() => onNavigate('reports')} className="p-2 text-slate-500 hover:text-pos-secondary transition-colors relative">
