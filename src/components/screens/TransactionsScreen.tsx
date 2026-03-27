@@ -1,10 +1,10 @@
 import { useState, useMemo } from "react";
 import { useI18n } from "@/lib/i18n";
-import { formatCurrency, type SaleRecord, type Purchase } from "@/lib/store";
+import { formatCurrency, type SaleRecord, type PurchaseRecord } from "@/lib/store";
 
 interface TransactionsScreenProps {
   sales: SaleRecord[];
-  purchases: Purchase[];
+  purchases: PurchaseRecord[];
 }
 
 export default function TransactionsScreen({ sales, purchases }: TransactionsScreenProps) {
