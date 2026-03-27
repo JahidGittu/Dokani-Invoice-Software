@@ -621,7 +621,6 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
                   const sqftQty = row.carton * (product?.sqftPerBox || 0);
                   const rowTotal = row.carton * row.rate;
                   return (
-                  return (
                     <tr key={row.id} className="border-b border-border/50 hover:bg-muted/20 transition-colors align-top">
                       <td className="py-2 px-2 text-xs font-semibold text-muted-foreground">{idx + 1}</td>
                       <td className="py-2 px-2 text-[10px] text-muted-foreground">Sale</td>
