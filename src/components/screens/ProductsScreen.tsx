@@ -20,7 +20,6 @@ interface InlineRow {
   name: string; category: string; brand: string; size: string; finish: string;
   buyRate: string; pricePerBox: string; sqftPerBox: string; piecesPerBox: string;
   stock: string; batch: string; barcode: string;
-  saved?: boolean;
 }
 
 const emptyRow = (): InlineRow => ({
@@ -29,20 +28,23 @@ const emptyRow = (): InlineRow => ({
   buyRate: '', pricePerBox: '', sqftPerBox: '', piecesPerBox: '4', stock: '', batch: '', barcode: '',
 });
 
+type EditableField = 'name' | 'category' | 'brand' | 'size' | 'finish' | 'buyRate' | 'pricePerBox' | 'sqftPerBox' | 'piecesPerBox' | 'stock' | 'batch';
+type ComboField = 'category' | 'brand' | 'size' | 'finish';
+const COMBO_FIELDS: ComboField[] = ['category', 'brand', 'size', 'finish'];
+
 export default function ProductsScreen({ products, onAddProduct, onUpdateProduct, onDeleteProduct }: ProductsScreenProps) {
   const { t } = useI18n();
   const { getOptions, addOption } = useProductOptions();
   const [search, setSearch] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
-  const [editId, setEditId] = useState<string | null>(null);
-  const [showAddModal, setShowAddModal] = useState(false);
   const [page, setPage] = useState(0);
-  const [form, setForm] = useState({
-    name: '', size: '', finish: 'Glossy', pricePerBox: '', sqftPerBox: '', piecesPerBox: '4', stock: '', batch: '',
-    barcode: '', category: 'Wall Tiles', brand: '', buyRate: '',
-  });
 
-  // Single new-entry row at the bottom of the table
+  // Inline cell editing
+  const [editingCell, setEditingCell] = useState<string | null>(null); // "productId:field"
+  const [editValue, setEditValue] = useState('');
+  const editRef = useRef<HTMLInputElement>(null);
+
+  // New entry row
   const [newRow, setNewRow] = useState<InlineRow>(emptyRow());
   const nameRef = useRef<HTMLInputElement>(null);
 
@@ -53,7 +55,6 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
     if (sortField === field) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
     else { setSortField(field); setSortDir('asc'); }
   };
-
   const sortIcon = (field: typeof sortField) => sortField === field ? (sortDir === 'asc' ? 'arrow_upward' : 'arrow_downward') : 'unfold_more';
 
   const debouncedSearch = useDebounce(search, 250);
@@ -72,7 +73,7 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
       else if (sortField === 'pricePerBox') cmp = a.pricePerBox - b.pricePerBox;
       else if (sortField === 'category') cmp = (a.category || '').localeCompare(b.category || '');
       else if (sortField === 'brand') cmp = (a.brand || '').localeCompare(b.brand || '');
-      else cmp = (a.id || '').localeCompare(b.id || ''); // updated_at fallback
+      else cmp = (a.id || '').localeCompare(b.id || '');
       return sortDir === 'asc' ? cmp : -cmp;
     });
   }, [products, debouncedSearch, sortField, sortDir]);
@@ -80,33 +81,30 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginatedProducts = useMemo(() => filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE), [filtered, page]);
 
-  const resetForm = () => setForm({ name: '', size: '', finish: 'Glossy', pricePerBox: '', sqftPerBox: '', piecesPerBox: '4', stock: '', batch: '', barcode: '', category: 'Wall Tiles', brand: '', buyRate: '' });
-
-  const handleSave = () => {
-    if (!form.name || !form.pricePerBox) { toast.error(t('nameAndPriceReq')); return; }
-    const data = {
-      name: form.name, size: form.size, finish: form.finish,
-      pricePerBox: parseFloat(form.pricePerBox), sqftPerBox: parseFloat(form.sqftPerBox) || 0,
-      piecesPerBox: parseInt(form.piecesPerBox) || 4,
-      stock: parseInt(form.stock) || 0, batch: form.batch,
-      barcode: form.barcode, category: form.category, brand: form.brand,
-      buyRate: parseFloat(form.buyRate) || 0,
-    };
-    if (editId) { onUpdateProduct(editId, data); toast.success(t('productUpdated')); }
-    else { onAddProduct(data); toast.success(t('productAdded')); }
-    setShowAddModal(false); setEditId(null); resetForm();
+  // ── Inline cell edit helpers ──
+  const startEdit = (productId: string, field: EditableField, currentValue: string | number) => {
+    setEditingCell(`${productId}:${field}`);
+    setEditValue(String(currentValue ?? ''));
+    setTimeout(() => editRef.current?.focus(), 30);
   };
 
-  const openEdit = (p: Product) => {
-    setForm({
-      name: p.name, size: p.size, finish: p.finish,
-      pricePerBox: String(p.pricePerBox), sqftPerBox: String(p.sqftPerBox),
-      piecesPerBox: String(p.piecesPerBox || 4),
-      stock: String(p.stock), batch: p.batch,
-      barcode: p.barcode || '', category: p.category || 'Wall Tiles',
-      brand: p.brand || '', buyRate: String(p.buyRate || 0),
-    });
-    setEditId(p.id); setShowAddModal(true);
+  const commitEdit = (productId: string, field: EditableField) => {
+    const numericFields = ['buyRate', 'pricePerBox', 'sqftPerBox', 'piecesPerBox', 'stock'];
+    const update: Partial<Product> = {};
+    if (numericFields.includes(field)) {
+      (update as any)[field] = parseFloat(editValue) || 0;
+    } else {
+      (update as any)[field] = editValue;
+    }
+    onUpdateProduct(productId, update);
+    setEditingCell(null);
+  };
+
+  const cancelEdit = () => setEditingCell(null);
+
+  const handleCellKeyDown = (e: React.KeyboardEvent, productId: string, field: EditableField) => {
+    if (e.key === 'Enter') { e.preventDefault(); commitEdit(productId, field); }
+    if (e.key === 'Escape') cancelEdit();
   };
 
   const confirmDelete = () => {
@@ -114,7 +112,7 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
     setShowDeleteConfirm(null);
   };
 
-  // Check if the new row has enough data to auto-save
+  // ── New row helpers ──
   const isRowComplete = (r: InlineRow) => !!(r.name && r.pricePerBox);
 
   const autoSaveRow = useCallback(() => {
@@ -137,14 +135,63 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      autoSaveRow();
-    }
+    if (e.key === 'Enter') { e.preventDefault(); autoSaveRow(); }
   };
 
   const inputCls = "w-full bg-transparent border-none text-xs py-1.5 px-1.5 outline-none focus:bg-[hsl(var(--accent))] transition-colors placeholder:text-muted-foreground/40";
-  const selectCls = "w-full bg-transparent border-none text-xs py-1.5 px-0.5 outline-none focus:bg-[hsl(var(--accent))] transition-colors";
+  const editInputCls = "w-full bg-[hsl(var(--accent))] border border-primary/30 text-xs py-1 px-1.5 outline-none rounded";
+
+  // Render an editable cell
+  const renderCell = (p: Product, field: EditableField, display: React.ReactNode, align?: string) => {
+    const cellKey = `${p.id}:${field}`;
+    const isEditing = editingCell === cellKey;
+    const isCombo = (COMBO_FIELDS as string[]).includes(field);
+
+    if (isEditing && isCombo) {
+      return (
+        <td className="px-0 py-0.5" onClick={e => e.stopPropagation()}>
+          <ComboInput
+            value={editValue}
+            onChange={v => setEditValue(v)}
+            options={getOptions(field as ComboField)}
+            onAddNew={v => addOption(field as ComboField, v)}
+            placeholder={field}
+            className={editInputCls}
+          />
+          <div className="flex gap-0.5 px-1 mt-0.5">
+            <button onClick={() => commitEdit(p.id, field)} className="text-[9px] text-primary font-bold">✓</button>
+            <button onClick={cancelEdit} className="text-[9px] text-muted-foreground">✕</button>
+          </div>
+        </td>
+      );
+    }
+
+    if (isEditing) {
+      return (
+        <td className="px-0 py-0.5" onClick={e => e.stopPropagation()}>
+          <input
+            ref={editRef}
+            value={editValue}
+            onChange={e => setEditValue(e.target.value)}
+            onKeyDown={e => handleCellKeyDown(e, p.id, field)}
+            onBlur={() => commitEdit(p.id, field)}
+            type={['buyRate', 'pricePerBox', 'sqftPerBox', 'piecesPerBox', 'stock'].includes(field) ? 'number' : 'text'}
+            className={`${editInputCls} ${align || ''}`}
+          />
+        </td>
+      );
+    }
+
+    return (
+      <td
+        className={`px-2 py-2.5 cursor-pointer hover:bg-[hsl(var(--accent))] transition-colors ${align || ''}`}
+        onDoubleClick={() => startEdit(p.id, field, (p as any)[field] ?? '')}
+        title="ডাবল ক্লিক করে এডিট করুন"
+      >
+        {display}
+      </td>
+    );
+  };
 
   return (
     <section className="p-4 sm:p-6 max-w-[1600px] mx-auto space-y-5">
@@ -164,7 +211,7 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
       <div className="bg-pos-surface-lowest rounded-xl shadow-sm overflow-hidden border border-pos-surface-container">
         <div className="overflow-auto max-h-[calc(100vh-260px)]">
           <table className="w-full min-w-[1100px] relative">
-             <thead className="sticky top-0 z-10">
+            <thead className="sticky top-0 z-10">
               <tr className="text-[9px] font-bold text-pos-on-surface-variant uppercase tracking-wider bg-pos-surface-low border-b border-pos-surface-container">
                 <th className="px-2 py-2.5 w-8 text-center">#</th>
                 <th className="px-2 py-2.5 cursor-pointer select-none" onClick={() => toggleSort('name')}>
@@ -188,7 +235,7 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
                   <span className="inline-flex items-center gap-0.5">{t('stock')} <span className="material-symbols-outlined text-[10px]">{sortIcon('stock')}</span></span>
                 </th>
                 <th className="px-2 py-2.5">Bar/Code</th>
-                <th className="px-2 py-2.5 text-center w-16">{t('action')}</th>
+                <th className="px-2 py-2.5 text-center w-12">{t('action')}</th>
               </tr>
 
               {/* ═══ NEW ENTRY ROW (sticky at top) ═══ */}
@@ -241,37 +288,36 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
               </tr>
             </thead>
             <tbody className="divide-y divide-pos-surface-container">
-              {/* Existing products */}
               {paginatedProducts.map((p, idx) => (
                 <tr key={p.id} className="hover:bg-pos-surface-low transition-colors group">
                   <td className="px-2 py-2.5 text-center text-[10px] text-muted-foreground font-mono">{page * PAGE_SIZE + idx + 1}</td>
-                  <td className="px-2 py-2.5 font-semibold text-sm">{p.name}</td>
-                  <td className="px-2 py-2.5 text-xs">{p.category || '—'}</td>
-                  <td className="px-2 py-2.5 text-xs">{p.brand || '—'}</td>
-                  <td className="px-2 py-2.5"><span className="px-1.5 py-0.5 bg-pos-secondary-container text-pos-on-secondary-container rounded text-[10px] font-bold">{p.size || '—'}</span></td>
-                  <td className="px-2 py-2.5 text-xs">{p.finish}</td>
-                  <td className="px-2 py-2.5 text-xs text-right">{formatCurrency(p.buyRate || 0)}</td>
-                  <td className="px-2 py-2.5 text-right font-bold text-pos-secondary text-sm">{formatCurrency(p.pricePerBox)}</td>
-                  <td className="px-2 py-2.5 text-xs text-center">{p.sqftPerBox || '—'}</td>
-                  <td className="px-2 py-2.5 text-xs text-center">{p.piecesPerBox || 4}</td>
-                  <td className="px-2 py-2.5 text-center">
+                  {renderCell(p, 'name', <span className="font-semibold text-sm">{p.name}</span>)}
+                  {renderCell(p, 'category', <span className="text-xs">{p.category || '—'}</span>)}
+                  {renderCell(p, 'brand', <span className="text-xs">{p.brand || '—'}</span>)}
+                  {renderCell(p, 'size', <span className="px-1.5 py-0.5 bg-pos-secondary-container text-pos-on-secondary-container rounded text-[10px] font-bold">{p.size || '—'}</span>)}
+                  {renderCell(p, 'finish', <span className="text-xs">{p.finish}</span>)}
+                  {renderCell(p, 'buyRate', <span className="text-xs">{formatCurrency(p.buyRate || 0)}</span>, 'text-right')}
+                  {renderCell(p, 'pricePerBox', <span className="font-bold text-pos-secondary text-sm">{formatCurrency(p.pricePerBox)}</span>, 'text-right')}
+                  {renderCell(p, 'sqftPerBox', <span className="text-xs">{p.sqftPerBox || '—'}</span>, 'text-center')}
+                  {renderCell(p, 'piecesPerBox', <span className="text-xs">{p.piecesPerBox || 4}</span>, 'text-center')}
+                  {renderCell(p, 'stock', (
                     <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${p.stock <= 0 ? 'bg-pos-error text-white' : p.stock <= 20 ? 'bg-pos-error-container text-pos-on-error-container' : 'bg-pos-tertiary-container text-pos-on-tertiary-container'}`}>
                       {p.stock}
                     </span>
-                  </td>
-                  <td className="px-2 py-2.5 text-[10px] font-mono text-muted-foreground">{p.barcode || p.batch || '—'}</td>
+                  ), 'text-center')}
+                  {renderCell(p, 'batch', <span className="text-[10px] font-mono text-muted-foreground">{p.barcode || p.batch || '—'}</span>)}
                   <td className="px-2 py-2.5 text-center">
-                    <div className="flex items-center justify-center gap-0.5 opacity-60 group-hover:opacity-100 transition-opacity">
-                      <button onClick={() => openEdit(p)} className="w-5 h-5 rounded bg-[hsl(125,60%,35%)] text-white flex items-center justify-center" title={t('edit')}><span className="material-symbols-outlined text-xs">edit</span></button>
-                      {onDeleteProduct && <button onClick={() => setShowDeleteConfirm(p.id)} className="w-5 h-5 rounded bg-pos-error text-white flex items-center justify-center" title={t('delete')}><span className="material-symbols-outlined text-xs">delete</span></button>}
-                    </div>
+                    {onDeleteProduct && (
+                      <button onClick={() => setShowDeleteConfirm(p.id)} className="w-5 h-5 rounded bg-pos-error text-white flex items-center justify-center opacity-60 group-hover:opacity-100 transition-opacity" title={t('delete')}>
+                        <span className="material-symbols-outlined text-xs">delete</span>
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
               {paginatedProducts.length === 0 && !search && (
                 <tr><td colSpan={13} className="px-8 py-6 text-center text-xs text-pos-on-surface-variant">{t('noProducts')}</td></tr>
               )}
-
             </tbody>
           </table>
         </div>
@@ -292,54 +338,13 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
 
         {/* Hint bar */}
         <div className="px-4 py-2 bg-pos-surface-low border-t border-pos-surface-container flex items-center gap-4 text-[10px] text-muted-foreground">
-          <span><kbd className="px-1 py-0.5 bg-pos-surface-container rounded text-[9px] font-mono">Tab</kbd> পরের ফিল্ড</span>
           <span><kbd className="px-1 py-0.5 bg-pos-surface-container rounded text-[9px] font-mono">Enter</kbd> সেভ ও নতুন রো</span>
+          <span><kbd className="px-1 py-0.5 bg-pos-surface-container rounded text-[9px] font-mono">Double Click</kbd> সেল এডিট</span>
           <span>Name ও Sale Price বাধ্যতামূলক</span>
         </div>
       </div>
 
-      {/* ═══ EDIT MODAL ═══ */}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-black/35 flex items-center justify-center z-[1000]" onClick={() => { setShowAddModal(false); setEditId(null); }}>
-          <div className="bg-pos-surface-lowest rounded-xl w-[95vw] max-w-[560px] shadow-2xl p-7" onClick={(e) => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-lg font-bold">{editId ? t('editProduct') : t('addNewProduct')}</h3>
-              <button onClick={() => { setShowAddModal(false); setEditId(null); }} className="text-pos-on-surface-variant hover:text-pos-on-surface"><span className="material-symbols-outlined">close</span></button>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="col-span-2"><label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">{t('productNameReq')}</label><input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" placeholder="e.g. Royal Marble" /></div>
-              <div>
-                <label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">{t('categoryLabel')}</label>
-                <ComboInput value={form.category} onChange={v => setForm(f => ({ ...f, category: v }))} options={getOptions('category')} onAddNew={v => addOption('category', v)} placeholder="Category" className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">{t('brandLabel')}</label>
-                <ComboInput value={form.brand} onChange={v => setForm(f => ({ ...f, brand: v }))} options={getOptions('brand')} onAddNew={v => addOption('brand', v)} placeholder="Brand" className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">{t('size')}</label>
-                <ComboInput value={form.size} onChange={v => setForm(f => ({ ...f, size: v }))} options={getOptions('size')} onAddNew={v => addOption('size', v)} placeholder="24×24" className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">{t('finish')}</label>
-                <ComboInput value={form.finish} onChange={v => setForm(f => ({ ...f, finish: v }))} options={getOptions('finish')} onAddNew={v => addOption('finish', v)} placeholder="Finish" className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" />
-              </div>
-              <div><label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">{t('buyRateLabel')} (৳)</label><input value={form.buyRate} onChange={e => setForm(f => ({ ...f, buyRate: e.target.value }))} type="number" className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" placeholder="900" /></div>
-              <div><label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">{t('salesRateLabel')} (৳) *</label><input value={form.pricePerBox} onChange={e => setForm(f => ({ ...f, pricePerBox: e.target.value }))} type="number" className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" placeholder="1200" /></div>
-              <div><label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">{t('sqftPerBox')}</label><input value={form.sqftPerBox} onChange={e => setForm(f => ({ ...f, sqftPerBox: e.target.value }))} type="number" className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" placeholder="9.2" /></div>
-              <div><label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">Pieces/Box</label><input value={form.piecesPerBox} onChange={e => setForm(f => ({ ...f, piecesPerBox: e.target.value }))} type="number" className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" placeholder="4" /></div>
-              <div><label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">{t('stock')} ({t('boxes')})</label><input value={form.stock} onChange={e => setForm(f => ({ ...f, stock: e.target.value }))} type="number" className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" placeholder="100" /></div>
-              <div><label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">{t('barcode')}</label><input value={form.barcode} onChange={e => setForm(f => ({ ...f, barcode: e.target.value }))} className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" placeholder="01" /></div>
-              <div><label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">Bar/Product Code</label><input value={form.batch} onChange={e => setForm(f => ({ ...f, batch: e.target.value }))} className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" placeholder="BT-2501" /></div>
-            </div>
-            <div className="flex gap-3 mt-6">
-              <button onClick={() => { setShowAddModal(false); setEditId(null); }} className="flex-1 py-2.5 bg-pos-surface-container text-pos-on-surface-variant rounded-lg font-semibold text-sm">{t('cancel')}</button>
-              <button onClick={handleSave} className="flex-1 py-2.5 bg-gradient-to-b from-pos-secondary to-pos-secondary-dim text-white rounded-lg font-semibold text-sm">{editId ? t('updateProduct') : t('saveProduct')}</button>
-            </div>
-          </div>
-        </div>
-      )}
-
+      {/* Delete confirm */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/35 flex items-center justify-center z-[1000]" onClick={() => setShowDeleteConfirm(null)}>
           <div className="bg-pos-surface-lowest rounded-xl w-[360px] shadow-2xl p-7" onClick={e => e.stopPropagation()}>
