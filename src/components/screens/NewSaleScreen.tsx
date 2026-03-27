@@ -145,7 +145,7 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
   const [returnAmt, setReturnAmt] = useState('');
   const [lessAmt, setLessAmt] = useState('');
   const [paidAmount, setPaidAmount] = useState('');
-  const [rows, setRows] = useState<NewSaleRow[]>([{ id: Date.now(), productId: '', qty: 1, rate: 0, searchQuery: '', showDropdown: false, carton: 0, piece: 0 }]);
+  const [rows, setRows] = useState<NewSaleRow[]>([{ id: Date.now(), productId: '', qty: 1, rate: 0, searchQuery: '', showDropdown: false, carton: 0, piece: 0, sqftInput: '' }]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [barcodeInput, setBarcodeInput] = useState('');
   const [showScanModal, setShowScanModal] = useState(false);
@@ -166,7 +166,7 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
     setCustomerName(c.name); setPhone(c.phone || ''); setAddress(c.address || ''); setShowSuggestions(false);
   };
 
-  const addRow = () => setRows(prev => [...prev, { id: Date.now(), productId: '', qty: 1, rate: 0, searchQuery: '', showDropdown: false, carton: 0, piece: 0 }]);
+  const addRow = () => setRows(prev => [...prev, { id: Date.now(), productId: '', qty: 1, rate: 0, searchQuery: '', showDropdown: false, carton: 0, piece: 0, sqftInput: '' }]);
   const removeRow = (id: number) => setRows(prev => prev.length <= 1 ? prev : prev.filter(r => r.id !== id));
   const updateRow = (id: number, field: keyof NewSaleRow, value: string | number | boolean) => {
     setRows(prev => prev.map(r => {
@@ -182,7 +182,7 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
   };
   const selectProduct = (rowId: number, productId: string) => {
     if (!productId) {
-      setRows(prev => prev.map(r => r.id === rowId ? { ...r, productId: '', rate: 0, carton: 0, piece: 0, qty: 0 } : r));
+      setRows(prev => prev.map(r => r.id === rowId ? { ...r, productId: '', rate: 0, carton: 0, piece: 0, sqftInput: '', qty: 0 } : r));
       return;
     }
     const p = products.find(x => x.id === productId);
@@ -270,8 +270,8 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
     setCustomerName(''); setPhone(''); setAddress(''); setNotes('');
     setDiscount(''); setReceived(''); setPayment('cash'); setStatus('paid');
     setDelivery(''); setLabour(''); setPaidAmount(''); setReturnAmt(''); setLessAmt('');
-    setRows([{ id: Date.now(), productId: '', qty: 1, rate: 0, searchQuery: '', showDropdown: false, carton: 0, piece: 0 }]);
-    setRows([{ id: Date.now(), productId: '', qty: 1, rate: 0, searchQuery: '', showDropdown: false, carton: 0, piece: 0 }]);
+    setRows([{ id: Date.now(), productId: '', qty: 1, rate: 0, searchQuery: '', showDropdown: false, carton: 0, piece: 0, sqftInput: '' }]);
+    setRows([{ id: Date.now(), productId: '', qty: 1, rate: 0, searchQuery: '', showDropdown: false, carton: 0, piece: 0, sqftInput: '' }]);
   };
 
   const handleSaveAndPrint = () => {
@@ -909,7 +909,7 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
                           if (emptyRow) {
                             setRows(prev => prev.map(r => r.id === emptyRow.id ? { ...r, productId: found.id, rate: found.pricePerBox, qty: 1, searchQuery: '' } : r));
                           } else {
-                            setRows(prev => [...prev, { id: Date.now(), productId: found.id, qty: 1, rate: found.pricePerBox, searchQuery: '', showDropdown: false, carton: 0, piece: 0 }]);
+                            setRows(prev => [...prev, { id: Date.now(), productId: found.id, qty: 1, rate: found.pricePerBox, searchQuery: '', showDropdown: false, carton: 0, piece: 0, sqftInput: '' }]);
                           }
                         }
                         setTimeout(() => { setShowScanModal(false); toast.success(`${found.name} ${t('addedToCart')}`); }, 1200);
