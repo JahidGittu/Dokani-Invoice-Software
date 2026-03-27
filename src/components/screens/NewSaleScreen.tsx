@@ -589,17 +589,10 @@ ${sale.discount > 0 ? `<div class="row"><span>Discount</span><span>-${formatCurr
             })}
           </div>
 
-          {/* Add item + Scan button row */}
-          <div className="mt-3 flex gap-2">
-            <button onClick={() => setShowBarcodePopup(true)}
-              className="py-2 px-4 bg-primary/10 text-primary border-2 border-dashed border-primary/40 rounded-lg text-xs font-bold hover:bg-primary/20 transition-colors flex items-center gap-1.5 shrink-0">
-              <span className="material-symbols-outlined text-base">qr_code_scanner</span>{t('scan')}
-            </button>
-            <button onClick={addRow}
-              className="flex-1 py-2 border-2 border-dashed border-border rounded-lg text-xs text-muted-foreground hover:border-primary hover:text-primary transition-colors flex items-center justify-center gap-1">
-              <span className="material-symbols-outlined text-sm">add</span>{t('addItem')}
-            </button>
-          </div>
+          <button onClick={addRow}
+            className="mt-3 w-full py-2 border-2 border-dashed border-border rounded-lg text-xs text-muted-foreground hover:border-primary hover:text-primary transition-colors flex items-center justify-center gap-1">
+            <span className="material-symbols-outlined text-sm">add</span>{t('addItem')}
+          </button>
 
           {/* Barcode scan popup */}
           {showBarcodePopup && (
