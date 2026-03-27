@@ -187,7 +187,7 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
                 <th className="px-2 py-2.5 text-center cursor-pointer select-none" onClick={() => toggleSort('stock')}>
                   <span className="inline-flex items-center gap-0.5">{t('stock')} <span className="material-symbols-outlined text-[10px]">{sortIcon('stock')}</span></span>
                 </th>
-                <th className="px-2 py-2.5">Batch</th>
+                <th className="px-2 py-2.5">Bar/Code</th>
                 <th className="px-2 py-2.5 text-center w-16">{t('action')}</th>
               </tr>
 
