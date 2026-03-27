@@ -59,7 +59,10 @@ export function useSupabaseProducts() {
     if (updates.sqftPerBox !== undefined) dbUpdates.sqft_per_box = updates.sqftPerBox;
     if (updates.stock !== undefined) dbUpdates.stock = updates.stock;
     if (updates.batch !== undefined) dbUpdates.batch = updates.batch;
-    const { error } = await supabase.from('products').update(dbUpdates).eq('id', id);
+    if ((updates as any).category !== undefined) dbUpdates.category = (updates as any).category;
+    if ((updates as any).brand !== undefined) dbUpdates.brand = (updates as any).brand;
+    if ((updates as any).buyRate !== undefined) dbUpdates.buy_rate = (updates as any).buyRate;
+    const { error } = await supabase.from('products').update(dbUpdates as any).eq('id', id);
     if (error) { toast.error('Failed to update product'); return; }
     fetchProducts();
   }, [user, fetchProducts]);
