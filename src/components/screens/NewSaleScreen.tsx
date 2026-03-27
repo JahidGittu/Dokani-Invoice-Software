@@ -690,8 +690,11 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
               <tbody>
                 {rows.map((row, idx) => {
                   const product = products.find(p => p.id === row.productId);
-                  const sqftQty = row.carton * (product?.sqftPerBox || 0);
-                  const rowTotal = row.carton * row.rate;
+                  const piecesPerBox = product?.piecesPerBox || 4;
+                  const sqftPerPiece = piecesPerBox > 0 ? (product?.sqftPerBox || 0) / piecesPerBox : 0;
+                  const sqftQty = (row.carton * (product?.sqftPerBox || 0)) + (row.piece * sqftPerPiece);
+                  const pricePerPiece = piecesPerBox > 0 ? row.rate / piecesPerBox : 0;
+                  const rowTotal = (row.carton * row.rate) + (row.piece * pricePerPiece);
                   return (
                     <tr key={row.id} className="border-b border-border/50 hover:bg-muted/20 transition-colors align-top">
                       <td className="py-2 px-2 text-xs font-semibold text-muted-foreground">{idx + 1}</td>
@@ -705,6 +708,7 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
                             className="w-10 bg-muted/30 border border-border rounded text-xs py-1 text-center outline-none focus:border-primary" placeholder="0" />
                           <span className="text-[8px] text-muted-foreground">Pc</span>
                         </div>
+                        {product && <div className="text-[8px] text-muted-foreground mt-0.5">{piecesPerBox} pcs/box</div>}
                       </td>
                       <td className="py-2 px-2 text-[10px] text-muted-foreground">{product?.category || '-'}</td>
                       <td className="py-2 px-2 relative">
@@ -719,15 +723,18 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
                           t={t as (key: string) => string}
                         />
                       </td>
-                      <td className="py-2 px-2 text-right">
-                        <div className="text-xs font-semibold">{sqftQty > 0 ? `${sqftQty.toFixed(1)} sqft` : '-'}</div>
+                      <td className="py-2 px-2">
+                        <input type="number" min={0} step="0.1" value={row.sqftInput} onChange={e => updateRow(row.id, 'sqftInput', e.target.value)}
+                          className="w-16 bg-[hsl(200,100%,96%)] border border-[hsl(200,60%,70%)] rounded text-xs py-1 text-center outline-none focus:border-primary" placeholder="sqft" />
+                        {sqftQty > 0 && <div className="text-[8px] text-muted-foreground text-center mt-0.5">{sqftQty.toFixed(1)} sqft</div>}
                       </td>
                       <td className="py-2 px-2">
                         <input type="number" value={row.rate || ''} onChange={e => updateRow(row.id, 'rate', parseFloat(e.target.value) || 0)}
                           className="w-16 bg-muted/30 border border-border rounded text-xs py-1 text-right outline-none focus:border-primary px-1" />
+                        {product && piecesPerBox > 0 && <div className="text-[8px] text-muted-foreground text-right mt-0.5">৳{Math.round(row.rate / piecesPerBox)}/pc</div>}
                       </td>
                       <td className="py-2 px-2 text-right">
-                        <span className="text-xs font-bold text-foreground">{formatCurrency(rowTotal)}</span>
+                        <span className="text-xs font-bold text-foreground">{formatCurrency(Math.round(rowTotal))}</span>
                       </td>
                       <td className="py-2 px-1">
                         <button onClick={() => removeRow(row.id)} className="w-5 h-5 rounded hover:bg-destructive/10 text-destructive flex items-center justify-center">
