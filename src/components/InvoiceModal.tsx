@@ -498,7 +498,6 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
           <div className="text-[8px] text-center text-muted-foreground mt-2 border-t border-border pt-1">
             SOFTWARE: {companyName} | {new Date().toLocaleString()}
           </div>
-          </div>
         </div>
 
         {/* Action Buttons - 5 buttons */}
