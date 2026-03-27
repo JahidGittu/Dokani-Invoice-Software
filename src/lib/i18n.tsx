@@ -145,6 +145,7 @@ const translations = {
   addAtLeastOneItem: { en: 'Add at least one item!', bn: 'অন্তত একটি আইটেম যোগ করুন!' },
   productNotFound: { en: 'Product not found!', bn: 'প্রোডাক্ট পাওয়া যায়নি!' },
   scanOrType: { en: 'Scan barcode or type name & Enter', bn: 'বারকোড স্ক্যান করুন বা নাম লিখে Enter দিন' },
+  scan: { en: 'Scan', bn: 'স্ক্যান' },
 
   // Invoice
   print: { en: 'Print', bn: 'প্রিন্ট' },
