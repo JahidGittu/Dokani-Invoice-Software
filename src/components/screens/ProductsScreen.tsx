@@ -40,7 +40,7 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginatedProducts = useMemo(() => filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE), [filtered, page]);
 
-  const resetForm = () => setForm({ name: '', size: '', finish: 'Glossy', pricePerBox: '', sqftPerBox: '', stock: '', batch: '', barcode: '', category: 'Wall Tiles', brand: '', buyRate: '' });
+  const resetForm = () => setForm({ name: '', size: '', finish: 'Glossy', pricePerBox: '', sqftPerBox: '', piecesPerBox: '4', stock: '', batch: '', barcode: '', category: 'Wall Tiles', brand: '', buyRate: '' });
 
   const handleSave = () => {
     if (!form.name || !form.pricePerBox) { toast.error(t('nameAndPriceReq')); return; }
