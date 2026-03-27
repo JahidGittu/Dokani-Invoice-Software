@@ -67,6 +67,66 @@
     --pos-outline: 186 4% 47%;
     --pos-outline-variant: 189 4% 69%;
   }
+
+  .dark {
+    --background: 220 15% 10%;
+    --foreground: 210 20% 90%;
+
+    --card: 220 15% 13%;
+    --card-foreground: 210 20% 90%;
+
+    --popover: 220 15% 13%;
+    --popover-foreground: 210 20% 90%;
+
+    --primary: 211 100% 50%;
+    --primary-foreground: 220 15% 10%;
+
+    --secondary: 220 10% 22%;
+    --secondary-foreground: 210 20% 90%;
+
+    --muted: 220 10% 18%;
+    --muted-foreground: 215 10% 55%;
+
+    --accent: 220 10% 18%;
+    --accent-foreground: 210 20% 90%;
+
+    --destructive: 2 50% 50%;
+    --destructive-foreground: 0 100% 98%;
+
+    --border: 220 10% 20%;
+    --input: 220 10% 20%;
+    --ring: 211 100% 50%;
+
+    /* TilePOS dark tokens */
+    --pos-surface: 220 15% 10%;
+    --pos-surface-container: 220 12% 16%;
+    --pos-surface-container-low: 220 12% 13%;
+    --pos-surface-container-high: 220 12% 19%;
+    --pos-surface-container-highest: 220 12% 22%;
+    --pos-surface-container-lowest: 220 15% 8%;
+
+    --pos-on-surface: 210 20% 90%;
+    --pos-on-surface-variant: 215 10% 55%;
+
+    --pos-secondary: 211 100% 50%;
+    --pos-secondary-dim: 211 100% 42%;
+    --pos-secondary-container: 211 50% 18%;
+    --pos-on-secondary-container: 211 100% 70%;
+
+    --pos-tertiary: 144 60% 40%;
+    --pos-tertiary-container: 144 40% 16%;
+    --pos-on-tertiary-container: 144 60% 60%;
+
+    --pos-error: 2 50% 50%;
+    --pos-error-container: 2 40% 18%;
+    --pos-on-error-container: 2 60% 65%;
+
+    --pos-primary-container: 220 12% 16%;
+    --pos-on-primary-container: 210 20% 80%;
+
+    --pos-outline: 215 8% 40%;
+    --pos-outline-variant: 215 8% 30%;
+  }
 }
 
 @layer base {
