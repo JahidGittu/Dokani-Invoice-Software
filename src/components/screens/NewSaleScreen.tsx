@@ -55,6 +55,9 @@ function ProductPicker({
       p.name.toLowerCase().includes(q) ||
       p.size.toLowerCase().includes(q) ||
       p.batch.toLowerCase().includes(q) ||
+      (p.barcode || '').toLowerCase().includes(q) ||
+      (p.category || '').toLowerCase().includes(q) ||
+      (p.brand || '').toLowerCase().includes(q) ||
       String(p.pricePerBox).includes(q)
     );
   }, [products, debouncedQuery]);
