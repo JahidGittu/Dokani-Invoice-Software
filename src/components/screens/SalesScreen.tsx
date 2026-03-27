@@ -251,7 +251,7 @@ export default function SalesScreen({ products, customers, sales, onSaleComplete
                   <td className={`px-3 sm:px-4 py-3 text-xs font-semibold ${saledue > 0 ? 'text-destructive' : 'text-[hsl(125,60%,35%)]'}`}>{formatCurrency(saledue)}</td>
                   <td className="px-3 sm:px-4 py-3 text-right">
                     <div className="relative inline-block">
-                      <button className="px-3 py-1.5 bg-pos-error text-white rounded text-xs font-semibold flex items-center gap-1"
+                      <button data-sale-id={s.id} className="px-3 py-1.5 bg-pos-error text-white rounded text-xs font-semibold flex items-center gap-1"
                         onClick={() => setOpenMenuId(openMenuId === s.id ? null : s.id)}>
                         Options <span className="material-symbols-outlined text-xs">arrow_drop_down</span>
                       </button>
