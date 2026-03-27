@@ -1,4 +1,5 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useMemo } from "react";
+import { useDebounce } from "@/hooks/useDebounce";
 import { formatCurrency, getNextInvoiceNumber, calcDiscount, type Product, type SaleRecord, type Customer, type CompanySettings } from "@/lib/store";
 import { toast } from "sonner";
 import InvoiceModal from "@/components/InvoiceModal";
@@ -35,10 +36,15 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
   const [barcodeInput, setBarcodeInput] = useState('');
   const barcodeRef = useRef<HTMLInputElement>(null);
 
+  const debouncedCustomer = useDebounce(customerName, 200);
+
   // Customer autocomplete
-  const suggestions = customerName.length >= 1
-    ? customers.filter(c => c.name.toLowerCase().includes(customerName.toLowerCase())).slice(0, 5)
-    : [];
+  const suggestions = useMemo(() =>
+    debouncedCustomer.length >= 1
+      ? customers.filter(c => c.name.toLowerCase().includes(debouncedCustomer.toLowerCase())).slice(0, 5)
+      : [],
+    [debouncedCustomer, customers]
+  );
 
   const selectCustomer = (c: Customer) => {
     setCustomerName(c.name);
@@ -65,18 +71,16 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
     }
   };
 
-  // Barcode handler - search by name/batch and add to rows
+  // Barcode handler
   const handleBarcode = (e: React.KeyboardEvent) => {
     if (e.key !== 'Enter' || !barcodeInput.trim()) return;
     const q = barcodeInput.trim().toLowerCase();
     const found = products.find(p => p.batch.toLowerCase() === q || p.name.toLowerCase() === q || p.id === q);
     if (found) {
-      // Check if already in rows
       const existingRow = rows.find(r => r.productId === found.id);
       if (existingRow) {
         updateRow(existingRow.id, 'qty', existingRow.qty + 1);
       } else {
-        // Find empty row or add new
         const emptyRow = rows.find(r => !r.productId);
         if (emptyRow) {
           setRows(prev => prev.map(r => r.id === emptyRow.id ? { ...r, productId: found.id, rate: found.pricePerBox, qty: 1 } : r));
@@ -136,7 +140,6 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
 
   const commitSale = (sale: SaleRecord, deductions: { productId: string; qty: number }[]) => {
     onSaleComplete(sale, deductions);
-    // Auto-add customer if new
     if (sale.customer !== 'Walk-in Customer' && !customers.find(c => c.name === sale.customer)) {
       onAutoAddCustomer(sale.customer, sale.phone, sale.address || '');
     }
@@ -164,7 +167,6 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
     setLastSale(data.sale);
     setShowInvoice(true);
     resetForm();
-    // Print will happen from InvoiceModal
   };
 
   const handleSaveAndPDF = () => {
@@ -177,17 +179,17 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
   };
 
   return (
-    <section className="p-8 max-w-4xl mx-auto space-y-6">
+    <section className="p-4 sm:p-8 max-w-4xl mx-auto space-y-6">
       <div>
         <span className="text-xs text-pos-on-surface-variant uppercase tracking-widest block mb-2">Create Transaction</span>
-        <h2 className="text-5xl font-bold text-pos-on-surface leading-tight tracking-tighter">New Sale Entry</h2>
+        <h2 className="text-3xl sm:text-5xl font-bold text-pos-on-surface leading-tight tracking-tighter">New Sale Entry</h2>
       </div>
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left: Customer + Items */}
         <div className="space-y-5">
           {/* Customer Info */}
-          <div className="bg-pos-surface-lowest rounded-xl p-6 border border-pos-surface-container">
+          <div className="bg-pos-surface-lowest rounded-xl p-4 sm:p-6 border border-pos-surface-container">
             <h3 className="text-sm font-bold text-pos-on-surface-variant uppercase tracking-widest mb-4">Customer Information</h3>
             <div className="space-y-3">
               <div className="relative">
@@ -253,7 +255,7 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
           </div>
 
           {/* Pricing Summary */}
-          <div className="bg-pos-surface-lowest rounded-xl p-6 border border-pos-surface-container">
+          <div className="bg-pos-surface-lowest rounded-xl p-4 sm:p-6 border border-pos-surface-container">
             <h3 className="text-sm font-bold text-pos-on-surface-variant uppercase tracking-widest mb-4">Pricing Summary</h3>
             <div className="space-y-3">
               <div className="flex justify-between text-sm">
@@ -295,7 +297,7 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
         {/* Right: Items + Actions */}
         <div className="space-y-5">
           {/* Barcode / Search input */}
-          <div className="bg-pos-surface-lowest rounded-xl p-6 border border-pos-surface-container">
+          <div className="bg-pos-surface-lowest rounded-xl p-4 sm:p-6 border border-pos-surface-container">
             <h3 className="text-sm font-bold text-pos-on-surface-variant uppercase tracking-widest mb-4">
               <span className="material-symbols-outlined text-sm align-middle mr-1">qr_code_scanner</span>
               Barcode / Quick Search
@@ -317,7 +319,7 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
           </div>
 
           {/* Items */}
-          <div className="bg-pos-surface-lowest rounded-xl p-6 border border-pos-surface-container">
+          <div className="bg-pos-surface-lowest rounded-xl p-4 sm:p-6 border border-pos-surface-container">
             <h3 className="text-sm font-bold text-pos-on-surface-variant uppercase tracking-widest mb-4">Sale Items</h3>
             <div className="space-y-3">
               {rows.map((row) => (
@@ -330,7 +332,9 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
                     >
                       <option value="">— Select Product —</option>
                       {products.map(p => (
-                        <option key={p.id} value={p.id}>{p.name} ({p.size}) — ৳{p.pricePerBox}/box</option>
+                        <option key={p.id} value={p.id} disabled={p.stock <= 0}>
+                          {p.name} ({p.size}) — ৳{p.pricePerBox}/box {p.stock <= 0 ? '(Out of stock)' : `[${p.stock}]`}
+                        </option>
                       ))}
                     </select>
                     <button onClick={() => removeRow(row.id)}

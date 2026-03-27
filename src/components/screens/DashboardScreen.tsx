@@ -1,86 +1,118 @@
-import { useProducts, useCustomers, useSales, useCompanySettings, formatCurrency, getLowStockProducts, getTodaysSalesTotal } from "@/lib/store";
+import { useMemo } from "react";
+import { formatCurrency, getLowStockProducts, type Product, type Customer, type SaleRecord } from "@/lib/store";
 
 interface DashboardScreenProps {
   onNavigate: (screen: string) => void;
+  products: Product[];
+  customers: Customer[];
+  sales: SaleRecord[];
 }
 
-export default function DashboardScreen({ onNavigate }: DashboardScreenProps) {
-  const { products } = useProducts();
-  const { customers } = useCustomers();
-  const { sales } = useSales();
+export default function DashboardScreen({ onNavigate, products, customers, sales }: DashboardScreenProps) {
+  const todayStr = new Date().toDateString();
 
-  const todayTotal = getTodaysSalesTotal(sales);
-  const lowStock = getLowStockProducts(products);
-  const totalStock = products.reduce((s, p) => s + p.stock, 0);
+  const { todayTotal, todayCount } = useMemo(() => {
+    let total = 0, count = 0;
+    sales.forEach(s => {
+      try {
+        if (new Date(s.date).toDateString() === todayStr) {
+          total += s.total;
+          count++;
+        }
+      } catch {}
+    });
+    return { todayTotal: total, todayCount: count };
+  }, [sales, todayStr]);
+
+  const lowStock = useMemo(() => getLowStockProducts(products), [products]);
+  const totalStock = useMemo(() => products.reduce((s, p) => s + p.stock, 0), [products]);
+
+  // Real weekly sales data
+  const weeklyData = useMemo(() => {
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const now = new Date();
+    const result: { day: string; total: number }[] = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const ds = d.toDateString();
+      const dayTotal = sales.reduce((sum, s) => {
+        try { return new Date(s.date).toDateString() === ds ? sum + s.total : sum; } catch { return sum; }
+      }, 0);
+      result.push({ day: days[d.getDay()], total: dayTotal });
+    }
+    return result;
+  }, [sales]);
+
+  const maxWeekly = Math.max(...weeklyData.map(d => d.total), 1);
 
   const stats = [
-    { label: "Today's Sales", value: formatCurrency(todayTotal), icon: 'payments', iconBg: 'bg-pos-secondary-container', iconColor: 'text-pos-secondary', trend: `${sales.length} total sales`, trendColor: 'text-pos-tertiary' },
+    { label: "Today's Sales", value: formatCurrency(todayTotal), icon: 'payments', iconBg: 'bg-pos-secondary-container', iconColor: 'text-pos-secondary', trend: `${todayCount} sales today`, trendColor: 'text-pos-tertiary' },
     { label: 'Total Products', value: String(products.length), icon: 'inventory_2', iconBg: 'bg-pos-tertiary-container', iconColor: 'text-pos-tertiary', trend: 'Active items', trendColor: 'text-pos-tertiary' },
-    { label: 'Total Stock', value: totalStock.toLocaleString(), icon: 'layers', iconBg: 'bg-pos-primary-container', iconColor: 'text-pos-on-primary-container', trend: `${lowStock.length} low stock`, trendColor: 'text-pos-on-surface-variant' },
-    { label: 'Customers', value: String(customers.length), icon: 'group', iconBg: 'bg-pos-secondary-container', iconColor: 'text-pos-secondary', trend: 'Registered', trendColor: 'text-pos-tertiary' },
+    { label: 'Total Stock', value: totalStock.toLocaleString(), icon: 'layers', iconBg: 'bg-pos-primary-container', iconColor: 'text-pos-on-primary-container', trend: `${lowStock.length} low stock`, trendColor: lowStock.length > 0 ? 'text-pos-error' : 'text-pos-on-surface-variant' },
+    { label: 'Customers', value: String(customers.length), icon: 'group', iconBg: 'bg-pos-secondary-container', iconColor: 'text-pos-secondary', trend: `${sales.length} total sales`, trendColor: 'text-pos-tertiary' },
   ];
 
-  const barHeights = [40, 65, 55, 90, 75, 45, 58];
-  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-
   return (
-    <section className="p-8 max-w-7xl mx-auto space-y-8">
-      <div className="flex justify-between items-end">
+    <section className="p-4 sm:p-8 max-w-7xl mx-auto space-y-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
         <div>
           <span className="text-xs text-pos-on-surface-variant uppercase tracking-widest block mb-2">Today — {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
-          <h2 className="text-5xl font-bold text-pos-on-surface leading-tight tracking-tighter">Business Overview</h2>
+          <h2 className="text-3xl sm:text-5xl font-bold text-pos-on-surface leading-tight tracking-tighter">Business Overview</h2>
         </div>
-        <button onClick={() => onNavigate('sales')} className="px-6 py-3 bg-gradient-to-b from-pos-secondary to-pos-secondary-dim text-white rounded-lg font-medium flex items-center gap-2 shadow-lg hover:-translate-y-1 transition-transform">
+        <button onClick={() => onNavigate('new-sale')} className="px-6 py-3 bg-gradient-to-b from-pos-secondary to-pos-secondary-dim text-white rounded-lg font-medium flex items-center gap-2 shadow-lg hover:-translate-y-1 transition-transform">
           <span className="material-symbols-outlined text-lg">add_shopping_cart</span> New Sale
         </button>
       </div>
 
-      <div className="grid grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         {stats.map((s) => (
-          <div key={s.label} className="bg-pos-surface-lowest rounded-xl p-6 shadow-sm border border-pos-surface-container">
+          <div key={s.label} className="bg-pos-surface-lowest rounded-xl p-4 sm:p-6 shadow-sm border border-pos-surface-container">
             <div className="flex justify-between items-start mb-4">
-              <span className="text-xs font-bold text-pos-on-surface-variant uppercase tracking-widest">{s.label}</span>
-              <div className={`w-9 h-9 ${s.iconBg} rounded-lg flex items-center justify-center`}>
-                <span className={`material-symbols-outlined ${s.iconColor} text-lg`}>{s.icon}</span>
+              <span className="text-[10px] sm:text-xs font-bold text-pos-on-surface-variant uppercase tracking-widest">{s.label}</span>
+              <div className={`w-8 h-8 sm:w-9 sm:h-9 ${s.iconBg} rounded-lg flex items-center justify-center`}>
+                <span className={`material-symbols-outlined ${s.iconColor} text-base sm:text-lg`}>{s.icon}</span>
               </div>
             </div>
-            <div className="text-3xl font-black tracking-tighter text-pos-on-surface">{s.value}</div>
-            <div className={`mt-2 flex items-center gap-1 ${s.trendColor} text-xs font-bold`}>
+            <div className="text-xl sm:text-3xl font-black tracking-tighter text-pos-on-surface">{s.value}</div>
+            <div className={`mt-2 flex items-center gap-1 ${s.trendColor} text-[10px] sm:text-xs font-bold`}>
               <span className="material-symbols-outlined text-sm">trending_up</span>{s.trend}
             </div>
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-12 gap-6">
-        <div className="col-span-8 bg-pos-surface-low p-8 rounded-xl">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="lg:col-span-8 bg-pos-surface-low p-6 sm:p-8 rounded-xl">
           <div className="flex justify-between items-start mb-10">
             <div>
               <h3 className="text-lg font-semibold mb-1">Weekly Sales Performance</h3>
               <p className="text-sm text-pos-on-surface-variant">Last 7 days revenue</p>
             </div>
-            <span className="flex items-center gap-1 text-xs font-bold text-pos-tertiary">
-              <span className="material-symbols-outlined text-sm">trending_up</span>+12.5%
-            </span>
           </div>
-          <div className="flex items-end justify-between h-40 gap-3 px-2">
-            {days.map((day, i) => (
-              <div key={day} className="flex-1 flex flex-col items-center gap-2">
-                <div
-                  className={`w-full rounded-t-sm hover:brightness-90 cursor-pointer ${i === 3 ? 'bg-pos-secondary-dim' : 'bg-pos-secondary-container'}`}
-                  style={{ height: `${barHeights[i]}%` }}
-                />
-                <span className={`text-[10px] font-bold uppercase ${i === 3 || i === 6 ? 'text-pos-secondary' : 'text-pos-on-surface-variant'}`}>{day}</span>
-              </div>
-            ))}
+          <div className="flex items-end justify-between h-40 gap-2 sm:gap-3 px-2">
+            {weeklyData.map((d, i) => {
+              const pct = Math.max(5, (d.total / maxWeekly) * 100);
+              const isToday = i === 6;
+              return (
+                <div key={i} className="flex-1 flex flex-col items-center gap-2">
+                  <div className="text-[9px] font-bold text-pos-on-surface-variant">{d.total > 0 ? formatCurrency(d.total) : ''}</div>
+                  <div
+                    className={`w-full rounded-t-sm hover:brightness-90 cursor-pointer transition-all ${isToday ? 'bg-pos-secondary-dim' : 'bg-pos-secondary-container'}`}
+                    style={{ height: `${pct}%` }}
+                  />
+                  <span className={`text-[10px] font-bold uppercase ${isToday ? 'text-pos-secondary' : 'text-pos-on-surface-variant'}`}>{d.day}</span>
+                </div>
+              );
+            })}
           </div>
         </div>
 
-        <div className="col-span-4 bg-pos-surface-lowest rounded-xl p-6 shadow-sm border border-pos-surface-container flex flex-col">
+        <div className="lg:col-span-4 bg-pos-surface-lowest rounded-xl p-6 shadow-sm border border-pos-surface-container flex flex-col">
           <h3 className="text-base font-semibold mb-1">Low Stock Alert</h3>
           <p className="text-xs text-pos-on-surface-variant mb-5">Items needing restock</p>
           <div className="space-y-4 flex-1">
-            {lowStock.slice(0, 3).map((item) => (
+            {lowStock.slice(0, 4).map((item) => (
               <div key={item.id} className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-lg bg-pos-error-container flex items-center justify-center flex-shrink-0">
                   <span className="material-symbols-outlined text-pos-on-error-container text-base">warning</span>
@@ -110,38 +142,40 @@ export default function DashboardScreen({ onNavigate }: DashboardScreenProps) {
 
       {/* Recent Sales */}
       <div className="bg-pos-surface-lowest rounded-xl shadow-sm overflow-hidden border border-pos-surface-container">
-        <div className="px-8 py-5 flex justify-between items-center bg-pos-surface-low">
+        <div className="px-6 sm:px-8 py-5 flex justify-between items-center bg-pos-surface-low">
           <h3 className="text-base font-semibold">Recent Transactions</h3>
           <button onClick={() => onNavigate('sales')} className="text-sm font-medium text-pos-secondary flex items-center gap-1 hover:underline">
             View All <span className="material-symbols-outlined text-base">arrow_forward</span>
           </button>
         </div>
-        <table className="w-full text-left">
-          <thead>
-            <tr className="text-[11px] font-bold text-pos-on-surface-variant uppercase tracking-widest bg-pos-surface-low border-t border-pos-surface-container">
-              <th className="px-8 py-3">Invoice</th><th className="px-8 py-3">Customer</th><th className="px-8 py-3">Items</th><th className="px-8 py-3">Amount</th><th className="px-8 py-3">Time</th><th className="px-8 py-3 text-right">Status</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-pos-surface-container">
-            {sales.slice(0, 5).map((s) => (
-              <tr key={s.id} className="hover:bg-pos-surface-low transition-colors">
-                <td className="px-8 py-4 font-mono text-xs font-bold text-pos-secondary">{s.invoice}</td>
-                <td className="px-8 py-4 font-medium">{s.customer}</td>
-                <td className="px-8 py-4 text-sm text-pos-on-surface-variant">{s.items.map(i => i.name).join(', ')}</td>
-                <td className="px-8 py-4 font-bold">{formatCurrency(s.total)}</td>
-                <td className="px-8 py-4 text-xs text-pos-on-surface-variant">{s.time}</td>
-                <td className="px-8 py-4 text-right">
-                  <span className={`px-3 py-1 rounded-full text-[10px] font-bold ${s.status === 'paid' ? 'bg-pos-tertiary-container text-pos-on-tertiary-container' : s.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-pos-secondary-container text-pos-on-secondary-container'}`}>
-                    {s.status}
-                  </span>
-                </td>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="text-[11px] font-bold text-pos-on-surface-variant uppercase tracking-widest bg-pos-surface-low border-t border-pos-surface-container">
+                <th className="px-6 sm:px-8 py-3">Invoice</th><th className="px-6 sm:px-8 py-3">Customer</th><th className="px-6 sm:px-8 py-3 hidden sm:table-cell">Items</th><th className="px-6 sm:px-8 py-3">Amount</th><th className="px-6 sm:px-8 py-3 hidden md:table-cell">Time</th><th className="px-6 sm:px-8 py-3 text-right">Status</th>
               </tr>
-            ))}
-            {sales.length === 0 && (
-              <tr><td colSpan={6} className="px-8 py-8 text-center text-pos-on-surface-variant text-sm">No sales yet. Start by creating a new sale!</td></tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-pos-surface-container">
+              {sales.slice(0, 5).map((s) => (
+                <tr key={s.id} className="hover:bg-pos-surface-low transition-colors">
+                  <td className="px-6 sm:px-8 py-4 font-mono text-xs font-bold text-pos-secondary">{s.invoice}</td>
+                  <td className="px-6 sm:px-8 py-4 font-medium text-sm">{s.customer}</td>
+                  <td className="px-6 sm:px-8 py-4 text-sm text-pos-on-surface-variant hidden sm:table-cell">{s.items.map(i => i.name).join(', ')}</td>
+                  <td className="px-6 sm:px-8 py-4 font-bold">{formatCurrency(s.total)}</td>
+                  <td className="px-6 sm:px-8 py-4 text-xs text-pos-on-surface-variant hidden md:table-cell">{s.time}</td>
+                  <td className="px-6 sm:px-8 py-4 text-right">
+                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold ${s.status === 'paid' ? 'bg-pos-tertiary-container text-pos-on-tertiary-container' : s.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-pos-secondary-container text-pos-on-secondary-container'}`}>
+                      {s.status}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+              {sales.length === 0 && (
+                <tr><td colSpan={6} className="px-8 py-8 text-center text-pos-on-surface-variant text-sm">No sales yet. Start by creating a new sale!</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
   );

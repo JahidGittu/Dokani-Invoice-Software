@@ -9,6 +9,7 @@ interface SettingsScreenProps {
 
 export default function SettingsScreen({ settings, onUpdateSettings }: SettingsScreenProps) {
   const [form, setForm] = useState(settings);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleSave = () => {
@@ -33,27 +34,26 @@ export default function SettingsScreen({ settings, onUpdateSettings }: SettingsS
   };
 
   const handleClearData = () => {
-    if (confirm('Are you sure? This will delete ALL data!')) {
-      localStorage.clear();
-      toast.success('All data cleared! Reloading...');
-      setTimeout(() => window.location.reload(), 1000);
-    }
+    localStorage.clear();
+    toast.success('All data cleared! Reloading...');
+    setShowClearConfirm(false);
+    setTimeout(() => window.location.reload(), 1000);
   };
 
   const initials = (form.userName || 'U').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
 
   return (
-    <section className="p-8 max-w-3xl mx-auto space-y-8">
+    <section className="p-4 sm:p-8 max-w-3xl mx-auto space-y-8">
       <div>
         <span className="text-xs text-pos-on-surface-variant uppercase tracking-widest block mb-2">Configuration</span>
-        <h2 className="text-5xl font-bold text-pos-on-surface leading-tight tracking-tighter">Settings</h2>
+        <h2 className="text-3xl sm:text-5xl font-bold text-pos-on-surface leading-tight tracking-tighter">Settings</h2>
       </div>
 
       {/* Business Info */}
-      <div className="bg-pos-surface-lowest rounded-xl p-6 border border-pos-surface-container">
+      <div className="bg-pos-surface-lowest rounded-xl p-4 sm:p-6 border border-pos-surface-container">
         <h3 className="text-sm font-bold text-pos-on-surface-variant uppercase tracking-widest mb-4">Business Information</h3>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="col-span-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="sm:col-span-2">
             <label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">Business Name</label>
             <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
               className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" placeholder="Your Tile Shop" />
@@ -68,7 +68,7 @@ export default function SettingsScreen({ settings, onUpdateSettings }: SettingsS
             <input value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} type="email"
               className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" placeholder="shop@email.com" />
           </div>
-          <div className="col-span-2">
+          <div className="sm:col-span-2">
             <label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">Address</label>
             <input value={form.address} onChange={e => setForm(f => ({ ...f, address: e.target.value }))}
               className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" placeholder="Shop address" />
@@ -77,7 +77,7 @@ export default function SettingsScreen({ settings, onUpdateSettings }: SettingsS
       </div>
 
       {/* User Info */}
-      <div className="bg-pos-surface-lowest rounded-xl p-6 border border-pos-surface-container">
+      <div className="bg-pos-surface-lowest rounded-xl p-4 sm:p-6 border border-pos-surface-container">
         <h3 className="text-sm font-bold text-pos-on-surface-variant uppercase tracking-widest mb-4">User Profile</h3>
         <div className="flex items-center gap-4 mb-4">
           <div className="w-14 h-14 rounded-full bg-pos-secondary-container flex items-center justify-center">
@@ -88,7 +88,7 @@ export default function SettingsScreen({ settings, onUpdateSettings }: SettingsS
             <div className="text-xs text-pos-on-surface-variant">{form.userRole}</div>
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">Full Name</label>
             <input value={form.userName} onChange={e => setForm(f => ({ ...f, userName: e.target.value }))}
@@ -103,9 +103,9 @@ export default function SettingsScreen({ settings, onUpdateSettings }: SettingsS
       </div>
 
       {/* System Settings */}
-      <div className="bg-pos-surface-lowest rounded-xl p-6 border border-pos-surface-container">
+      <div className="bg-pos-surface-lowest rounded-xl p-4 sm:p-6 border border-pos-surface-container">
         <h3 className="text-sm font-bold text-pos-on-surface-variant uppercase tracking-widest mb-4">System Settings</h3>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">Invoice Prefix</label>
             <input value={form.invPrefix} onChange={e => setForm(f => ({ ...f, invPrefix: e.target.value }))}
@@ -125,7 +125,7 @@ export default function SettingsScreen({ settings, onUpdateSettings }: SettingsS
       </button>
 
       {/* Data Management */}
-      <div className="bg-pos-surface-lowest rounded-xl p-6 border border-pos-surface-container">
+      <div className="bg-pos-surface-lowest rounded-xl p-4 sm:p-6 border border-pos-surface-container">
         <h3 className="text-sm font-bold text-pos-on-surface-variant uppercase tracking-widest mb-4">Data Management</h3>
         <p className="text-xs text-pos-on-surface-variant mb-4">All data is stored locally in your browser. Export regularly for backup.</p>
         <div className="flex flex-wrap gap-3">
@@ -136,11 +136,30 @@ export default function SettingsScreen({ settings, onUpdateSettings }: SettingsS
             <span className="material-symbols-outlined text-base">file_upload</span>Import Backup
           </button>
           <input ref={fileRef} type="file" accept=".json" className="hidden" onChange={handleImport} />
-          <button onClick={handleClearData} className="px-5 py-2.5 bg-pos-error-container text-pos-on-error-container rounded-lg font-semibold text-sm flex items-center gap-2">
+          <button onClick={() => setShowClearConfirm(true)} className="px-5 py-2.5 bg-pos-error-container text-pos-on-error-container rounded-lg font-semibold text-sm flex items-center gap-2">
             <span className="material-symbols-outlined text-base">delete_forever</span>Clear All Data
           </button>
         </div>
       </div>
+
+      {/* Clear Data Confirmation */}
+      {showClearConfirm && (
+        <div className="fixed inset-0 bg-black/35 flex items-center justify-center z-[1000]" onClick={() => setShowClearConfirm(false)}>
+          <div className="bg-pos-surface-lowest rounded-xl w-[360px] shadow-2xl p-7" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-pos-error-container flex items-center justify-center">
+                <span className="material-symbols-outlined text-pos-on-error-container">delete_forever</span>
+              </div>
+              <h3 className="text-lg font-bold">Clear All Data?</h3>
+            </div>
+            <p className="text-sm text-pos-on-surface-variant mb-6">This will permanently delete ALL products, sales, customers, and settings. This cannot be undone.</p>
+            <div className="flex gap-3">
+              <button onClick={() => setShowClearConfirm(false)} className="flex-1 py-2.5 bg-pos-surface-container text-pos-on-surface-variant rounded-lg font-semibold text-sm">Cancel</button>
+              <button onClick={handleClearData} className="flex-1 py-2.5 bg-pos-error text-white rounded-lg font-semibold text-sm">Delete Everything</button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

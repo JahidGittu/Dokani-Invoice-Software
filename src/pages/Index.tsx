@@ -47,7 +47,7 @@ export default function Index() {
       }
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
         e.preventDefault();
-        // Focus global search handled in Header
+        document.getElementById('global-search')?.focus();
       }
     };
     window.addEventListener('keydown', handleKey);
@@ -56,16 +56,16 @@ export default function Index() {
 
   const renderScreen = () => {
     switch (activeScreen) {
-      case 'dashboard': return <DashboardScreen onNavigate={setActiveScreen} />;
+      case 'dashboard': return <DashboardScreen onNavigate={setActiveScreen} products={products} customers={customers} sales={sales} />;
       case 'products': return <ProductsScreen products={products} onAddProduct={addProduct} onUpdateProduct={updateProduct} onDeleteProduct={deleteProduct} />;
       case 'sales': return <SalesScreen products={products} customers={customers} sales={sales} onSaleComplete={handleSaleComplete} onDeleteSale={deleteSale} companyName={settings.name} companyPhone={settings.phone} companyAddress={settings.address} onNavigate={setActiveScreen} />;
       case 'new-sale': return <NewSaleScreen products={products} customers={customers} settings={settings} onSaleComplete={handleSaleComplete} onAutoAddCustomer={handleAutoAddCustomer} />;
       case 'inventory': return <InventoryScreen products={products} onUpdateProduct={updateProduct} />;
       case 'customers': return <CustomersScreen customers={customers} onAddCustomer={addCustomer} onDeleteCustomer={deleteCustomer} />;
-      case 'reports': return <ReportsScreen sales={sales} />;
+      case 'reports': return <ReportsScreen sales={sales} products={products} customers={customers} />;
       case 'settings': return <SettingsScreen settings={settings} onUpdateSettings={setSettings} />;
       case 'excel': return <ExcelImportScreen products={products} onImportProducts={handleImportProducts} />;
-      default: return <DashboardScreen onNavigate={setActiveScreen} />;
+      default: return <DashboardScreen onNavigate={setActiveScreen} products={products} customers={customers} sales={sales} />;
     }
   };
 

@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import { type Product, getLowStockProducts } from "@/lib/store";
+import { useMemo } from "react";
 
 const navItems = [
   { id: 'dashboard', icon: 'dashboard', label: 'Dashboard' },
@@ -23,7 +24,7 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ activeScreen, onNavigate, isOpen, onClose, products, userName = 'Arif Rahman', userRole = 'Administrator' }: SidebarProps) {
-  const lowStock = getLowStockProducts(products);
+  const lowStock = useMemo(() => getLowStockProducts(products), [products]);
   const initials = (userName || 'U').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
 
   return (
@@ -52,13 +53,13 @@ export default function Sidebar({ activeScreen, onNavigate, isOpen, onClose, pro
           </button>
         </div>
 
-        <nav className="flex-1 px-3 space-y-0.5">
+        <nav className="flex-1 px-3 space-y-0.5 overflow-y-auto">
           {navItems.map((item) => (
-            <a
+            <button
               key={item.id}
               onClick={() => { onNavigate(item.id); onClose(); }}
               className={cn(
-                "flex items-center px-4 py-3 border-l-[3px] border-transparent hover:bg-slate-200 transition-all duration-150 cursor-pointer",
+                "w-full flex items-center px-4 py-3 border-l-[3px] border-transparent hover:bg-slate-200 transition-all duration-150 cursor-pointer text-left",
                 activeScreen === item.id
                   ? "border-l-pos-secondary bg-pos-surface-high text-slate-900 font-semibold"
                   : "text-slate-500"
@@ -71,21 +72,21 @@ export default function Sidebar({ activeScreen, onNavigate, isOpen, onClose, pro
               {item.id === 'inventory' && lowStock.length > 0 && (
                 <span className="ml-auto px-1.5 py-0.5 bg-pos-error text-white rounded-full text-[9px] font-bold">{lowStock.length}</span>
               )}
-            </a>
+            </button>
           ))}
         </nav>
 
         <div className="px-3 pb-4 space-y-0.5 border-t border-pos-surface-container pt-3">
-          <a
+          <button
             onClick={() => { onNavigate('settings'); onClose(); }}
             className={cn(
-              "flex items-center px-4 py-3 border-l-[3px] border-transparent hover:bg-slate-200 transition-all cursor-pointer",
+              "w-full flex items-center px-4 py-3 border-l-[3px] border-transparent hover:bg-slate-200 transition-all cursor-pointer text-left",
               activeScreen === 'settings' ? "border-l-pos-secondary bg-pos-surface-high text-slate-900 font-semibold" : "text-slate-500"
             )}
           >
             <span className={cn("material-symbols-outlined mr-3 text-xl", activeScreen === 'settings' && "text-pos-secondary")}>settings</span>
             <span>Settings</span>
-          </a>
+          </button>
           <div className="flex items-center px-4 py-3 gap-3">
             <div className="w-8 h-8 rounded-full bg-pos-secondary-container flex items-center justify-center">
               <span className="text-xs font-bold text-pos-on-secondary-container">{initials}</span>
