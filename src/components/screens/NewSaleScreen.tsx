@@ -238,7 +238,12 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
     setBarcodeInput('');
   };
 
-  const subtotal = rows.reduce((sum, r) => sum + (r.carton * r.rate), 0);
+  const subtotal = rows.reduce((sum, r) => {
+    const product = products.find(p => p.id === r.productId);
+    const piecesPerBox = product?.piecesPerBox || 4;
+    const pricePerPiece = piecesPerBox > 0 ? r.rate / piecesPerBox : 0;
+    return sum + (r.carton * r.rate) + (r.piece * pricePerPiece);
+  }, 0);
   const discountVal = calcDiscount(subtotal, parseFloat(discount) || 0, discountType);
   const returnVal = parseFloat(returnAmt) || 0;
   const lessVal = parseFloat(lessAmt) || 0;
