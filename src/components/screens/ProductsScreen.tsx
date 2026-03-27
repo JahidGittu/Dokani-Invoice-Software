@@ -31,6 +31,7 @@ const emptyRow = (): InlineRow => ({
 
 export default function ProductsScreen({ products, onAddProduct, onUpdateProduct, onDeleteProduct }: ProductsScreenProps) {
   const { t } = useI18n();
+  const { getOptions, addOption } = useProductOptions();
   const [search, setSearch] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [editId, setEditId] = useState<string | null>(null);
