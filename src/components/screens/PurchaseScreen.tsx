@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useRef } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useI18n } from "@/lib/i18n";
 import { formatCurrency, getNextPurchaseNumber, type Product, type Supplier, type PurchaseRecord, type PurchaseItem } from "@/lib/store";
@@ -16,35 +16,58 @@ interface PurchaseScreenProps {
 }
 
 const PAGE_SIZES = [10, 25, 50, 100];
-
 type SortField = 'invoice' | 'date' | 'supplierName' | 'qty' | 'payable' | 'paid' | 'due';
+
+// ── Item row for Add Purchase ──
+interface PurchaseItemRow {
+  id: number;
+  productId: string;
+  barcode: string;
+  name: string;
+  stock: number;
+  carton: number;
+  piece: number;
+  sqftQty: number;
+  buyRate: number;
+  subTotal: number;
+}
 
 export default function PurchaseScreen({ products, suppliers, purchases, onAddPurchase, onDeletePurchase, onAddStock, onUpdateSupplierDue }: PurchaseScreenProps) {
   const { t } = useI18n();
+
+  // ── View toggle ──
+  const [view, setView] = useState<'history' | 'add'>('history');
+
+  // ══════ HISTORY VIEW STATE ══════
   const [search, setSearch] = useState('');
   const [pageSize, setPageSize] = useState(10);
   const [page, setPage] = useState(0);
-  const [showForm, setShowForm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [viewId, setViewId] = useState<string | null>(null);
-
-  // Sort
   const [sortField, setSortField] = useState<SortField>('date');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+
+  // ══════ ADD PURCHASE STATE ══════
+  const [purchaseDate, setPurchaseDate] = useState(new Date().toISOString().split('T')[0]);
+  const [invoiceNo, setInvoiceNo] = useState('');
+  const [supplierName, setSupplierName] = useState('');
+  const [productSearch, setProductSearch] = useState('');
+  const [items, setItems] = useState<PurchaseItemRow[]>([]);
+  const [discount, setDiscount] = useState('');
+  const [delivery, setDelivery] = useState('');
+  const [paid, setPaid] = useState('');
+  const [remark, setRemark] = useState('');
+  const [account, setAccount] = useState('Cash');
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  // ── Sort helpers ──
   const toggleSort = (field: SortField) => {
     if (sortField === field) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
     else { setSortField(field); setSortDir('desc'); }
   };
   const sortIcon = (field: SortField) => sortField === field ? (sortDir === 'asc' ? 'arrow_upward' : 'arrow_downward') : 'unfold_more';
 
-  // Form state
-  const [supplierName, setSupplierName] = useState('');
-  const [discount, setDiscount] = useState('');
-  const [delivery, setDelivery] = useState('');
-  const [paid, setPaid] = useState('');
-  const [remark, setRemark] = useState('');
-  const [rows, setRows] = useState<{ id: number; productId: string; qty: number; rate: number }[]>([{ id: Date.now(), productId: '', qty: 1, rate: 0 }]);
-
+  // ── History data ──
   const debouncedSearch = useDebounce(search, 250);
   const filtered = useMemo(() => {
     const list = purchases.filter(p =>
@@ -67,50 +90,93 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const paginated = useMemo(() => filtered.slice(page * pageSize, (page + 1) * pageSize), [filtered, page, pageSize]);
 
-  // Form helpers
-  const addRow = () => setRows(prev => [...prev, { id: Date.now(), productId: '', qty: 1, rate: 0 }]);
-  const removeRow = (id: number) => setRows(prev => prev.length <= 1 ? prev : prev.filter(r => r.id !== id));
-  const updateRow = (id: number, field: string, value: string | number) => setRows(prev => prev.map(r => r.id === id ? { ...r, [field]: value } : r));
-  const selectProduct = (rowId: number, productId: string) => {
-    const p = products.find(x => x.id === productId);
-    if (p) setRows(prev => prev.map(r => r.id === rowId ? { ...r, productId, rate: p.buyRate || p.pricePerBox } : r));
+  // ── Add Purchase helpers ──
+  const debouncedProductSearch = useDebounce(productSearch, 200);
+  const filteredProducts = useMemo(() => {
+    if (!debouncedProductSearch) return [];
+    return products.filter(p =>
+      p.name.toLowerCase().includes(debouncedProductSearch.toLowerCase()) ||
+      (p.barcode || '').toLowerCase().includes(debouncedProductSearch.toLowerCase()) ||
+      p.batch.toLowerCase().includes(debouncedProductSearch.toLowerCase())
+    ).slice(0, 8);
+  }, [products, debouncedProductSearch]);
+
+  const addProductToItems = (product: Product) => {
+    // Check if already in items
+    if (items.find(i => i.productId === product.id)) {
+      toast.error('Already added');
+      return;
+    }
+    setItems(prev => [...prev, {
+      id: Date.now(),
+      productId: product.id,
+      barcode: product.barcode || product.batch || '',
+      name: product.name,
+      stock: product.stock,
+      carton: 1,
+      piece: 0,
+      sqftQty: 0,
+      buyRate: product.buyRate || 0,
+      subTotal: product.buyRate || 0,
+    }]);
+    setProductSearch('');
+    searchRef.current?.focus();
   };
 
-  const subtotal = rows.reduce((sum, r) => sum + r.qty * r.rate, 0);
+  const updateItem = (id: number, field: keyof PurchaseItemRow, value: number) => {
+    setItems(prev => prev.map(item => {
+      if (item.id !== id) return item;
+      const updated = { ...item, [field]: value };
+      // Recalculate subTotal
+      updated.subTotal = (updated.carton + (updated.piece / (products.find(p => p.id === item.productId)?.piecesPerBox || 4))) * updated.buyRate;
+      return updated;
+    }));
+  };
+
+  const removeItem = (id: number) => setItems(prev => prev.filter(i => i.id !== id));
+
+  const total = items.reduce((s, i) => s + i.subTotal, 0);
   const discountVal = parseFloat(discount) || 0;
   const deliveryVal = parseFloat(delivery) || 0;
-  const payable = Math.max(0, subtotal - discountVal + deliveryVal);
+  const payable = Math.max(0, total - discountVal + deliveryVal);
   const paidVal = parseFloat(paid) || 0;
   const dueVal = Math.max(0, payable - paidVal);
 
+  const openAddPurchase = () => {
+    setView('add');
+    setInvoiceNo(getNextPurchaseNumber());
+    setPurchaseDate(new Date().toISOString().split('T')[0]);
+    setSupplierName('');
+    setItems([]);
+    setDiscount(''); setDelivery(''); setPaid(''); setRemark(''); setAccount('Cash');
+  };
+
   const handleSave = () => {
-    const items = rows.filter(r => r.productId && r.qty > 0).map(r => {
-      const p = products.find(x => x.id === r.productId);
-      return { productId: r.productId, name: p?.name || '', barcode: p?.barcode || '', carton: r.qty, piece: 0, sqftQty: 0, buyRate: r.rate, subTotal: r.qty * r.rate } as PurchaseItem;
-    });
-    if (!items.length) { toast.error('Add at least one item'); return; }
-    if (!supplierName.trim()) { toast.error('Select a supplier'); return; }
+    if (!supplierName.trim()) { toast.error('Supplier সিলেক্ট করুন'); return; }
+    if (!items.length) { toast.error('কমপক্ষে একটি প্রোডাক্ট যোগ করুন'); return; }
+
+    const purchaseItems: PurchaseItem[] = items.map(i => ({
+      productId: i.productId, name: i.name, barcode: i.barcode,
+      carton: i.carton, piece: i.piece, sqftQty: i.sqftQty,
+      buyRate: i.buyRate, subTotal: i.subTotal,
+    }));
 
     const purchase: PurchaseRecord = {
-      id: crypto.randomUUID(), invoice: getNextPurchaseNumber(), supplierName,
-      date: new Date().toISOString(), items, total: subtotal, discount: discountVal,
-      delivery: deliveryVal, payable, paid: paidVal, due: dueVal, remark,
+      id: crypto.randomUUID(), invoice: invoiceNo, supplierName,
+      date: new Date(purchaseDate).toISOString(), items: purchaseItems,
+      total, discount: discountVal, delivery: deliveryVal,
+      payable, paid: paidVal, due: dueVal, remark,
     };
+
     onAddPurchase(purchase);
     onAddStock(items.map(i => ({ productId: i.productId, qty: i.carton })));
     if (dueVal > 0) onUpdateSupplierDue(supplierName, dueVal);
-    toast.success('Purchase saved');
-    resetForm();
-  };
-
-  const resetForm = () => {
-    setSupplierName(''); setDiscount(''); setDelivery(''); setPaid(''); setRemark('');
-    setRows([{ id: Date.now(), productId: '', qty: 1, rate: 0 }]);
-    setShowForm(false);
+    toast.success('Purchase saved successfully');
+    setView('history');
   };
 
   const confirmDelete = () => {
-    if (showDeleteConfirm) { onDeletePurchase(showDeleteConfirm); toast.success(t('purchaseDeleted')); }
+    if (showDeleteConfirm) { onDeletePurchase(showDeleteConfirm); toast.success('Purchase deleted'); }
     setShowDeleteConfirm(null);
   };
 
@@ -125,22 +191,226 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
     </th>
   );
 
+  // ══════════════════════════════════════
+  // ══════ ADD PURCHASE VIEW ══════
+  // ══════════════════════════════════════
+  if (view === 'add') {
+    return (
+      <section className="p-4 sm:p-6 max-w-[1600px] mx-auto space-y-4">
+        {/* Header */}
+        <div className="flex justify-between items-center">
+          <div>
+            <span className="text-xs text-pos-on-surface-variant uppercase tracking-widest block mb-1">Purchase</span>
+            <h2 className="text-2xl font-bold text-pos-on-surface tracking-tight">Add Purchase</h2>
+          </div>
+          <button onClick={() => setView('history')} className="px-5 py-2.5 bg-pos-secondary text-white rounded-lg font-semibold text-sm flex items-center gap-2 shadow-lg hover:-translate-y-0.5 transition-transform">
+            <span className="material-symbols-outlined text-lg">history</span>Purchase History
+          </button>
+        </div>
+
+        <div className="flex gap-4 flex-col lg:flex-row">
+          {/* ── LEFT: Main form ── */}
+          <div className="flex-1 space-y-4">
+            {/* Top fields: Date, Invoice, Supplier */}
+            <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container p-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-[10px] font-bold text-pos-on-surface-variant uppercase mb-1">Date</label>
+                  <input type="date" value={purchaseDate} onChange={e => setPurchaseDate(e.target.value)}
+                    className="w-full bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2.5 px-3 outline-none" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-pos-on-surface-variant uppercase mb-1">Invoice #</label>
+                  <input value={invoiceNo} onChange={e => setInvoiceNo(e.target.value)}
+                    className="w-full bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2.5 px-3 outline-none" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-pos-on-surface-variant uppercase mb-1">Supplier *</label>
+                  <ComboInput value={supplierName} onChange={setSupplierName} options={suppliers.map(s => s.name)} placeholder="Select Supplier..."
+                    className="w-full bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2.5 px-3 outline-none" />
+                </div>
+              </div>
+            </div>
+
+            {/* Product search */}
+            <div className="relative">
+              <input ref={searchRef} value={productSearch} onChange={e => setProductSearch(e.target.value)}
+                className="w-full bg-pos-surface-lowest border-2 border-pos-secondary/30 rounded-xl text-sm py-3 pl-11 pr-4 outline-none focus:border-pos-secondary transition-colors"
+                placeholder="Search the Product (name, barcode)..." />
+              <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-pos-on-surface-variant">search</span>
+
+              {/* Search dropdown */}
+              {filteredProducts.length > 0 && (
+                <div className="absolute left-0 top-full mt-1 w-full bg-popover border border-border rounded-xl shadow-xl z-50 max-h-[250px] overflow-y-auto">
+                  {filteredProducts.map(p => (
+                    <button key={p.id} onClick={() => addProductToItems(p)}
+                      className="w-full text-left px-4 py-2.5 hover:bg-accent transition-colors flex items-center justify-between border-b border-border/50 last:border-0">
+                      <div>
+                        <span className="font-semibold text-sm">{p.name}</span>
+                        <span className="text-xs text-muted-foreground ml-2">({p.barcode || p.batch})</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-xs text-muted-foreground">Stock: {p.stock}</span>
+                        <span className="text-xs font-bold text-pos-secondary ml-3">৳{p.buyRate || 0}</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Items table */}
+            <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[700px]">
+                  <thead>
+                    <tr className="text-[10px] font-bold text-white uppercase tracking-wider bg-[hsl(230,45%,35%)]">
+                      <th className="px-2 py-2.5 w-8"><span className="material-symbols-outlined text-sm">delete</span></th>
+                      <th className="px-3 py-2.5">Barcode</th>
+                      <th className="px-3 py-2.5">Product Name</th>
+                      <th className="px-3 py-2.5 text-center">Stock</th>
+                      <th className="px-3 py-2.5 text-center">Carton</th>
+                      <th className="px-3 py-2.5 text-center">Piece</th>
+                      <th className="px-3 py-2.5 text-center">Sqft/Qty</th>
+                      <th className="px-3 py-2.5 text-right">Buy Rate</th>
+                      <th className="px-3 py-2.5 text-right">Sub Total</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-pos-surface-container">
+                    {items.map(item => (
+                      <tr key={item.id} className="bg-[hsl(45,100%,96%)] dark:bg-[hsl(45,20%,12%)] hover:bg-[hsl(45,100%,93%)] transition-colors">
+                        <td className="px-2 py-2 text-center">
+                          <button onClick={() => removeItem(item.id)} className="text-pos-error hover:text-pos-error/80">
+                            <span className="material-symbols-outlined text-sm">close</span>
+                          </button>
+                        </td>
+                        <td className="px-3 py-2 text-sm font-mono">{item.barcode || '—'}</td>
+                        <td className="px-3 py-2 text-sm font-medium">{item.name}</td>
+                        <td className="px-3 py-2 text-center">
+                          <span className={`text-sm ${item.stock <= 0 ? 'text-pos-error font-bold' : ''}`}>{item.stock}</span>
+                        </td>
+                        <td className="px-1 py-1">
+                          <input type="number" min={0} value={item.carton} onChange={e => updateItem(item.id, 'carton', parseInt(e.target.value) || 0)}
+                            className="w-16 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-center outline-none focus:border-pos-secondary mx-auto block" />
+                        </td>
+                        <td className="px-1 py-1">
+                          <input type="number" min={0} value={item.piece} onChange={e => updateItem(item.id, 'piece', parseInt(e.target.value) || 0)}
+                            className="w-14 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-center outline-none focus:border-pos-secondary mx-auto block" />
+                        </td>
+                        <td className="px-1 py-1">
+                          <input type="number" min={0} value={item.sqftQty} onChange={e => updateItem(item.id, 'sqftQty', parseFloat(e.target.value) || 0)}
+                            className="w-16 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-center outline-none focus:border-pos-secondary mx-auto block" />
+                        </td>
+                        <td className="px-1 py-1">
+                          <input type="number" value={item.buyRate} onChange={e => updateItem(item.id, 'buyRate', parseFloat(e.target.value) || 0)}
+                            className="w-20 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-right outline-none focus:border-pos-secondary ml-auto block" />
+                        </td>
+                        <td className="px-3 py-2 text-right font-bold text-sm">{formatCurrency(item.subTotal)}</td>
+                      </tr>
+                    ))}
+                    {items.length === 0 && (
+                      <tr><td colSpan={9} className="px-8 py-8 text-center text-sm text-pos-on-surface-variant">Search and add products above</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Remark */}
+            <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container p-4">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-pos-on-surface-variant uppercase shrink-0">Remark</span>
+                <input value={remark} onChange={e => setRemark(e.target.value)}
+                  className="flex-1 bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2 px-3 outline-none" placeholder="Optional note..." />
+              </div>
+            </div>
+          </div>
+
+          {/* ── RIGHT: Summary sidebar ── */}
+          <div className="w-full lg:w-[280px] shrink-0">
+            <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container p-4 space-y-3 sticky top-4">
+              {/* Total */}
+              <div className="flex items-center justify-between border border-pos-surface-container rounded-lg px-3 py-2.5">
+                <span className="text-sm font-medium text-pos-on-surface-variant">Total</span>
+                <span className="text-lg font-black text-pos-secondary">{formatCurrency(total)}</span>
+              </div>
+
+              {/* Discount */}
+              <div className="flex items-center border border-pos-surface-container rounded-lg overflow-hidden">
+                <span className="text-xs font-bold text-pos-on-surface-variant px-3 py-2.5 bg-pos-surface-low shrink-0 w-20">Discount</span>
+                <input type="number" value={discount} onChange={e => setDiscount(e.target.value)} placeholder="0"
+                  className="flex-1 text-sm py-2.5 px-3 outline-none bg-transparent text-right" />
+              </div>
+
+              {/* Delivery */}
+              <div className="flex items-center border border-pos-surface-container rounded-lg overflow-hidden">
+                <span className="text-xs font-bold text-pos-on-surface-variant px-3 py-2.5 bg-pos-surface-low shrink-0 w-20">Delivery</span>
+                <input type="number" value={delivery} onChange={e => setDelivery(e.target.value)} placeholder="0"
+                  className="flex-1 text-sm py-2.5 px-3 outline-none bg-transparent text-right" />
+              </div>
+
+              {/* Payable */}
+              <div className="flex items-center justify-between border-2 border-pos-secondary/30 rounded-lg px-3 py-2.5 bg-pos-secondary/5">
+                <span className="text-sm font-bold">Payable</span>
+                <span className="text-lg font-black text-pos-secondary">{formatCurrency(payable)}</span>
+              </div>
+
+              {/* Paid */}
+              <div className="flex items-center border border-pos-surface-container rounded-lg overflow-hidden">
+                <span className="text-xs font-bold text-pos-on-surface-variant px-3 py-2.5 bg-pos-surface-low shrink-0 w-20">Paid</span>
+                <input type="number" value={paid} onChange={e => setPaid(e.target.value)} placeholder="0"
+                  className="flex-1 text-sm py-2.5 px-3 outline-none bg-transparent text-right font-bold" />
+              </div>
+
+              {/* Due */}
+              <div className="flex items-center justify-between border border-pos-surface-container rounded-lg px-3 py-2.5">
+                <span className="text-sm font-bold">Due</span>
+                <span className={`text-lg font-black ${dueVal > 0 ? 'text-destructive' : 'text-[hsl(125,60%,35%)]'}`}>{formatCurrency(dueVal)}</span>
+              </div>
+
+              {/* Account */}
+              <div className="flex items-center border border-pos-surface-container rounded-lg overflow-hidden">
+                <span className="text-xs font-bold text-pos-on-surface-variant px-3 py-2.5 bg-pos-surface-low shrink-0 w-20">Account</span>
+                <select value={account} onChange={e => setAccount(e.target.value)}
+                  className="flex-1 text-sm py-2.5 px-3 outline-none bg-transparent">
+                  <option>Cash</option>
+                  <option>Bank</option>
+                  <option>bKash</option>
+                  <option>Nagad</option>
+                </select>
+              </div>
+
+              {/* Save button */}
+              <button onClick={handleSave}
+                className="w-full py-3 bg-pos-error hover:bg-pos-error/90 text-white rounded-lg font-bold text-base transition-colors mt-2">
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // ══════════════════════════════════════
+  // ══════ HISTORY VIEW ══════
+  // ══════════════════════════════════════
   return (
     <section className="p-4 sm:p-6 max-w-[1600px] mx-auto space-y-5">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
-          <span className="text-xs text-pos-on-surface-variant uppercase tracking-widest block mb-1">{t('purchase')}</span>
-          <h2 className="text-2xl sm:text-4xl font-bold text-pos-on-surface leading-tight tracking-tighter">{t('purchaseHistory')}</h2>
+          <span className="text-xs text-pos-on-surface-variant uppercase tracking-widest block mb-1">Purchase</span>
+          <h2 className="text-2xl sm:text-4xl font-bold text-pos-on-surface leading-tight tracking-tighter">Purchase History</h2>
         </div>
-        <button onClick={() => setShowForm(true)} className="px-5 py-2.5 bg-gradient-to-b from-pos-secondary to-pos-secondary-dim text-white rounded-lg font-semibold text-sm flex items-center gap-2 shadow-lg hover:-translate-y-0.5 transition-transform">
+        <button onClick={openAddPurchase} className="px-5 py-2.5 bg-gradient-to-b from-pos-secondary to-pos-secondary-dim text-white rounded-lg font-semibold text-sm flex items-center gap-2 shadow-lg hover:-translate-y-0.5 transition-transform">
           <span className="material-symbols-outlined text-lg">add</span>Add Purchase
         </button>
       </div>
 
-      {/* ═══ HISTORY TABLE ═══ */}
+      {/* Table */}
       <div className="bg-pos-surface-lowest rounded-xl shadow-sm overflow-hidden border border-pos-surface-container">
-        {/* Controls bar */}
+        {/* Controls */}
         <div className="px-4 py-3 bg-pos-surface-low flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-pos-surface-container">
           <div className="flex items-center gap-2 text-xs">
             <span className="text-pos-on-surface-variant">Show</span>
@@ -158,15 +428,15 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
         <div className="overflow-x-auto">
           <table className="w-full min-w-[800px]">
             <thead>
-              <tr className="text-[11px] font-bold text-pos-on-surface-variant uppercase tracking-wider bg-pos-surface-low border-b border-pos-surface-container">
-                <SortHeader field="invoice">INVOICE #</SortHeader>
-                <SortHeader field="date">DATE</SortHeader>
-                <SortHeader field="supplierName">SUPPLIER</SortHeader>
+              <tr className="text-[11px] font-bold text-pos-on-surface-variant uppercase tracking-wider bg-pos-surface-low border-b-2 border-pos-secondary/30">
+                <SortHeader field="invoice">Invoice #</SortHeader>
+                <SortHeader field="date">Date</SortHeader>
+                <SortHeader field="supplierName">Supplier</SortHeader>
                 <SortHeader field="qty">QTY./SQFTQTY.</SortHeader>
-                <SortHeader field="payable" align="text-right">TOTAL</SortHeader>
-                <SortHeader field="paid" align="text-right">PAID</SortHeader>
-                <SortHeader field="due" align="text-right">DUE</SortHeader>
-                <th className="px-4 py-3 text-right">ACTIONS</th>
+                <SortHeader field="payable" align="text-right">Total</SortHeader>
+                <SortHeader field="paid" align="text-right">Paid</SortHeader>
+                <SortHeader field="due" align="text-right">Due</SortHeader>
+                <th className="px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-pos-surface-container">
@@ -219,105 +489,26 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
         </div>
       </div>
 
-      {/* ═══ ADD PURCHASE MODAL ═══ */}
-      {showForm && (
-        <div className="fixed inset-0 bg-black/35 flex items-center justify-center z-[1000]" onClick={resetForm}>
-          <div className="bg-pos-surface-lowest rounded-xl w-[95vw] max-w-[650px] shadow-2xl p-6 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-5">
-              <h3 className="text-lg font-bold">Add Purchase</h3>
-              <button onClick={resetForm} className="text-pos-on-surface-variant hover:text-pos-on-surface"><span className="material-symbols-outlined">close</span></button>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
-              <div>
-                <label className="block text-[10px] font-bold text-pos-on-surface-variant uppercase mb-1">Supplier *</label>
-                <ComboInput value={supplierName} onChange={setSupplierName} options={suppliers.map(s => s.name)} placeholder="Supplier..." className="w-full bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2 px-3 outline-none" />
-              </div>
-              <div>
-                <label className="block text-[10px] font-bold text-pos-on-surface-variant uppercase mb-1">Discount</label>
-                <input type="number" value={discount} onChange={e => setDiscount(e.target.value)} placeholder="0" className="w-full bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2 px-3 outline-none" />
-              </div>
-              <div>
-                <label className="block text-[10px] font-bold text-pos-on-surface-variant uppercase mb-1">Delivery</label>
-                <input type="number" value={delivery} onChange={e => setDelivery(e.target.value)} placeholder="0" className="w-full bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2 px-3 outline-none" />
-              </div>
-            </div>
-
-            {/* Items */}
-            <table className="w-full text-left text-sm mb-3">
-              <thead><tr className="text-[10px] font-bold text-pos-on-surface-variant uppercase bg-pos-surface-low">
-                <th className="px-3 py-2">Product</th><th className="px-3 py-2 text-center">Qty</th><th className="px-3 py-2 text-right">Rate</th><th className="px-3 py-2 text-right">Total</th><th className="px-3 py-2 w-8"></th>
-              </tr></thead>
-              <tbody>{rows.map(row => (
-                <tr key={row.id} className="border-b border-pos-surface-container">
-                  <td className="px-3 py-2">
-                    <select value={row.productId} onChange={e => selectProduct(row.id, e.target.value)} className="w-full bg-transparent border-b border-border text-sm py-1 outline-none">
-                      <option value="">Select product...</option>
-                      {products.map(p => <option key={p.id} value={p.id}>{p.name} ({p.size})</option>)}
-                    </select>
-                  </td>
-                  <td className="px-3 py-2"><input type="number" min={1} value={row.qty} onChange={e => updateRow(row.id, 'qty', parseInt(e.target.value) || 0)} className="w-16 bg-transparent border-b border-border text-sm py-1 text-center outline-none" /></td>
-                  <td className="px-3 py-2"><input type="number" value={row.rate} onChange={e => updateRow(row.id, 'rate', parseFloat(e.target.value) || 0)} className="w-20 bg-transparent border-b border-border text-sm py-1 text-right outline-none" /></td>
-                  <td className="px-3 py-2 text-right font-bold">{formatCurrency(row.qty * row.rate)}</td>
-                  <td className="px-3 py-2"><button onClick={() => removeRow(row.id)} className="text-pos-error"><span className="material-symbols-outlined text-sm">close</span></button></td>
-                </tr>
-              ))}</tbody>
-            </table>
-            <button onClick={addRow} className="text-xs text-pos-secondary font-bold flex items-center gap-1 hover:underline mb-4">
-              <span className="material-symbols-outlined text-sm">add</span>Add Item
-            </button>
-
-            {/* Summary */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-between">
-              <div className="flex-1">
-                <label className="block text-[10px] font-bold text-pos-on-surface-variant uppercase mb-1">Notes</label>
-                <textarea value={remark} onChange={e => setRemark(e.target.value)} rows={2} className="w-full bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2 px-3 outline-none resize-none" />
-              </div>
-              <div className="w-full sm:w-56 space-y-2 text-sm">
-                <div className="flex justify-between"><span className="text-pos-on-surface-variant">Subtotal</span><span className="font-semibold">{formatCurrency(subtotal)}</span></div>
-                {discountVal > 0 && <div className="flex justify-between text-pos-error text-xs"><span>Discount</span><span>-{formatCurrency(discountVal)}</span></div>}
-                {deliveryVal > 0 && <div className="flex justify-between text-xs"><span>Delivery</span><span>+{formatCurrency(deliveryVal)}</span></div>}
-                <div className="h-[2px] bg-pos-on-surface" />
-                <div className="flex justify-between font-black text-lg"><span>Payable</span><span className="text-pos-secondary">{formatCurrency(payable)}</span></div>
-                <div className="flex justify-between items-center text-xs">
-                  <span className="font-bold text-[hsl(125,60%,35%)]">Paid</span>
-                  <input type="number" value={paid} onChange={e => setPaid(e.target.value)} placeholder="0" className="w-20 bg-[hsl(125,100%,95%)] border border-[hsl(125,60%,70%)] rounded text-xs py-1 px-1.5 text-right outline-none font-bold" />
-                </div>
-                <div className="flex justify-between text-xs">
-                  <span className={`font-bold ${dueVal > 0 ? 'text-destructive' : 'text-[hsl(125,60%,35%)]'}`}>Due</span>
-                  <span className={`font-bold ${dueVal > 0 ? 'text-destructive' : 'text-[hsl(125,60%,35%)]'}`}>{formatCurrency(dueVal)}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex gap-3 justify-end mt-5">
-              <button onClick={resetForm} className="px-6 py-2.5 bg-pos-surface-container text-pos-on-surface-variant rounded-lg font-semibold text-sm">Cancel</button>
-              <button onClick={handleSave} className="px-6 py-2.5 bg-pos-secondary text-white rounded-lg font-semibold text-sm">Save Purchase</button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* View Detail Modal */}
       {viewPurchase && (
         <div className="fixed inset-0 bg-black/35 flex items-center justify-center z-[1000]" onClick={() => setViewId(null)}>
           <div className="bg-pos-surface-lowest rounded-xl w-[95vw] max-w-[500px] shadow-2xl p-6" onClick={e => e.stopPropagation()}>
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-bold">Purchase #{viewPurchase.invoice}</h3>
-              <button onClick={() => setViewId(null)} className="text-pos-on-surface-variant hover:text-pos-on-surface"><span className="material-symbols-outlined">close</span></button>
+              <button onClick={() => setViewId(null)}><span className="material-symbols-outlined">close</span></button>
             </div>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between"><span className="text-muted-foreground">Supplier</span><span className="font-semibold">{viewPurchase.supplierName}</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Date</span><span>{new Date(viewPurchase.date).toLocaleDateString('en-GB')}</span></div>
-              <div className="border-t border-pos-surface-container pt-2 mt-2">
+              <div className="border-t pt-2 mt-2">
                 {viewPurchase.items.map((item, i) => (
                   <div key={i} className="flex justify-between py-1">
-                    <span>{item.name} × {item.carton}</span>
+                    <span>{item.name} × {item.carton} ctn {item.piece > 0 ? `+ ${item.piece} pcs` : ''}</span>
                     <span className="font-bold">{formatCurrency(item.subTotal)}</span>
                   </div>
                 ))}
               </div>
-              <div className="border-t border-pos-surface-container pt-2 space-y-1">
+              <div className="border-t pt-2 space-y-1">
                 <div className="flex justify-between font-bold text-lg"><span>Total</span><span className="text-pos-secondary">{formatCurrency(viewPurchase.payable)}</span></div>
                 <div className="flex justify-between text-xs"><span className="text-[hsl(125,60%,35%)]">Paid</span><span>{formatCurrency(viewPurchase.paid)}</span></div>
                 <div className="flex justify-between text-xs"><span className={viewPurchase.due > 0 ? 'text-destructive' : 'text-[hsl(125,60%,35%)]'}>Due</span><span>{formatCurrency(viewPurchase.due)}</span></div>
@@ -338,9 +529,9 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
               </div>
               <h3 className="text-lg font-bold">Delete Purchase</h3>
             </div>
-            <p className="text-sm text-pos-on-surface-variant mb-6">Are you sure you want to delete this purchase?</p>
+            <p className="text-sm text-pos-on-surface-variant mb-6">Are you sure?</p>
             <div className="flex gap-3">
-              <button onClick={() => setShowDeleteConfirm(null)} className="flex-1 py-2.5 bg-pos-surface-container text-pos-on-surface-variant rounded-lg font-semibold text-sm">Cancel</button>
+              <button onClick={() => setShowDeleteConfirm(null)} className="flex-1 py-2.5 bg-pos-surface-container rounded-lg font-semibold text-sm">Cancel</button>
               <button onClick={confirmDelete} className="flex-1 py-2.5 bg-pos-error text-white rounded-lg font-semibold text-sm">Delete</button>
             </div>
           </div>
