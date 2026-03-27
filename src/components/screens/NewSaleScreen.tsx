@@ -935,19 +935,23 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
   );
 }
 
-function generateQRSVG(data: string, size = 80): string {
-  const hash = data.split('').reduce((acc, char) => ((acc << 5) - acc + char.charCodeAt(0)) | 0, 0);
-  const grid = 11; const cellSize = size / grid;
-  let rects = '';
-  for (let i = 0; i < grid; i++) {
-    for (let j = 0; j < grid; j++) {
-      const isCornerPattern = (i < 3 && j < 3) || (i < 3 && j >= grid - 3) || (i >= grid - 3 && j < 3);
-      const isCornerBorder = (i < 3 && j < 3) ? (i === 0 || i === 2 || j === 0 || j === 2 || (i === 1 && j === 1)) :
-        (i < 3 && j >= grid - 3) ? (i === 0 || i === 2 || j === grid - 1 || j === grid - 3 || (i === 1 && j === grid - 2)) :
-        (i >= grid - 3 && j < 3) ? (i === grid - 1 || i === grid - 3 || j === 0 || j === 2 || (i === grid - 2 && j === 1)) : false;
-      const bit = isCornerPattern ? isCornerBorder : ((hash * (i * grid + j + 1) * 7919) % 100) > 45;
-      if (bit) rects += `<rect x="${j * cellSize}" y="${i * cellSize}" width="${cellSize}" height="${cellSize}" fill="#2d3435"/>`;
-    }
+// Real QR Code component using qrcode library
+function QRCodeSVG({ data, size = 80 }: { data: string; size?: number }) {
+  const [svgUrl, setSvgUrl] = useState('');
+  useEffect(() => {
+    QRCode.toDataURL(data || 'N/A', { width: size, margin: 1, errorCorrectionLevel: 'M' })
+      .then(url => setSvgUrl(url))
+      .catch(() => setSvgUrl(''));
+  }, [data, size]);
+  if (!svgUrl) return <div style={{ width: size, height: size, background: '#f0f0f0', borderRadius: 4 }} />;
+  return <img src={svgUrl} alt="QR Code" width={size} height={size} style={{ imageRendering: 'pixelated' }} />;
+}
+
+// Generate QR code data URL synchronously-ish for print HTML
+async function generateQRDataURL(data: string, size = 80): Promise<string> {
+  try {
+    return await QRCode.toDataURL(data || 'N/A', { width: size, margin: 1, errorCorrectionLevel: 'M' });
+  } catch {
+    return '';
   }
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><rect width="${size}" height="${size}" fill="white"/>${rects}</svg>`;
 }
