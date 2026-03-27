@@ -81,11 +81,6 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
   const [remark, setRemark] = useState('');
   const [saleStatus, setSaleStatus] = useState('Complete');
   const [paymentMode, setPaymentMode] = useState('Cash');
-  const [manualCarton, setManualCarton] = useState('0');
-  const [manualPiece, setManualPiece] = useState('0');
-  const [manualSqft, setManualSqft] = useState('0');
-  const [manualRate, setManualRate] = useState('');
-  const [selectedProductId, setSelectedProductId] = useState('');
   const searchRef = useRef<HTMLInputElement>(null);
 
   // ── Sort helpers ──
@@ -118,60 +113,27 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const paginated = useMemo(() => filtered.slice(page * pageSize, (page + 1) * pageSize), [filtered, page, pageSize]);
 
-  // ── Add Sale: product search ──
+  // ── Add Sale: product search (show all, filter on search) ──
   const debouncedProductSearch = useDebounce(productSearch, 200);
-  const filteredProducts = useMemo(() => {
-    if (!debouncedProductSearch) return [];
+  const displayProducts = useMemo(() => {
+    if (!debouncedProductSearch) return products;
     return products.filter(p =>
       p.name.toLowerCase().includes(debouncedProductSearch.toLowerCase()) ||
       (p.barcode || '').toLowerCase().includes(debouncedProductSearch.toLowerCase()) ||
       p.batch.toLowerCase().includes(debouncedProductSearch.toLowerCase())
-    ).slice(0, 8);
+    );
   }, [products, debouncedProductSearch]);
 
-  const selectSearchProduct = (p: Product) => {
-    setSelectedProductId(p.id);
-    setProductSearch(p.name);
-    setManualRate(String(p.pricePerBox));
-    setManualCarton('0');
-    setManualPiece('0');
-    setManualSqft('0');
-  };
-
-  const addProductToItems = () => {
-    const product = products.find(p => p.id === selectedProductId);
-    if (!product) { toast.error('প্রোডাক্ট সিলেক্ট করুন'); return; }
-    const carton = parseInt(manualCarton) || 0;
-    const piece = parseInt(manualPiece) || 0;
-    const sqftQty = parseFloat(manualSqft) || 0;
-    const rate = parseFloat(manualRate) || product.pricePerBox;
-    if (carton === 0 && piece === 0) { toast.error('Carton বা Piece দিন'); return; }
-
-    const piecesPerBox = product.piecesPerBox || 4;
-    const pricePerPiece = piecesPerBox > 0 ? rate / piecesPerBox : 0;
-    const subTotal = (carton * rate) + (piece * pricePerPiece);
-
-    // Check if already exists
-    const existing = items.find(i => i.productId === product.id);
-    if (existing) {
-      setItems(prev => prev.map(i => i.productId === product.id ? {
-        ...i, carton: i.carton + carton, piece: i.piece + piece,
-        sqftQty: i.sqftQty + sqftQty, subTotal: i.subTotal + subTotal,
-      } : i));
-    } else {
-      setItems(prev => [...prev, {
-        id: Date.now(), productId: product.id, barcode: product.barcode || product.batch || '',
-        name: product.name, stock: product.stock, itemType: 'Sale',
-        carton, piece, sqftQty, salesRate: rate, subTotal,
-      }]);
+  const addProductToItems = (product: Product) => {
+    if (items.find(i => i.productId === product.id)) {
+      toast.error('Already added');
+      return;
     }
-    setProductSearch('');
-    setSelectedProductId('');
-    setManualCarton('0');
-    setManualPiece('0');
-    setManualSqft('0');
-    setManualRate('');
-    searchRef.current?.focus();
+    setItems(prev => [...prev, {
+      id: Date.now(), productId: product.id, barcode: product.barcode || product.batch || '',
+      name: product.name, stock: product.stock, itemType: 'Sale',
+      carton: 1, piece: 0, sqftQty: 0, salesRate: product.pricePerBox, subTotal: product.pricePerBox,
+    }]);
   };
 
   const removeItem = (id: number) => setItems(prev => prev.filter(i => i.id !== id));
@@ -364,69 +326,21 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
               </div>
             </div>
 
-            {/* Product search + manual inputs */}
-            <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container p-4 space-y-3">
-              <div className="flex gap-3">
-                <div className="relative flex-1">
-                  <input ref={searchRef} value={productSearch} onChange={e => { setProductSearch(e.target.value); setSelectedProductId(''); }}
-                    className="w-full bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2.5 pl-10 pr-4 outline-none focus:border-pos-secondary transition-colors"
-                    placeholder="Search the Product..." />
-                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-pos-on-surface-variant">search</span>
-                  {filteredProducts.length > 0 && !selectedProductId && (
-                    <div className="absolute left-0 top-full mt-1 w-full bg-popover border border-border rounded-xl shadow-xl z-50 max-h-[250px] overflow-y-auto">
-                      {filteredProducts.map(p => (
-                        <button key={p.id} onClick={() => selectSearchProduct(p)}
-                          className="w-full text-left px-4 py-2.5 hover:bg-accent transition-colors flex items-center justify-between border-b border-border/50 last:border-0">
-                          <div>
-                            <span className="font-semibold text-sm">{p.name}</span>
-                            <span className="text-xs text-muted-foreground ml-2">({p.barcode || p.batch || '—'})</span>
-                          </div>
-                          <div className="text-right">
-                            <span className="text-xs text-muted-foreground">Stock: {p.stock}</span>
-                            <span className="text-xs font-bold text-pos-secondary ml-3">৳{p.pricePerBox}</span>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-              {/* Manual inputs row */}
-              <div className="flex flex-wrap gap-2 items-end">
-                <div className="flex items-center gap-1 bg-pos-surface-high border border-pos-surface-container rounded-lg px-2 py-1.5">
-                  <span className="text-[10px] font-bold text-pos-on-surface-variant">Carton</span>
-                  <input type="number" min={0} value={manualCarton} onChange={e => setManualCarton(e.target.value)}
-                    className="w-14 bg-transparent text-sm text-center outline-none" />
-                </div>
-                <div className="flex items-center gap-1 bg-pos-surface-high border border-pos-surface-container rounded-lg px-2 py-1.5">
-                  <span className="text-[10px] font-bold text-pos-on-surface-variant">Piece</span>
-                  <input type="number" min={0} value={manualPiece} onChange={e => setManualPiece(e.target.value)}
-                    className="w-14 bg-transparent text-sm text-center outline-none" />
-                </div>
-                <div className="flex items-center gap-1 bg-pos-surface-high border border-pos-surface-container rounded-lg px-2 py-1.5">
-                  <span className="text-[10px] font-bold text-pos-on-surface-variant">Sqft./Qty.</span>
-                  <input type="number" min={0} step="0.1" value={manualSqft} onChange={e => setManualSqft(e.target.value)}
-                    className="w-14 bg-transparent text-sm text-center outline-none" />
-                </div>
-                <div className="flex items-center gap-1 bg-pos-surface-high border border-pos-surface-container rounded-lg px-2 py-1.5">
-                  <span className="text-[10px] font-bold text-pos-on-surface-variant">Sales Rate</span>
-                  <input type="number" value={manualRate} onChange={e => setManualRate(e.target.value)} placeholder="Sales Rate"
-                    className="w-20 bg-transparent text-sm text-right outline-none" />
-                </div>
-                <button onClick={addProductToItems}
-                  className="px-5 py-2 bg-pos-error text-white rounded-lg font-bold text-sm hover:bg-pos-error/90 transition-colors">
-                  Add
-                </button>
-              </div>
+            {/* Product search */}
+            <div className="relative">
+              <input ref={searchRef} value={productSearch} onChange={e => setProductSearch(e.target.value)}
+                className="w-full bg-pos-surface-lowest border-2 border-pos-secondary/30 rounded-xl text-sm py-3 pl-11 pr-4 outline-none focus:border-pos-secondary transition-colors"
+                placeholder="Search the Product..." />
+              <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-pos-on-surface-variant">search</span>
             </div>
 
-            {/* Items table */}
+            {/* All products table with checkbox */}
             <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container overflow-hidden">
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
                 <table className="w-full min-w-[700px]">
-                  <thead>
+                  <thead className="sticky top-0 z-10">
                     <tr className="text-[10px] font-bold text-white uppercase tracking-wider bg-[hsl(230,45%,35%)]">
-                      <th className="px-2 py-2.5 w-8"><span className="material-symbols-outlined text-sm">delete</span></th>
+                      <th className="px-2 py-2.5 w-8"><span className="material-symbols-outlined text-sm">check_box</span></th>
                       <th className="px-3 py-2.5">Type</th>
                       <th className="px-3 py-2.5">Barcode</th>
                       <th className="px-3 py-2.5">Description</th>
@@ -438,38 +352,58 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-pos-surface-container">
-                    {items.map(item => (
-                      <tr key={item.id} className="bg-[hsl(45,100%,96%)] dark:bg-[hsl(45,20%,12%)] hover:bg-[hsl(45,100%,93%)] transition-colors">
-                        <td className="px-2 py-2 text-center">
-                          <input type="checkbox" checked onChange={() => removeItem(item.id)}
-                            className="w-4 h-4 rounded border-pos-surface-container accent-pos-secondary cursor-pointer" />
-                        </td>
-                        <td className="px-1 py-1">
-                          <select value={item.itemType} onChange={e => updateItem(item.id, 'itemType', e.target.value)}
-                            className="bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-xs py-1.5 px-1 outline-none">
-                            <option>Sale</option><option>Return</option>
-                          </select>
-                        </td>
-                        <td className="px-3 py-2 text-sm font-mono">{item.barcode || '—'}</td>
-                        <td className="px-3 py-2 text-sm font-medium">{item.name}</td>
-                        <td className="px-1 py-1">
-                          <input type="number" min={0} value={item.carton} onChange={e => updateItem(item.id, 'carton', parseInt(e.target.value) || 0)}
-                            className="w-16 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-center outline-none focus:border-pos-secondary mx-auto block" />
-                        </td>
-                        <td className="px-1 py-1">
-                          <input type="number" min={0} value={item.piece} onChange={e => updateItem(item.id, 'piece', parseInt(e.target.value) || 0)}
-                            className="w-14 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-center outline-none focus:border-pos-secondary mx-auto block" />
-                        </td>
-                        <td className="px-3 py-2 text-center text-sm">{item.sqftQty > 0 ? item.sqftQty.toFixed(1) : '0'}</td>
-                        <td className="px-1 py-1">
-                          <input type="number" value={item.salesRate} onChange={e => updateItem(item.id, 'salesRate', parseFloat(e.target.value) || 0)}
-                            className="w-20 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-right outline-none focus:border-pos-secondary ml-auto block" />
-                        </td>
-                        <td className="px-3 py-2 text-right font-bold text-sm">{formatCurrency(item.subTotal)}</td>
-                      </tr>
-                    ))}
-                    {items.length === 0 && (
-                      <tr><td colSpan={9} className="px-8 py-8 text-center text-sm text-pos-on-surface-variant">Search and add products above</td></tr>
+                    {displayProducts.map(p => {
+                      const item = items.find(i => i.productId === p.id);
+                      const isSelected = !!item;
+                      return (
+                        <tr key={p.id} className={`transition-colors ${isSelected ? 'bg-[hsl(45,100%,96%)] dark:bg-[hsl(45,20%,12%)]' : 'hover:bg-muted/30'}`}>
+                          <td className="px-2 py-2 text-center">
+                            <input type="checkbox" checked={isSelected}
+                              onChange={() => isSelected ? removeItem(item!.id) : addProductToItems(p)}
+                              className="w-4 h-4 rounded border-pos-surface-container accent-pos-secondary cursor-pointer" />
+                          </td>
+                          {isSelected ? (
+                            <>
+                              <td className="px-1 py-1">
+                                <select value={item!.itemType} onChange={e => updateItem(item!.id, 'itemType', e.target.value)}
+                                  className="bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-xs py-1.5 px-1 outline-none">
+                                  <option>Sale</option><option>Return</option>
+                                </select>
+                              </td>
+                              <td className="px-3 py-2 text-sm font-mono">{item!.barcode || '—'}</td>
+                              <td className="px-3 py-2 text-sm font-medium">{item!.name}</td>
+                              <td className="px-1 py-1">
+                                <input type="number" min={0} value={item!.carton} onChange={e => updateItem(item!.id, 'carton', parseInt(e.target.value) || 0)}
+                                  className="w-16 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-center outline-none focus:border-pos-secondary mx-auto block" />
+                              </td>
+                              <td className="px-1 py-1">
+                                <input type="number" min={0} value={item!.piece} onChange={e => updateItem(item!.id, 'piece', parseInt(e.target.value) || 0)}
+                                  className="w-14 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-center outline-none focus:border-pos-secondary mx-auto block" />
+                              </td>
+                              <td className="px-3 py-2 text-center text-sm">{item!.sqftQty > 0 ? item!.sqftQty.toFixed(1) : '0'}</td>
+                              <td className="px-1 py-1">
+                                <input type="number" value={item!.salesRate} onChange={e => updateItem(item!.id, 'salesRate', parseFloat(e.target.value) || 0)}
+                                  className="w-20 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-right outline-none focus:border-pos-secondary ml-auto block" />
+                              </td>
+                              <td className="px-3 py-2 text-right font-bold text-sm">{formatCurrency(item!.subTotal)}</td>
+                            </>
+                          ) : (
+                            <>
+                              <td className="px-3 py-2 text-sm text-muted-foreground">Sale</td>
+                              <td className="px-3 py-2 text-sm font-mono text-muted-foreground">{p.barcode || p.batch || '—'}</td>
+                              <td className="px-3 py-2 text-sm text-muted-foreground">{p.name}</td>
+                              <td className="px-3 py-2 text-center text-sm text-muted-foreground">0</td>
+                              <td className="px-3 py-2 text-center text-sm text-muted-foreground">0</td>
+                              <td className="px-3 py-2 text-center text-sm text-muted-foreground">0</td>
+                              <td className="px-3 py-2 text-right text-sm text-muted-foreground">{p.pricePerBox}</td>
+                              <td className="px-3 py-2 text-right text-sm text-muted-foreground">0.00</td>
+                            </>
+                          )}
+                        </tr>
+                      );
+                    })}
+                    {displayProducts.length === 0 && (
+                      <tr><td colSpan={9} className="px-8 py-8 text-center text-sm text-pos-on-surface-variant">No products found</td></tr>
                     )}
                   </tbody>
                 </table>
