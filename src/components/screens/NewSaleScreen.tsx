@@ -631,6 +631,10 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
 
           {/* Scrollable table */}
           <div className="overflow-visible">
+            <div className="text-xs font-semibold text-muted-foreground mb-2 flex items-center gap-1">
+              <span className="material-symbols-outlined text-sm">shopping_cart</span>
+              {t('saleItems')} ({rows.filter(r => r.productId).length} items)
+            </div>
             <table className="w-full min-w-[700px]">
               <thead>
                 <tr className="text-[9px] font-bold text-white uppercase tracking-wider" style={{ background: 'hsl(var(--destructive))' }}>

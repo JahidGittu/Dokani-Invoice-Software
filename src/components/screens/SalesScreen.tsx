@@ -267,7 +267,7 @@ export default function SalesScreen({ products, customers, sales, onSaleComplete
                   </td>
                 </tr>
               )}) : (
-                <tr><td colSpan={12} className="px-8 py-8 text-center text-xs text-pos-on-surface-variant">{t('noSalesYet')}</td></tr>
+                <tr><td colSpan={13} className="px-8 py-8 text-center text-xs text-pos-on-surface-variant">{t('noSalesYet')}</td></tr>
               )}
             </tbody>
           </table>

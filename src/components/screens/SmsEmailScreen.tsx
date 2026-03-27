@@ -52,9 +52,8 @@ export default function SmsEmailScreen({ customers, suppliers = [], staffs = [] 
     if (!message.trim()) { toast.error('Enter a message'); return; }
 
     if (tab === 'sms') {
-      // Open WhatsApp for each selected customer
-      const selected = customers.filter(c => selectedCustomers.includes(c.id) && c.phone);
-      if (!selected.length) { toast.error('Selected customers have no phone numbers'); return; }
+      const selected = allContacts.filter(c => selectedCustomers.includes(c.id) && c.phone);
+      if (!selected.length) { toast.error('Selected contacts have no phone numbers'); return; }
       selected.forEach(c => {
         const phone = c.phone.replace(/[^0-9]/g, '');
         window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');

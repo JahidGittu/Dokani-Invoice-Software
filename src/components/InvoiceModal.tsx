@@ -274,7 +274,7 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
     setTimeout(() => w.print(), 400);
   };
 
-  const handlePDF = () => {
+  const handlePDF = async () => {
     const doc = new jsPDF({ unit: 'mm', format: 'a4' });
     const pw = 210;
     let y = 18;
@@ -300,11 +300,17 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
       doc.text(`Phone# ${companyPhone}`, pw / 2, y + 14, { align: 'center' });
     }
 
-    // QR placeholder right
-    doc.setDrawColor(200);
-    doc.rect(pw - 33, y - 2, 18, 18);
-    doc.setFontSize(6); doc.setTextColor(150);
-    doc.text('QR', pw - 24, y + 8, { align: 'center' });
+    // QR Code right - real QR
+    try {
+      const QRCodeLib = await import('qrcode');
+      const qrDataUrl = await QRCodeLib.default.toDataURL(`${sale.invoice}-${sale.total}`, { width: 80, margin: 1 });
+      doc.addImage(qrDataUrl, 'PNG', pw - 33, y - 2, 18, 18);
+    } catch {
+      doc.setDrawColor(200);
+      doc.rect(pw - 33, y - 2, 18, 18);
+      doc.setFontSize(6); doc.setTextColor(150);
+      doc.text('QR', pw - 24, y + 8, { align: 'center' });
+    }
 
     y += 20;
     doc.setDrawColor(34); doc.setLineWidth(0.6);
