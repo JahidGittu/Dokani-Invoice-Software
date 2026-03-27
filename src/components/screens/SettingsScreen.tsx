@@ -70,18 +70,31 @@ export default function SettingsScreen({ settings, onUpdateSettings }: SettingsS
     const anyChecked = Object.values(clearChecks).some(Boolean);
     if (!anyChecked) { toast.error(t('noItemSelected')); return; }
 
-    // Clear localStorage
-    if (clearChecks.products) localStorage.removeItem('tilepos_products');
-    if (clearChecks.customers) localStorage.removeItem('tilepos_customers');
-    if (clearChecks.sales) localStorage.removeItem('tilepos_sales');
-    if (clearChecks.settings) localStorage.removeItem('tilepos_settings');
-    if (clearChecks.counter) localStorage.removeItem('tilepos_inv_counter');
+    // Clear local demo/local data by writing empty values so defaults do not come back
+    if (clearChecks.products) localStorage.setItem('tilepos_products', JSON.stringify([]));
+    if (clearChecks.customers) localStorage.setItem('tilepos_customers', JSON.stringify([]));
+    if (clearChecks.sales) {
+      localStorage.setItem('tilepos_sales', JSON.stringify([]));
+      localStorage.setItem('tilepos_suppliers', JSON.stringify([]));
+      localStorage.setItem('tilepos_purchases', JSON.stringify([]));
+    }
+    if (clearChecks.settings) localStorage.setItem('tilepos_settings', JSON.stringify({
+      ...settings,
+      name: '',
+      address: '',
+      phone: '',
+      email: '',
+      userName: '',
+      userRole: 'Administrator',
+      lowStockThreshold: 20,
+      invPrefix: 'INV',
+      darkMode: false,
+    }));
+    if (clearChecks.counter) localStorage.setItem('tilepos_inv_counter', JSON.stringify(1));
 
-    // Also clear from Supabase if logged in
     if (user) {
       try {
         if (clearChecks.sales) {
-          // Delete sale_items first (FK dependency)
           const { data: userSales } = await supabase.from('sales').select('id').eq('user_id', user.id);
           if (userSales && userSales.length > 0) {
             const saleIds = userSales.map(s => s.id);
@@ -89,15 +102,9 @@ export default function SettingsScreen({ settings, onUpdateSettings }: SettingsS
           }
           await supabase.from('sales').delete().eq('user_id', user.id);
         }
-        if (clearChecks.products) {
-          await supabase.from('products').delete().eq('user_id', user.id);
-        }
-        if (clearChecks.customers) {
-          await supabase.from('customers').delete().eq('user_id', user.id);
-        }
-        if (clearChecks.settings) {
-          await supabase.from('company_settings').delete().eq('user_id', user.id);
-        }
+        if (clearChecks.products) await supabase.from('products').delete().eq('user_id', user.id);
+        if (clearChecks.customers) await supabase.from('customers').delete().eq('user_id', user.id);
+        if (clearChecks.settings) await supabase.from('company_settings').delete().eq('user_id', user.id);
       } catch (err) {
         console.error('Clear data error:', err);
       }
@@ -105,7 +112,7 @@ export default function SettingsScreen({ settings, onUpdateSettings }: SettingsS
 
     toast.success(t('selectedDataCleared'));
     setShowClearModal(false);
-    setTimeout(() => window.location.reload(), 1000);
+    setTimeout(() => window.location.reload(), 500);
   };
 
   // ─── Auth handlers for cloud backup ───
