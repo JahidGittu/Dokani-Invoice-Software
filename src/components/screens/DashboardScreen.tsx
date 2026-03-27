@@ -13,14 +13,22 @@ export default function DashboardScreen({ onNavigate, products, customers, sales
   const { t } = useI18n();
   const todayStr = new Date().toDateString();
 
-  const { todayTotal, todayCount } = useMemo(() => {
-    let total = 0, count = 0;
+  const { todayTotal, todayCount, todayPaid, todayDue, totalDueAll } = useMemo(() => {
+    let total = 0, count = 0, paid = 0, due = 0;
     sales.forEach(s => {
-      try { if (new Date(s.date).toDateString() === todayStr) { total += s.total; count++; } } catch {}
+      try {
+        if (new Date(s.date).toDateString() === todayStr) {
+          total += s.total; count++;
+          paid += (s.paid ?? s.total);
+          due += (s.due ?? 0);
+        }
+      } catch {}
     });
-    return { todayTotal: total, todayCount: count };
+    const totalDueAll = sales.reduce((sum, s) => sum + (s.due ?? 0), 0);
+    return { todayTotal: total, todayCount: count, todayPaid: paid, todayDue: due, totalDueAll };
   }, [sales, todayStr]);
 
+  const customerDueTotal = useMemo(() => customers.reduce((sum, c) => sum + (c.totalDue || 0), 0), [customers]);
   const lowStock = useMemo(() => getLowStockProducts(products), [products]);
   const totalStock = useMemo(() => products.reduce((s, p) => s + p.stock, 0), [products]);
 
@@ -41,9 +49,9 @@ export default function DashboardScreen({ onNavigate, products, customers, sales
 
   const stats = [
     { label: t('todaysSales'), value: formatCurrency(todayTotal), icon: 'payments', iconBg: 'bg-pos-secondary-container', iconColor: 'text-pos-secondary', trend: `${todayCount} ${t('salesToday')}`, trendColor: 'text-pos-tertiary' },
-    { label: t('totalProducts'), value: String(products.length), icon: 'inventory_2', iconBg: 'bg-pos-tertiary-container', iconColor: 'text-pos-tertiary', trend: t('activeItems'), trendColor: 'text-pos-tertiary' },
+    { label: t('paid'), value: formatCurrency(todayPaid), icon: 'check_circle', iconBg: 'bg-[hsl(125,40%,90%)]', iconColor: 'text-[hsl(125,60%,35%)]', trend: t('todaysSales'), trendColor: 'text-[hsl(125,60%,35%)]' },
+    { label: t('totalDue'), value: formatCurrency(totalDueAll), icon: 'warning', iconBg: 'bg-pos-error-container', iconColor: 'text-pos-error', trend: `${t('customers')}: ${formatCurrency(customerDueTotal)}`, trendColor: 'text-pos-error' },
     { label: t('totalStock'), value: totalStock.toLocaleString(), icon: 'layers', iconBg: 'bg-pos-primary-container', iconColor: 'text-pos-on-primary-container', trend: `${lowStock.length} ${t('lowStock')}`, trendColor: lowStock.length > 0 ? 'text-pos-error' : 'text-pos-on-surface-variant' },
-    { label: t('customers'), value: String(customers.length), icon: 'group', iconBg: 'bg-pos-secondary-container', iconColor: 'text-pos-secondary', trend: `${sales.length} ${t('totalSales')}`, trendColor: 'text-pos-tertiary' },
   ];
 
   return (
