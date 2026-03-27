@@ -11,7 +11,7 @@ interface SettingsScreenProps {
 
 type ClearOption = 'products' | 'customers' | 'sales' | 'settings' | 'counter';
 
-export default function SettingsScreen({ settings, onUpdateSettings }: SettingsScreenProps) {
+export default function SettingsScreen({ settings, onUpdateSettings, onSignOut }: SettingsScreenProps) {
   const { t } = useI18n();
   const [form, setForm] = useState(settings);
   const [showClearModal, setShowClearModal] = useState(false);
