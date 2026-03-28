@@ -243,6 +243,18 @@ export default function CustomersScreen({ customers, sales = [], onAddCustomer, 
                   placeholder="Enter amount" max={showCollectDue.totalDue || 0}
                   className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" />
               </div>
+              <div>
+                <label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">Payment Method</label>
+                <select value={collectMethod} onChange={e => setCollectMethod(e.target.value)}
+                  className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none">
+                  <option>Cash</option><option>bKash</option><option>Nagad</option><option>Bank</option><option>Other</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">Note</label>
+                <input value={collectNote} onChange={e => setCollectNote(e.target.value)}
+                  placeholder="Optional note" className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" />
+              </div>
               <div className="text-xs text-muted-foreground">
                 Remaining after collection: <span className="font-bold">{formatCurrency(Math.max(0, (showCollectDue.totalDue || 0) - Number(collectAmount || 0)))}</span>
               </div>
