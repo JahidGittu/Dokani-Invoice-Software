@@ -7,9 +7,13 @@ import { toast } from 'sonner';
 interface UserWithRole {
   id: string;
   email: string;
+  shop_name: string;
+  phone: string;
   created_at: string;
   role: string;
   blocked: boolean;
+  status: string; // 'pending' | 'active'
+  hasLicense: boolean;
 }
 
 interface License {
@@ -88,6 +92,9 @@ export default function AdminScreen({ initialTab }: { initialTab?: string }) {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'user_roles' }, () => {
         loadUsers();
       })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => {
+        loadUsers();
+      })
       .subscribe();
 
     return () => {
@@ -110,49 +117,31 @@ export default function AdminScreen({ initialTab }: { initialTab?: string }) {
   };
 
   const loadUsers = async () => {
-    const [{ data: allRoles }, { data: allSettings }, { data: signupMessages }] = await Promise.all([
-      supabase.from('user_roles').select('*'),
-      supabase.from('company_settings').select('user_id, user_name, email'),
-      supabase.from('admin_messages').select('sender_id, message, created_at').eq('message_type', 'new_signup').order('created_at', { ascending: false }),
+    const [{ data: profiles }, { data: allRoles }, { data: allLicenses }] = await Promise.all([
+      supabase.from('profiles').select('user_id, email, shop_name, phone, status, created_at'),
+      supabase.from('user_roles').select('user_id, role'),
+      supabase.from('licenses').select('user_id'),
     ]);
 
-    const userMap = new Map<string, UserWithRole>();
+    const roleMap = new Map<string, string>();
+    allRoles?.forEach(r => roleMap.set(r.user_id, r.role));
 
-    allSettings?.forEach(s => {
-      userMap.set(s.user_id, {
-        id: s.user_id,
-        email: s.email || '',
-        created_at: '',
-        role: 'user',
-        blocked: false,
-      });
-    });
+    const licenseSet = new Set<string>();
+    allLicenses?.forEach(l => licenseSet.add(l.user_id));
 
-    allRoles?.forEach(r => {
-      const existing = userMap.get(r.user_id);
-      if (existing) existing.role = r.role;
-      else userMap.set(r.user_id, {
-        id: r.user_id,
-        email: '',
-        created_at: r.created_at,
-        role: r.role,
-        blocked: false,
-      });
-    });
+    const result: UserWithRole[] = (profiles || []).map((p: any) => ({
+      id: p.user_id,
+      email: p.email || '',
+      shop_name: p.shop_name || '',
+      phone: p.phone || '',
+      created_at: p.created_at,
+      role: roleMap.get(p.user_id) || 'user',
+      blocked: false,
+      status: licenseSet.has(p.user_id) ? 'active' : (p.status || 'pending'),
+      hasLicense: licenseSet.has(p.user_id),
+    }));
 
-    signupMessages?.forEach((msg: any) => {
-      if (userMap.has(msg.sender_id)) return;
-      const emailMatch = msg.message?.match(/📧\s*([^\n]+)/);
-      userMap.set(msg.sender_id, {
-        id: msg.sender_id,
-        email: emailMatch?.[1]?.trim() || '',
-        created_at: msg.created_at,
-        role: 'user',
-        blocked: false,
-      });
-    });
-
-    setUsers(Array.from(userMap.values()));
+    setUsers(result);
   };
 
   const loadLicenses = async () => {
@@ -270,9 +259,10 @@ export default function AdminScreen({ initialTab }: { initialTab?: string }) {
     return { text: lang === 'bn' ? 'সক্রিয়' : 'Active', color: 'bg-green-500/20 text-green-400' };
   };
 
-  const filteredUsers = users.filter(u =>
-    (u.email || '').toLowerCase().includes(search.toLowerCase()) || u.id.includes(search)
-  );
+  const filteredUsers = users.filter(u => {
+    const s = search.toLowerCase();
+    return (u.email || '').toLowerCase().includes(s) || (u.shop_name || '').toLowerCase().includes(s) || u.id.includes(search);
+  });
   const filteredLicenses = licenses.filter(l => l.shop_name.toLowerCase().includes(search.toLowerCase()) || l.owner_name.toLowerCase().includes(search.toLowerCase()));
 
   if (loading) return <div className="flex items-center justify-center h-64"><span className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" /></div>;
@@ -473,8 +463,9 @@ export default function AdminScreen({ initialTab }: { initialTab?: string }) {
             <table className="w-full">
               <thead>
                 <tr className="bg-gray-800/50 border-b border-gray-800">
-                  <th className="text-left px-4 py-3 text-xs font-bold text-gray-500">{lang === 'bn' ? 'ইউজার' : 'User'}</th>
-                  <th className="text-left px-4 py-3 text-xs font-bold text-gray-500">ID</th>
+                  <th className="text-left px-4 py-3 text-xs font-bold text-gray-500">{lang === 'bn' ? 'ইউজার / দোকান' : 'User / Shop'}</th>
+                  <th className="text-left px-4 py-3 text-xs font-bold text-gray-500">{lang === 'bn' ? 'ফোন' : 'Phone'}</th>
+                  <th className="text-left px-4 py-3 text-xs font-bold text-gray-500">{lang === 'bn' ? 'স্ট্যাটাস' : 'Status'}</th>
                   <th className="text-left px-4 py-3 text-xs font-bold text-gray-500">{lang === 'bn' ? 'রোল' : 'Role'}</th>
                   <th className="text-left px-4 py-3 text-xs font-bold text-gray-500">{lang === 'bn' ? 'অ্যাকশন' : 'Actions'}</th>
                 </tr>
@@ -484,13 +475,33 @@ export default function AdminScreen({ initialTab }: { initialTab?: string }) {
                   <tr key={u.id} className="border-b border-gray-800 last:border-0 hover:bg-gray-800/30">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-blue-500/10 flex items-center justify-center">
-                          <span className="text-xs font-bold text-blue-400">{(u.email || 'U').substring(0, 2).toUpperCase()}</span>
+                        <div className={`w-9 h-9 rounded-full flex items-center justify-center ${u.status === 'pending' && !u.hasLicense ? 'bg-amber-500/20' : 'bg-blue-500/10'}`}>
+                          <span className={`text-xs font-bold ${u.status === 'pending' && !u.hasLicense ? 'text-amber-400' : 'text-blue-400'}`}>
+                            {(u.email || 'U').substring(0, 2).toUpperCase()}
+                          </span>
                         </div>
-                        <p className="text-sm font-semibold text-white">{u.email || 'No email'}</p>
+                        <div>
+                          <p className="text-sm font-semibold text-white">{u.shop_name || u.email || 'No email'}</p>
+                          <p className="text-[10px] text-gray-500">{u.email}</p>
+                        </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3"><span className="text-xs text-gray-500 font-mono">{u.id.slice(0, 8)}...</span></td>
+                    <td className="px-4 py-3"><span className="text-xs text-gray-400">{u.phone || '—'}</span></td>
+                    <td className="px-4 py-3">
+                      {u.hasLicense ? (
+                        <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-green-500/20 text-green-400">
+                          {lang === 'bn' ? '✅ সক্রিয়' : '✅ Active'}
+                        </span>
+                      ) : u.role === 'admin' ? (
+                        <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-blue-500/20 text-blue-400">
+                          {lang === 'bn' ? '🛡️ অ্যাডমিন' : '🛡️ Admin'}
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-400 animate-pulse">
+                          {lang === 'bn' ? '⏳ অপেক্ষায়' : '⏳ Pending'}
+                        </span>
+                      )}
+                    </td>
                     <td className="px-4 py-3">
                       <select value={u.role} onChange={e => handleRoleChange(u.id, e.target.value)} disabled={u.id === user?.id}
                         className={`text-xs font-bold px-3 py-1.5 rounded-lg border-0 outline-none cursor-pointer ${
@@ -502,10 +513,29 @@ export default function AdminScreen({ initialTab }: { initialTab?: string }) {
                       </select>
                     </td>
                     <td className="px-4 py-3">
-                      <button onClick={() => { setMsgForm({ ...msgForm, recipient_id: u.id }); setShowMsgForm(true); setActiveTab('messages'); }}
-                        className="p-1.5 rounded-lg hover:bg-blue-500/10 text-blue-400 transition-colors" title="Send message">
-                        <span className="material-symbols-outlined text-lg">send</span>
-                      </button>
+                      <div className="flex items-center gap-1.5">
+                        {!u.hasLicense && u.role !== 'admin' && (
+                          <button onClick={() => {
+                            setActiveTab('licenses');
+                            setShowLicenseForm(true);
+                            setEditingLicenseId(null);
+                            setLicenseForm({
+                              user_id: u.id, shop_name: u.shop_name || '', owner_name: '', owner_phone: u.phone || '',
+                              owner_email: u.email || '', setup_fee: 10000, annual_fee: 3000,
+                              license_start: new Date().toISOString().slice(0, 10),
+                              license_expiry: new Date(Date.now() + 365 * 86400000).toISOString().slice(0, 10), notes: '',
+                            });
+                          }}
+                            className="px-2.5 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 text-[10px] font-bold hover:bg-emerald-500/20 transition-colors flex items-center gap-1">
+                            <span className="material-symbols-outlined text-sm">add_circle</span>
+                            {lang === 'bn' ? 'লাইসেন্স দিন' : 'Activate'}
+                          </button>
+                        )}
+                        <button onClick={() => { setMsgForm({ ...msgForm, recipient_id: u.id }); setShowMsgForm(true); setActiveTab('messages'); }}
+                          className="p-1.5 rounded-lg hover:bg-blue-500/10 text-blue-400 transition-colors" title="Send message">
+                          <span className="material-symbols-outlined text-lg">send</span>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
