@@ -219,7 +219,7 @@ export default function Signup() {
             {lang === 'bn' ? 'নতুন অ্যাকাউন্ট' : 'Create Account'}
           </h1>
           <p className="text-gray-500 text-sm mb-8">
-            {lang === 'bn' ? 'আপনার ব্যবসার জন্য ফ্রি অ্যাকাউন্ট তৈরি করুন' : 'Create a free account to manage your business'}
+            {lang === 'bn' ? 'আপনার ব্যবসার জন্য অ্যাকাউন্ট তৈরি করুন' : 'Create an account to manage your business'}
           </p>
 
           {/* Google Signup */}
