@@ -430,7 +430,7 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
       </div>
 
       {/* ═══ ADD PRODUCT FORM ═══ */}
-      {showAddForm && (
+      {activeView === 'add' && (
         <div className="bg-pos-surface-lowest rounded-xl shadow-sm border border-pos-surface-container p-5 sm:p-6">
           {renderFormFields(form, updateForm, imagePreview, (f) => handleImageSelect(f, false), nameRef)}
           <div className="flex gap-3 mt-6">
