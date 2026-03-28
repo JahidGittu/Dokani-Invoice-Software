@@ -248,6 +248,38 @@ function AdminOverview({ stats, lang, onNavigate, licenses }: { stats: Stats; la
         </p>
       </div>
 
+      {/* Pending Signups Alert */}
+      {pendingWithoutLicense.length > 0 && (
+        <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-5">
+          <h3 className="text-sm font-bold text-amber-400 mb-3 flex items-center gap-2">
+            <span className="material-symbols-outlined text-lg">notification_important</span>
+            {lang === 'bn' ? `🆕 ${pendingWithoutLicense.length}টি নতুন সাইনআপ — অ্যাক্টিভেশন প্রয়োজন` : `🆕 ${pendingWithoutLicense.length} New Signup(s) — Activation Required`}
+          </h3>
+          <div className="space-y-2">
+            {pendingWithoutLicense.map(s => (
+              <div key={s.id} className="flex items-center justify-between bg-gray-900 rounded-xl px-4 py-3 border border-gray-800">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 bg-amber-500/20 rounded-full flex items-center justify-center">
+                    <span className="material-symbols-outlined text-amber-400 text-lg">person_add</span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-white">{s.subject.replace('🆕 নতুন সাইনআপ: ', '')}</p>
+                    <p className="text-[10px] text-gray-500">
+                      {(() => { try { return new Date(s.created_at).toLocaleString('bn-BD'); } catch { return s.created_at; } })()}
+                    </p>
+                  </div>
+                </div>
+                <button onClick={() => onNavigate('licenses')}
+                  className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 transition-colors flex items-center gap-1">
+                  <span className="material-symbols-outlined text-sm">add_circle</span>
+                  {lang === 'bn' ? 'লাইসেন্স দিন' : 'Create License'}
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         {[
