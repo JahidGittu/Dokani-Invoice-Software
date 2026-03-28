@@ -7,9 +7,13 @@ import { toast } from 'sonner';
 interface UserWithRole {
   id: string;
   email: string;
+  shop_name: string;
+  phone: string;
   created_at: string;
   role: string;
   blocked: boolean;
+  status: string; // 'pending' | 'active'
+  hasLicense: boolean;
 }
 
 interface License {
