@@ -22,6 +22,7 @@ const colorMap: Record<string, string> = {
 
 export default function CustomersScreen({ customers, sales = [], onAddCustomer, onDeleteCustomer, onUpdateCustomerDue }: CustomersScreenProps) {
   const { t } = useI18n();
+  const { user } = useAuth();
   const [showAdd, setShowAdd] = useState(false);
   const [form, setForm] = useState({ name: '', phone: '', address: '' });
   const [search, setSearch] = useState('');
@@ -29,6 +30,23 @@ export default function CustomersScreen({ customers, sales = [], onAddCustomer, 
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [showCollectDue, setShowCollectDue] = useState<Customer | null>(null);
   const [collectAmount, setCollectAmount] = useState('');
+  const [collectMethod, setCollectMethod] = useState('Cash');
+  const [collectNote, setCollectNote] = useState('');
+  const [duePayments, setDuePayments] = useState<any[]>([]);
+
+  // Fetch due payment history for selected customer
+  const fetchDuePayments = useCallback(async (customerName: string) => {
+    if (!user) return;
+    const { data } = await supabase.from('due_payments').select('*')
+      .eq('customer_or_supplier', customerName)
+      .eq('reference_type', 'sale')
+      .order('payment_date', { ascending: false });
+    setDuePayments(data || []);
+  }, [user]);
+
+  useEffect(() => {
+    if (selectedCustomer) fetchDuePayments(selectedCustomer.name);
+  }, [selectedCustomer, fetchDuePayments]);
 
   const filtered = useMemo(() => {
     if (!search) return customers;
