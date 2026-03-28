@@ -14,18 +14,20 @@ interface ProductsScreenProps {
 }
 
 const PAGE_SIZE = 20;
+const UNIT_OPTIONS = ['SQFT', 'Piece', 'Set', 'KG', 'Litre', 'Yard', 'Feet', 'Roll', 'Box'];
 
-interface InlineRow {
-  key: number;
-  name: string; category: string; brand: string; size: string; finish: string;
-  buyRate: string; pricePerBox: string; sqftPerBox: string; piecesPerBox: string;
-  stock: string; batch: string; barcode: string;
+interface AddFormData {
+  barcode: string; category: string; name: string; brand: string;
+  unit: string; height: string; width: string; piecesPerBox: string;
+  buyRate: string; pricePerBox: string; stock: string; reorderLimit: string;
+  size: string; finish: string; sqftPerBox: string; batch: string;
 }
 
-const emptyRow = (): InlineRow => ({
-  key: Date.now() + Math.random(),
-  name: '', category: 'Wall Tiles', brand: '', size: '', finish: 'Glossy',
-  buyRate: '', pricePerBox: '', sqftPerBox: '', piecesPerBox: '4', stock: '', batch: '', barcode: '',
+const emptyForm = (): AddFormData => ({
+  barcode: '', category: 'Wall Tiles', name: '', brand: '',
+  unit: 'SQFT', height: '', width: '', piecesPerBox: '4',
+  buyRate: '', pricePerBox: '', stock: '', reorderLimit: '15',
+  size: '', finish: 'Glossy', sqftPerBox: '', batch: '',
 });
 
 type EditableField = 'name' | 'category' | 'brand' | 'size' | 'finish' | 'buyRate' | 'pricePerBox' | 'sqftPerBox' | 'piecesPerBox' | 'stock' | 'batch';
@@ -38,14 +40,15 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
   const [search, setSearch] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [page, setPage] = useState(0);
+  const [showAddForm, setShowAddForm] = useState(true);
 
   // Inline cell editing
-  const [editingCell, setEditingCell] = useState<string | null>(null); // "productId:field"
+  const [editingCell, setEditingCell] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
   const editRef = useRef<HTMLInputElement>(null);
 
-  // New entry row
-  const [newRow, setNewRow] = useState<InlineRow>(emptyRow());
+  // Add form
+  const [form, setForm] = useState<AddFormData>(emptyForm());
   const nameRef = useRef<HTMLInputElement>(null);
 
   const [sortField, setSortField] = useState<'name' | 'updated_at' | 'stock' | 'pricePerBox' | 'category' | 'brand'>('updated_at');
@@ -105,36 +108,44 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
     setShowDeleteConfirm(null);
   };
 
-  // ── New row helpers ──
-  const isRowComplete = (r: InlineRow) => !!(r.name && r.pricePerBox);
+  // ── Add form helpers ──
+  const updateForm = (field: keyof AddFormData, value: string) => {
+    setForm(prev => ({ ...prev, [field]: value }));
+  };
 
-  const autoSaveRow = useCallback(() => {
-    if (!isRowComplete(newRow)) return;
+  const handleSave = () => {
+    if (!form.name.trim()) { toast.error('Product Name is required'); return; }
+    if (!form.buyRate && !form.pricePerBox) { toast.error('Buy Rate or Sales Rate is required'); return; }
+
     onAddProduct({
-      name: newRow.name, size: newRow.size, finish: newRow.finish,
-      pricePerBox: parseFloat(newRow.pricePerBox), sqftPerBox: parseFloat(newRow.sqftPerBox) || 0,
-      piecesPerBox: parseInt(newRow.piecesPerBox) || 4,
-      stock: parseInt(newRow.stock) || 0, batch: newRow.batch,
-      barcode: newRow.barcode, category: newRow.category, brand: newRow.brand,
-      buyRate: parseFloat(newRow.buyRate) || 0,
+      name: form.name.trim(),
+      category: form.category,
+      brand: form.brand,
+      size: form.size || (form.height && form.width ? `${form.height}×${form.width}` : ''),
+      finish: form.finish,
+      unit: form.unit,
+      height: form.height,
+      width: form.width,
+      piecesPerBox: parseInt(form.piecesPerBox) || 4,
+      buyRate: parseFloat(form.buyRate) || 0,
+      pricePerBox: parseFloat(form.pricePerBox) || 0,
+      sqftPerBox: parseFloat(form.sqftPerBox) || 0,
+      stock: parseInt(form.stock) || 0,
+      reorderLimit: parseInt(form.reorderLimit) || 0,
+      batch: form.batch || form.barcode,
+      barcode: form.barcode,
     });
-    toast.success(`✓ ${newRow.name} saved`);
-    setNewRow(emptyRow());
+    toast.success(`✓ ${form.name} সেভ হয়েছে`);
+    setForm(emptyForm());
     setTimeout(() => nameRef.current?.focus(), 50);
-  }, [newRow, onAddProduct]);
-
-  const updateNewRow = (field: keyof InlineRow, value: string) => {
-    setNewRow(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') { e.preventDefault(); autoSaveRow(); }
-  };
+  const handleReset = () => setForm(emptyForm());
 
-  const inputCls = "w-full bg-transparent border-none text-xs py-1.5 px-1.5 outline-none focus:bg-[hsl(var(--accent))] transition-colors placeholder:text-muted-foreground/40";
   const editInputCls = "w-full bg-[hsl(var(--accent))] border border-primary/30 text-xs py-1 px-1.5 outline-none rounded";
+  const formInputCls = "w-full bg-[hsl(220,60%,97%)] dark:bg-[hsl(220,20%,15%)] border border-[hsl(220,30%,85%)] dark:border-[hsl(220,20%,25%)] rounded-md text-sm py-2.5 px-3 outline-none focus:ring-2 focus:ring-[hsl(var(--primary))] focus:border-[hsl(var(--primary))] transition-all";
 
-  // Render an editable cell — auto-save on blur, no buttons
+  // Render an editable cell
   const renderCell = (p: Product, field: EditableField, display: React.ReactNode, align?: string) => {
     const cellKey = `${p.id}:${field}`;
     const isEditing = editingCell === cellKey;
@@ -190,16 +201,132 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
-          <span className="text-xs text-pos-on-surface-variant uppercase tracking-widest block mb-1">{t('stockManagement')}</span>
-          <h2 className="text-2xl sm:text-4xl font-bold text-pos-on-surface leading-tight tracking-tighter">{t('products')} <span className="text-lg font-normal text-pos-on-surface-variant">({products.length})</span></h2>
+          <div className="flex items-center gap-2 text-sm text-[hsl(var(--primary))] font-semibold mb-1">
+            <span>Product Information</span>
+            <span className="text-muted-foreground">›</span>
+            <span>{showAddForm ? 'Add Product' : 'Product List'}</span>
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-bold text-pos-on-surface leading-tight tracking-tighter">
+            {t('products')} <span className="text-lg font-normal text-pos-on-surface-variant">({products.length})</span>
+          </h2>
         </div>
-        <div className="relative w-full sm:w-auto">
-          <input value={search} onChange={(e) => { setSearch(e.target.value); setPage(0); }} className="w-full sm:w-56 bg-pos-surface-high border-none rounded-lg text-xs py-2.5 pl-9 pr-4 focus:ring-2 focus:ring-pos-secondary outline-none" placeholder={t('searchProducts')} />
-          <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-pos-on-surface-variant text-base">search</span>
-        </div>
+        <button
+          onClick={() => setShowAddForm(!showAddForm)}
+          className="flex items-center gap-2 px-4 py-2.5 bg-[hsl(var(--primary))] text-primary-foreground rounded-lg font-semibold text-sm hover:opacity-90 transition-opacity shadow-sm"
+        >
+          <span className="material-symbols-outlined text-base">{showAddForm ? 'list' : 'add'}</span>
+          {showAddForm ? 'Product List' : 'Add Product'}
+        </button>
       </div>
 
-      {/* ═══ UNIFIED TABLE ═══ */}
+      {/* ═══ ADD PRODUCT FORM (Card Style like epos) ═══ */}
+      {showAddForm && (
+        <div className="bg-pos-surface-lowest rounded-xl shadow-sm border border-pos-surface-container p-5 sm:p-6">
+          {/* Row 1: Barcode, Category, Product Name, Brand */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
+            <div>
+              <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">Barcode</label>
+              <input value={form.barcode} onChange={e => updateForm('barcode', e.target.value)} className={formInputCls} placeholder="Barcode / Product Code" />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">
+                Category <span className="text-red-500">*</span>
+              </label>
+              <ComboInput value={form.category} onChange={v => updateForm('category', v)} options={getOptions('category')} onAddNew={v => addOption('category', v)} placeholder="Select Category" className={formInputCls} />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">
+                Product Name <span className="text-red-500">*</span>
+              </label>
+              <input ref={nameRef} value={form.name} onChange={e => updateForm('name', e.target.value)} className={formInputCls} placeholder="Enter product name" autoFocus />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">Product Brand</label>
+              <ComboInput value={form.brand} onChange={v => updateForm('brand', v)} options={getOptions('brand')} onAddNew={v => addOption('brand', v)} placeholder="Select Brand" className={formInputCls} />
+            </div>
+          </div>
+
+          {/* Row 2: Unit, Height, Width, Unit Per Carton, Buy Rate, Sales Rate */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-5">
+            <div>
+              <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">
+                Unit <span className="text-red-500">*</span>
+              </label>
+              <select value={form.unit} onChange={e => updateForm('unit', e.target.value)} className={formInputCls}>
+                {UNIT_OPTIONS.map(u => <option key={u} value={u}>{u}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">Height</label>
+              <input type="number" value={form.height} onChange={e => updateForm('height', e.target.value)} className={formInputCls} placeholder="Height" />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">Width</label>
+              <input type="number" value={form.width} onChange={e => updateForm('width', e.target.value)} className={formInputCls} placeholder="Width" />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">Unit Per Carton</label>
+              <input type="number" value={form.piecesPerBox} onChange={e => updateForm('piecesPerBox', e.target.value)} className={formInputCls} placeholder="e.g. 10" />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">
+                Buy Rate <span className="text-red-500">*</span>
+              </label>
+              <input type="number" value={form.buyRate} onChange={e => updateForm('buyRate', e.target.value)} className={formInputCls} placeholder="৳ 0" />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">Sales Rate</label>
+              <input type="number" value={form.pricePerBox} onChange={e => updateForm('pricePerBox', e.target.value)} className={formInputCls} placeholder="৳ 0" />
+            </div>
+          </div>
+
+          {/* Row 3: Opening Stock, Re-Order Limit, Size, Finish, Sqft/Box */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
+            <div>
+              <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">Opening Stock</label>
+              <input type="number" value={form.stock} onChange={e => updateForm('stock', e.target.value)} className={formInputCls} placeholder="0" />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">Re-Order Limit</label>
+              <input type="number" value={form.reorderLimit} onChange={e => updateForm('reorderLimit', e.target.value)} className={formInputCls} placeholder="15" />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">Size</label>
+              <ComboInput value={form.size} onChange={v => updateForm('size', v)} options={getOptions('size')} onAddNew={v => addOption('size', v)} placeholder="e.g. 60×60" className={formInputCls} />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">Finish</label>
+              <ComboInput value={form.finish} onChange={v => updateForm('finish', v)} options={getOptions('finish')} onAddNew={v => addOption('finish', v)} placeholder="Finish" className={formInputCls} />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">Sqft/Box</label>
+              <input type="number" value={form.sqftPerBox} onChange={e => updateForm('sqftPerBox', e.target.value)} className={formInputCls} placeholder="0" />
+            </div>
+          </div>
+
+          {/* Save & Reset Buttons */}
+          <div className="flex gap-3">
+            <button onClick={handleSave}
+              className="px-6 py-2.5 bg-[hsl(125,60%,38%)] text-white rounded-lg font-semibold text-sm hover:bg-[hsl(125,60%,32%)] transition-colors shadow-sm flex items-center gap-2">
+              <span className="material-symbols-outlined text-base">save</span>
+              Save
+            </button>
+            <button onClick={handleReset}
+              className="px-6 py-2.5 bg-pos-surface-container text-pos-on-surface-variant rounded-lg font-semibold text-sm hover:bg-pos-surface-high transition-colors flex items-center gap-2">
+              <span className="material-symbols-outlined text-base">restart_alt</span>
+              Reset
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Search bar */}
+      <div className="relative w-full sm:w-auto">
+        <input value={search} onChange={(e) => { setSearch(e.target.value); setPage(0); }} className="w-full sm:w-64 bg-pos-surface-high border-none rounded-lg text-xs py-2.5 pl-9 pr-4 focus:ring-2 focus:ring-pos-secondary outline-none" placeholder={t('searchProducts')} />
+        <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-pos-on-surface-variant text-base">search</span>
+      </div>
+
+      {/* ═══ PRODUCT TABLE ═══ */}
       <div className="bg-pos-surface-lowest rounded-xl shadow-sm overflow-hidden border border-pos-surface-container">
         <div className="overflow-auto max-h-[calc(100vh-260px)]">
           <table className="w-full min-w-[1100px] relative">
@@ -229,55 +356,6 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
                 <th className="px-2 py-2.5">Bar/Code</th>
                 <th className="px-2 py-2.5 text-center w-12">{t('action')}</th>
               </tr>
-
-              {/* ═══ NEW ENTRY ROW (sticky at top) ═══ */}
-              <tr className="bg-[hsl(125,40%,96%)] dark:bg-[hsl(125,25%,12%)] border-b-2 border-[hsl(125,50%,70%)] hover:bg-[hsl(125,40%,94%)] dark:hover:bg-[hsl(125,25%,14%)] transition-colors"
-                onKeyDown={handleKeyDown}>
-                <td className="px-2 py-1 text-center">
-                  <span className="material-symbols-outlined text-[hsl(125,60%,35%)] text-base">add_circle</span>
-                </td>
-                <td className="px-0 py-1 border-r border-[hsl(125,30%,80%)]">
-                  <input ref={nameRef} value={newRow.name} onChange={e => updateNewRow('name', e.target.value)}
-                    className={`${inputCls} font-semibold`} placeholder="নাম লিখুন..." autoFocus />
-                </td>
-                <td className="px-0 py-1 border-r border-[hsl(125,30%,80%)]">
-                  <ComboInput value={newRow.category} onChange={v => updateNewRow('category', v)} options={getOptions('category')} onAddNew={v => addOption('category', v)} placeholder="Category" className={inputCls} />
-                </td>
-                <td className="px-0 py-1 border-r border-[hsl(125,30%,80%)]">
-                  <ComboInput value={newRow.brand} onChange={v => updateNewRow('brand', v)} options={getOptions('brand')} onAddNew={v => addOption('brand', v)} placeholder="Brand" className={inputCls} />
-                </td>
-                <td className="px-0 py-1 border-r border-[hsl(125,30%,80%)]">
-                  <ComboInput value={newRow.size} onChange={v => updateNewRow('size', v)} options={getOptions('size')} onAddNew={v => addOption('size', v)} placeholder="60×60" className={inputCls} />
-                </td>
-                <td className="px-0 py-1 border-r border-[hsl(125,30%,80%)]">
-                  <ComboInput value={newRow.finish} onChange={v => updateNewRow('finish', v)} options={getOptions('finish')} onAddNew={v => addOption('finish', v)} placeholder="Finish" className={inputCls} />
-                </td>
-                <td className="px-0 py-1 border-r border-[hsl(125,30%,80%)]">
-                  <input type="number" value={newRow.buyRate} onChange={e => updateNewRow('buyRate', e.target.value)} className={`${inputCls} text-right`} placeholder="৳ Buy" />
-                </td>
-                <td className="px-0 py-1 border-r border-[hsl(125,30%,80%)] bg-[hsl(54,97%,92%)] dark:bg-[hsl(54,30%,15%)]">
-                  <input type="number" value={newRow.pricePerBox} onChange={e => updateNewRow('pricePerBox', e.target.value)} className={`${inputCls} text-right font-bold`} placeholder="৳ Sale *" />
-                </td>
-                <td className="px-0 py-1 border-r border-[hsl(125,30%,80%)]">
-                  <input type="number" value={newRow.sqftPerBox} onChange={e => updateNewRow('sqftPerBox', e.target.value)} className={`${inputCls} text-center`} placeholder="sqft" />
-                </td>
-                <td className="px-0 py-1 border-r border-[hsl(125,30%,80%)]">
-                  <input type="number" value={newRow.piecesPerBox} onChange={e => updateNewRow('piecesPerBox', e.target.value)} className={`${inputCls} text-center`} placeholder="pcs" />
-                </td>
-                <td className="px-0 py-1 border-r border-[hsl(125,30%,80%)]">
-                  <input type="number" value={newRow.stock} onChange={e => updateNewRow('stock', e.target.value)} className={`${inputCls} text-center`} placeholder="qty" />
-                </td>
-                <td className="px-0 py-1 border-r border-[hsl(125,30%,80%)]">
-                  <input value={newRow.batch} onChange={e => updateNewRow('batch', e.target.value)} className={inputCls} placeholder="Bar/Code" />
-                </td>
-                <td className="px-2 py-1 text-center">
-                  <button onClick={autoSaveRow} disabled={!isRowComplete(newRow)}
-                    className="w-7 h-7 rounded-lg bg-[hsl(125,60%,35%)] text-white flex items-center justify-center disabled:opacity-30 hover:bg-[hsl(125,60%,28%)] transition-colors mx-auto"
-                    title="Save (Enter)">
-                    <span className="material-symbols-outlined text-sm">check</span>
-                  </button>
-                </td>
-              </tr>
             </thead>
             <tbody className="divide-y divide-pos-surface-container">
               {paginatedProducts.map((p, idx) => (
@@ -293,7 +371,7 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
                   {renderCell(p, 'sqftPerBox', <span className="text-xs">{p.sqftPerBox || '—'}</span>, 'text-center')}
                   {renderCell(p, 'piecesPerBox', <span className="text-xs">{p.piecesPerBox || 4}</span>, 'text-center')}
                   {renderCell(p, 'stock', (
-                    <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${p.stock <= 0 ? 'bg-pos-error text-white' : p.stock <= 20 ? 'bg-pos-error-container text-pos-on-error-container' : 'bg-pos-tertiary-container text-pos-on-tertiary-container'}`}>
+                    <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${p.stock <= 0 ? 'bg-pos-error text-white' : p.stock <= (p.reorderLimit || 20) ? 'bg-pos-error-container text-pos-on-error-container' : 'bg-pos-tertiary-container text-pos-on-tertiary-container'}`}>
                       {p.stock}
                     </span>
                   ), 'text-center')}
@@ -341,9 +419,8 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
 
         {/* Hint bar */}
         <div className="px-4 py-2 bg-pos-surface-low border-t border-pos-surface-container flex items-center gap-4 text-[10px] text-muted-foreground">
-          <span><kbd className="px-1 py-0.5 bg-pos-surface-container rounded text-[9px] font-mono">Enter</kbd> সেভ ও নতুন রো</span>
           <span><kbd className="px-1 py-0.5 bg-pos-surface-container rounded text-[9px] font-mono">Double Click</kbd> সেল এডিট</span>
-          <span>Name ও Sale Price বাধ্যতামূলক</span>
+          <span>টেবিলে যেকোনো সেল ডাবল ক্লিক করে এডিট করুন</span>
         </div>
       </div>
 
