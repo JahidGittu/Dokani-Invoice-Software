@@ -40,6 +40,7 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [page, setPage] = useState(0);
   const [showAddForm, setShowAddForm] = useState(true);
+  const [showBulkModal, setShowBulkModal] = useState(false);
 
   // Edit modal
   const [editProduct, setEditProduct] = useState<Product | null>(null);
