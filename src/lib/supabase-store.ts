@@ -31,6 +31,10 @@ export function useSupabaseProducts() {
       category: p.category || '',
       brand: p.brand || '',
       buyRate: Number(p.buy_rate) || 0,
+      unit: (p as any).unit || 'SQFT',
+      height: (p as any).height || '',
+      width: (p as any).width || '',
+      reorderLimit: Number((p as any).reorder_limit) || 0,
     })));
     setLoading(false);
   }, [user]);
@@ -39,12 +43,14 @@ export function useSupabaseProducts() {
 
   const addProduct = useCallback(async (p: Omit<Product, 'id'>) => {
     if (!user) return;
-    const { error } = await supabase.from('products').insert({
+    const { error } = await (supabase.from('products') as any).insert({
       user_id: user.id, name: p.name, size: p.size, finish: p.finish,
       price_per_box: p.pricePerBox, sqft_per_box: p.sqftPerBox,
       stock: p.stock, batch: p.batch, barcode: p.barcode || '',
       category: p.category || '', brand: p.brand || '',
       buy_rate: p.buyRate || 0, pieces_per_box: p.piecesPerBox || 4,
+      unit: p.unit || 'SQFT', height: p.height || '', width: p.width || '',
+      reorder_limit: p.reorderLimit || 0,
     });
     if (error) { toast.error('Failed to add product'); return; }
     fetchProducts();
@@ -65,6 +71,10 @@ export function useSupabaseProducts() {
     if (updates.buyRate !== undefined) dbUpdates.buy_rate = updates.buyRate;
     if (updates.piecesPerBox !== undefined) dbUpdates.pieces_per_box = updates.piecesPerBox;
     if (updates.barcode !== undefined) dbUpdates.barcode = updates.barcode;
+    if (updates.unit !== undefined) dbUpdates.unit = updates.unit;
+    if (updates.height !== undefined) dbUpdates.height = updates.height;
+    if (updates.width !== undefined) dbUpdates.width = updates.width;
+    if (updates.reorderLimit !== undefined) dbUpdates.reorder_limit = updates.reorderLimit;
     const { error } = await supabase.from('products').update(dbUpdates).eq('id', id);
     if (error) { toast.error('Failed to update product'); return; }
     fetchProducts();

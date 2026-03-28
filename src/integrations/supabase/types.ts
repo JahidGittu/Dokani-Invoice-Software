@@ -317,15 +317,19 @@ export type Database = {
           category: string
           created_at: string
           finish: string
+          height: string
           id: string
           name: string
           pieces_per_box: number
           price_per_box: number
+          reorder_limit: number
           size: string
           sqft_per_box: number
           stock: number
+          unit: string
           updated_at: string
           user_id: string
+          width: string
         }
         Insert: {
           barcode?: string | null
@@ -335,15 +339,19 @@ export type Database = {
           category?: string
           created_at?: string
           finish?: string
+          height?: string
           id?: string
           name: string
           pieces_per_box?: number
           price_per_box?: number
+          reorder_limit?: number
           size?: string
           sqft_per_box?: number
           stock?: number
+          unit?: string
           updated_at?: string
           user_id: string
+          width?: string
         }
         Update: {
           barcode?: string | null
@@ -353,15 +361,19 @@ export type Database = {
           category?: string
           created_at?: string
           finish?: string
+          height?: string
           id?: string
           name?: string
           pieces_per_box?: number
           price_per_box?: number
+          reorder_limit?: number
           size?: string
           sqft_per_box?: number
           stock?: number
+          unit?: string
           updated_at?: string
           user_id?: string
+          width?: string
         }
         Relationships: []
       }

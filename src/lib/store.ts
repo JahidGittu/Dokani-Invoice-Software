@@ -15,6 +15,10 @@ export interface Product {
   category?: string;
   brand?: string;
   buyRate?: number;
+  unit?: string;
+  height?: string;
+  width?: string;
+  reorderLimit?: number;
 }
 
 export interface CartItem {
