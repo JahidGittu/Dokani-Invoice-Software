@@ -280,10 +280,10 @@ function AdminOverview({ stats, lang, onNavigate, licenses }: { stats: Stats; la
                     </p>
                   </div>
                 </div>
-                <button onClick={() => onNavigate('licenses')}
+                <button onClick={() => onNavigate('users')}
                   className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 transition-colors flex items-center gap-1">
-                  <span className="material-symbols-outlined text-sm">add_circle</span>
-                  {lang === 'bn' ? 'লাইসেন্স দিন' : 'Create License'}
+                  <span className="material-symbols-outlined text-sm">group</span>
+                  {lang === 'bn' ? 'ইউজার দেখুন' : 'View User'}
                 </button>
               </div>
             ))}
