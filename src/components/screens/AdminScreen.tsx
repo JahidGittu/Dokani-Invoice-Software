@@ -232,6 +232,42 @@ export default function AdminScreen({ initialTab }: { initialTab?: string }) {
     } catch (err: any) { toast.error(err.message); }
   };
 
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+
+  const banUser = async (userId: string) => {
+    try {
+      // Block their license if exists
+      const { data: lic } = await supabase.from('licenses').select('id').eq('user_id', userId).maybeSingle();
+      if (lic) {
+        await supabase.from('licenses').update({
+          is_blocked: true, blocked_at: new Date().toISOString(),
+          blocked_reason: 'Banned by admin', status: 'blocked',
+        } as any).eq('id', lic.id);
+      }
+      // Update profile status
+      await supabase.from('profiles').update({ status: 'banned' } as any).eq('user_id', userId);
+      toast.success(lang === 'bn' ? 'ইউজার ব্যান করা হয়েছে' : 'User banned');
+      loadUsers(); loadLicenses();
+    } catch (err: any) { toast.error(err.message); }
+  };
+
+  const deleteUser = async (userId: string) => {
+    try {
+      // Delete license, messages, profile, role
+      await Promise.all([
+        supabase.from('licenses').delete().eq('user_id', userId),
+        supabase.from('admin_messages').delete().eq('recipient_id', userId),
+        supabase.from('admin_messages').delete().eq('sender_id', userId),
+        supabase.from('profiles').delete().eq('user_id', userId),
+        supabase.from('user_roles').delete().eq('user_id', userId),
+        supabase.from('company_settings').delete().eq('user_id', userId),
+      ]);
+      toast.success(lang === 'bn' ? 'ইউজার ডিলেট করা হয়েছে' : 'User deleted');
+      setConfirmDelete(null);
+      loadUsers(); loadLicenses();
+    } catch (err: any) { toast.error(err.message); }
+  };
+
   const sendExpiryWarning = async (license: License) => {
     try {
       const { error } = await supabase.from('admin_messages').insert({
@@ -535,6 +571,35 @@ export default function AdminScreen({ initialTab }: { initialTab?: string }) {
                           className="p-1.5 rounded-lg hover:bg-blue-500/10 text-blue-400 transition-colors" title="Send message">
                           <span className="material-symbols-outlined text-lg">send</span>
                         </button>
+                        {u.id !== user?.id && u.role !== 'admin' && (
+                          <>
+                            <button onClick={() => banUser(u.id)}
+                              className="px-2.5 py-1.5 rounded-lg bg-orange-500/10 text-orange-400 text-[10px] font-bold hover:bg-orange-500/20 transition-colors flex items-center gap-1"
+                              title={lang === 'bn' ? 'ব্যান করুন' : 'Ban user'}>
+                              <span className="material-symbols-outlined text-sm">block</span>
+                              {lang === 'bn' ? 'ব্যান' : 'Ban'}
+                            </button>
+                            {confirmDelete === u.id ? (
+                              <div className="flex items-center gap-1">
+                                <button onClick={() => deleteUser(u.id)}
+                                  className="px-2.5 py-1.5 rounded-lg bg-red-600 text-white text-[10px] font-bold hover:bg-red-700 transition-colors">
+                                  {lang === 'bn' ? 'নিশ্চিত?' : 'Sure?'}
+                                </button>
+                                <button onClick={() => setConfirmDelete(null)}
+                                  className="px-2 py-1.5 rounded-lg bg-gray-700 text-gray-300 text-[10px] font-bold hover:bg-gray-600 transition-colors">
+                                  ✕
+                                </button>
+                              </div>
+                            ) : (
+                              <button onClick={() => setConfirmDelete(u.id)}
+                                className="px-2.5 py-1.5 rounded-lg bg-red-500/10 text-red-400 text-[10px] font-bold hover:bg-red-500/20 transition-colors flex items-center gap-1"
+                                title={lang === 'bn' ? 'ডিলেট করুন' : 'Delete user'}>
+                                <span className="material-symbols-outlined text-sm">delete</span>
+                                {lang === 'bn' ? 'ডিলেট' : 'Delete'}
+                              </button>
+                            )}
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>
