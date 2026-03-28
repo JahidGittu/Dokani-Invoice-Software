@@ -425,7 +425,7 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
           <div className="flex gap-3 mt-6">
             <button onClick={handleSave} disabled={uploading}
               className="px-6 py-2.5 bg-[hsl(125,60%,38%)] text-white rounded-lg font-semibold text-sm hover:bg-[hsl(125,60%,32%)] transition-colors shadow-sm flex items-center gap-2 disabled:opacity-50">
-              <span className="material-symbols-outlined text-base">{uploading ? 'hourglass_empty' : 'save'}</span> {uploading ? 'Saving...' : 'Save'}
+              <span className="material-symbols-outlined text-base">{uploading ? 'hourglass_empty' : 'add'}</span> {uploading ? 'Adding...' : 'Add Product'}
             </button>
             <button onClick={handleReset}
               className="px-6 py-2.5 bg-pos-surface-container text-pos-on-surface-variant rounded-lg font-semibold text-sm hover:bg-pos-surface-high transition-colors flex items-center gap-2">
