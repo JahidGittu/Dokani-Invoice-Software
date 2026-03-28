@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -17,6 +17,7 @@ export default function Signup() {
   const [loading, setLoading] = useState(false);
   const [slide, setSlide] = useState(0);
   const [signupSuccess, setSignupSuccess] = useState(false);
+  const signupDone = useRef(false);
 
   // Auto-slide every 4 seconds
   useEffect(() => {
@@ -24,7 +25,8 @@ export default function Signup() {
     return () => clearInterval(timer);
   }, []);
 
-  if (!authLoading && user && !signupSuccess) return <Navigate to="/" replace />;
+  // Don't redirect if signup just succeeded (user briefly exists before sign-out)
+  if (!authLoading && user && !signupSuccess && !signupDone.current) return <Navigate to="/" replace />;
 
   if (signupSuccess) {
     return (
@@ -191,6 +193,7 @@ export default function Signup() {
 
       // Sign out immediately — user must wait for admin activation
       await supabase.auth.signOut();
+      signupDone.current = true;
       setSignupSuccess(true);
     } catch (err: any) {
       toast.error(err.message || 'Signup failed');
