@@ -73,7 +73,7 @@ export default function BulkProductView({ products, onAddProduct, onUpdateProduc
     setRows(prev => prev.map((r, i) => i === idx ? { ...r, [field]: value } : r));
   };
 
-  const addMoreRows = () => setRows(prev => [...prev, ...Array.from({ length: 5 }, emptyRow)]);
+  const addOneRow = () => setRows(prev => [...prev, emptyRow()]);
   const removeRow = (idx: number) => setRows(prev => prev.filter((_, i) => i !== idx));
 
   // CSV
