@@ -278,8 +278,28 @@ export default function AdminScreen({ initialTab }: { initialTab?: string }) {
           : null,
       ].filter(Boolean);
 
-      // Delete license, messages, profile, role
+      // First delete child records (sale_items, purchase_items depend on parent)
+      const { data: userSales } = await supabase.from('sales').select('id').eq('user_id', userId);
+      const { data: userPurchases } = await supabase.from('purchases').select('id').eq('user_id', userId);
+      
+      if (userSales?.length) {
+        await supabase.from('sale_items').delete().in('sale_id', userSales.map(s => s.id));
+      }
+      if (userPurchases?.length) {
+        await supabase.from('purchase_items').delete().in('purchase_id', userPurchases.map(p => p.id));
+      }
+
+      // Delete all user data from every table
       await Promise.all([
+        supabase.from('sales').delete().eq('user_id', userId),
+        supabase.from('purchases').delete().eq('user_id', userId),
+        supabase.from('products').delete().eq('user_id', userId),
+        supabase.from('customers').delete().eq('user_id', userId),
+        supabase.from('suppliers').delete().eq('user_id', userId),
+        supabase.from('staffs').delete().eq('user_id', userId),
+        supabase.from('inventory_logs').delete().eq('user_id', userId),
+        supabase.from('due_payments').delete().eq('user_id', userId),
+        supabase.from('product_options').delete().eq('user_id', userId),
         supabase.from('licenses').delete().eq('user_id', userId),
         supabase.from('admin_messages').delete().eq('recipient_id', userId),
         supabase.from('admin_messages').delete().eq('sender_id', userId),
