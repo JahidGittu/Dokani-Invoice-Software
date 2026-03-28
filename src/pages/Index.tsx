@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
+import { Navigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import DashboardScreen from "@/components/screens/DashboardScreen";
