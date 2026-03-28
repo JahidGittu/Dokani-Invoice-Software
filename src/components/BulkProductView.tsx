@@ -30,7 +30,7 @@ const emptyRow = (): BulkRow => ({
 export default function BulkProductView({ products, onAddProduct, onUpdateProduct }: BulkProductViewProps) {
   const { getOptions, addOption } = useProductOptions();
   const [tab, setTab] = useState<'csv' | 'grid'>('grid');
-  const [rows, setRows] = useState<BulkRow[]>(() => Array.from({ length: 5 }, emptyRow));
+  const [rows, setRows] = useState<BulkRow[]>(() => Array.from({ length: 3 }, emptyRow));
   const [processing, setProcessing] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
