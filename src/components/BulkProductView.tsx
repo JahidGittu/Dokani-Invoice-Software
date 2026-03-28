@@ -169,7 +169,7 @@ export default function BulkProductView({ products, onAddProduct, onUpdateProduc
 
     setProcessing(false);
     toast.success(`✓ ${addCount} প্রডাক্ট যোগ হয়েছে, ${updateCount} আপডেট হয়েছে`);
-    setRows(Array.from({ length: 5 }, emptyRow));
+    setRows(Array.from({ length: 3 }, emptyRow));
   };
 
   const downloadTemplate = () => {
