@@ -13,7 +13,7 @@ const translations = {
   reports: { en: 'Reports', bn: 'রিপোর্ট' },
   excelImport: { en: 'Excel Import', bn: 'এক্সেল ইম্পোর্ট' },
   settings: { en: 'Settings', bn: 'সেটিংস' },
-  adminPanel: { en: 'Admin Panel', bn: 'অ্যাডমিন প্যানেল' },
+  adminPanel: { en: 'System Admin', bn: 'সিস্টেম অ্যাডমিন' },
 
   // Dashboard
   businessOverview: { en: 'Business Overview', bn: 'ব্যবসার সারসংক্ষেপ' },
@@ -396,11 +396,11 @@ const I18nContext = createContext<I18nContextType>({
 
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [lang, setLang] = useState<Lang>(() => {
-    try { return (localStorage.getItem('tilepos_lang') as Lang) || 'en'; } catch { return 'en'; }
+    try { return (localStorage.getItem('dokani_lang') as Lang) || 'en'; } catch { return 'en'; }
   });
 
   useEffect(() => {
-    localStorage.setItem('tilepos_lang', lang);
+    localStorage.setItem('dokani_lang', lang);
   }, [lang]);
 
   const t = (key: TranslationKey): string => {

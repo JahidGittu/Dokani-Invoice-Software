@@ -68,7 +68,7 @@ interface SidebarProps {
   userRole?: string;
 }
 
-export default function Sidebar({ activeScreen, onNavigate, isOpen, onClose, products, userName = 'Arif Rahman', userRole = 'Administrator' }: SidebarProps) {
+export default function Sidebar({ activeScreen, onNavigate, isOpen, onClose, products, userName = 'Arif Rahman', userRole = 'System Admin' }: SidebarProps) {
   const { t } = useI18n();
   const lowStock = useMemo(() => getLowStockProducts(products), [products]);
   const initials = (userName || 'U').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
@@ -123,8 +123,8 @@ export default function Sidebar({ activeScreen, onNavigate, isOpen, onClose, pro
               <span className="material-symbols-outlined text-primary-foreground text-lg">grid_view</span>
             </div>
             <div>
-              <h1 className="text-base font-bold tracking-tight text-foreground">TilePOS</h1>
-              <p className="text-[10px] text-muted-foreground">Lite Edition</p>
+              <h1 className="text-base font-bold tracking-tight text-foreground">Dokani</h1>
+              <p className="text-[10px] text-muted-foreground">Business Edition</p>
             </div>
           </div>
           <button className="lg:hidden text-muted-foreground hover:text-foreground" onClick={onClose}>

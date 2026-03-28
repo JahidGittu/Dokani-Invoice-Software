@@ -85,7 +85,7 @@ export default function SettingsScreen({ settings, onUpdateSettings }: SettingsS
       phone: '',
       email: '',
       userName: '',
-      userRole: 'Administrator',
+      userRole: 'System Admin',
       lowStockThreshold: 20,
       invPrefix: 'INV',
       darkMode: false,

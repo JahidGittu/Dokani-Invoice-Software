@@ -44,7 +44,7 @@ export default function Login() {
         </div>
       ),
       title: lang === 'bn' ? 'আপনার ব্যবসা ম্যানেজ করুন সহজে' : 'Effortlessly manage your business',
-      desc: lang === 'bn' ? 'TilePOS দিয়ে আপনার টাইলস শোরুমের বিক্রয়, স্টক, কাস্টমার সব এক জায়গায়।' : 'Manage your tiles showroom sales, stock & customers all in one place.',
+      desc: lang === 'bn' ? 'Dokani দিয়ে আপনার দোকানের বিক্রয়, স্টক, কাস্টমার সব এক জায়গায়।' : 'Manage your shop sales, stock & customers all in one place with Dokani.',
     },
     {
       mockup: (
@@ -154,7 +154,7 @@ export default function Login() {
           <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
             <span className="material-symbols-outlined text-white text-xl">store</span>
           </div>
-          <span className="text-xl font-black text-gray-900 tracking-tight">TilePOS</span>
+          <span className="text-xl font-black text-gray-900 tracking-tight">Dokani</span>
         </div>
 
         {/* Language Toggle - top right */}
@@ -241,7 +241,7 @@ export default function Login() {
 
         {/* Footer */}
         <div className="absolute bottom-6 left-6 sm:left-12 lg:left-20 right-6 sm:right-12 lg:right-20 flex items-center justify-between text-xs text-gray-400">
-          <span>© 2026 TilePOS. All rights reserved.</span>
+          <span>© 2026 Dokani. All rights reserved.</span>
           <span>Privacy Policy</span>
         </div>
       </div>

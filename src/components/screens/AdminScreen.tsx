@@ -156,7 +156,7 @@ export default function AdminScreen() {
         <div>
           <h1 className="text-2xl font-black text-foreground flex items-center gap-2">
             <span className="material-symbols-outlined text-blue-600">admin_panel_settings</span>
-            {lang === 'bn' ? 'অ্যাডমিন প্যানেল' : 'Admin Panel'}
+            {lang === 'bn' ? 'সিস্টেম অ্যাডমিন প্যানেল' : 'System Admin Panel'}
           </h1>
           <p className="text-sm text-muted-foreground">
             {lang === 'bn' ? 'সব ইউজার ম্যানেজ করুন, রোল অ্যাসাইন করুন' : 'Manage all users and assign roles'}
