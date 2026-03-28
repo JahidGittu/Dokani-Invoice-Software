@@ -411,13 +411,18 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
             {t('products')} <span className="text-lg font-normal text-pos-on-surface-variant">({products.length})</span>
           </h2>
         </div>
-        <button
-          onClick={() => setShowAddForm(!showAddForm)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-[hsl(var(--primary))] text-primary-foreground rounded-lg font-semibold text-sm hover:opacity-90 transition-opacity shadow-sm"
-        >
-          <span className="material-symbols-outlined text-base">{showAddForm ? 'list' : 'add'}</span>
-          {showAddForm ? 'Product List' : 'Add Product'}
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setShowBulkModal(true)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-[hsl(25,95%,53%)] text-white rounded-lg font-semibold text-sm hover:opacity-90 transition-opacity shadow-sm">
+            <span className="material-symbols-outlined text-base">playlist_add</span>
+            বাল্ক ইম্পোর্ট
+          </button>
+          <button onClick={() => setShowAddForm(!showAddForm)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-[hsl(var(--primary))] text-primary-foreground rounded-lg font-semibold text-sm hover:opacity-90 transition-opacity shadow-sm">
+            <span className="material-symbols-outlined text-base">{showAddForm ? 'list' : 'add'}</span>
+            {showAddForm ? 'Product List' : 'Add Product'}
+          </button>
+        </div>
       </div>
 
       {/* ═══ ADD PRODUCT FORM ═══ */}
