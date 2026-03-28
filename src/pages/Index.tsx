@@ -24,9 +24,12 @@ export default function Index() {
   const { user, loading: authLoading } = useAuth();
   const [activeScreen, setActiveScreen] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  if (authLoading) return <div className="min-h-screen flex items-center justify-center"><span className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" /></div>;
-  if (!user) return <Navigate to="/login" replace />;
+  const { products, addProduct, updateProduct, deleteProduct, deductStock, addStock, setProducts } = useSupabaseProducts();
+  const { customers, addCustomer, deleteCustomer, updateCustomerSpend, updateCustomerDue } = useSupabaseCustomers();
+  const { sales, addSale, deleteSale } = useSupabaseSales();
+  const { suppliers, addSupplier, deleteSupplier, updateSupplierDue } = useSupabaseSuppliers();
+  const { purchases, addPurchase, deletePurchase } = useSupabasePurchases();
+  const { settings, setSettings } = useSupabaseSettings();
   const { products, addProduct, updateProduct, deleteProduct, deductStock, addStock, setProducts } = useSupabaseProducts();
   const { customers, addCustomer, deleteCustomer, updateCustomerSpend, updateCustomerDue } = useSupabaseCustomers();
   const { sales, addSale, deleteSale } = useSupabaseSales();
