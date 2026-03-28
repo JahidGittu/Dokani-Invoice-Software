@@ -22,7 +22,7 @@ const UNIT_OPTIONS = ['SQFT', 'Piece', 'Set', 'KG', 'Litre', 'Yard', 'Feet', 'Ro
 
 const emptyRow = (): BulkRow => ({
   barcode: '', category: '', name: '', brand: '',
-  unit: 'Piece', height: '', width: '', piecesPerBox: '4',
+  unit: 'SQFT', height: '', width: '', piecesPerBox: '4',
   buyRate: '', pricePerBox: '', stock: '', reorderLimit: '',
   action: 'add',
 });
