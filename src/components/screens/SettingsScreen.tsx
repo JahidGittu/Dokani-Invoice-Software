@@ -18,11 +18,6 @@ export default function SettingsScreen({ settings, onUpdateSettings }: SettingsS
   const { user, signOut } = useAuth();
   const [form, setForm] = useState(settings);
   const [showClearModal, setShowClearModal] = useState(false);
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [authEmail, setAuthEmail] = useState('');
-  const [authPassword, setAuthPassword] = useState('');
-  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
-  const [authLoading, setAuthLoading] = useState(false);
   const [clearChecks, setClearChecks] = useState<Record<ClearOption, boolean>>({
     products: false, customers: false, sales: false, settings: false, counter: false,
   });
