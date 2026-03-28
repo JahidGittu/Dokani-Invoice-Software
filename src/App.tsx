@@ -9,6 +9,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import ShopLayout from "@/components/ShopLayout";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
+import SignupSuccess from "./pages/auth/SignupSuccess";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 
@@ -45,6 +46,7 @@ const App = () => (
               {/* Public routes */}
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
+              <Route path="/signup-success" element={<SignupSuccess />} />
               <Route path="/reset-password" element={<ResetPassword />} />
 
               {/* Admin routes */}

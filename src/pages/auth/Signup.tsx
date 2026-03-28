@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link, Navigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { lovable } from '@/integrations/lovable/index';
@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 
 export default function Signup() {
   const { user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
   const { t, lang, setLang } = useI18n();
   const [shopName, setShopName] = useState('');
   const [fullName, setFullName] = useState('');
@@ -191,7 +192,7 @@ export default function Signup() {
       // Sign out immediately — user must wait for admin activation
       await supabase.auth.signOut();
       signupDone.current = true;
-      setSignupSuccess(true);
+      navigate('/signup-success', { replace: true });
     } catch (err: any) {
       toast.error(err.message || 'Signup failed');
     } finally {
