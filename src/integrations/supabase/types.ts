@@ -626,6 +626,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_stock: {
+        Args: { p_product_id: string; p_qty: number }
+        Returns: undefined
+      }
+      deduct_stock: {
+        Args: { p_product_id: string; p_qty: number }
+        Returns: undefined
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
