@@ -94,16 +94,16 @@ export default function Sidebar({ activeScreen, onNavigate, isOpen, onClose, pro
       key={item.id}
       onClick={() => handleNav(item.id)}
       className={cn(
-        "w-full flex items-center px-4 py-2.5 rounded-lg transition-all duration-150 cursor-pointer text-left gap-3",
+        "w-full flex items-center px-4 py-3 rounded-xl transition-all duration-150 cursor-pointer text-left gap-3",
         activeScreen === item.id
-          ? "bg-primary/10 text-primary font-semibold"
+          ? "bg-primary/10 text-primary font-semibold shadow-sm"
           : "text-muted-foreground hover:bg-muted hover:text-foreground"
       )}
     >
-      <span className={cn("material-symbols-outlined text-xl", activeScreen === item.id && "text-primary")}>{item.icon}</span>
-      <span className="text-sm">{t(item.labelKey as any)}</span>
+      <span className={cn("material-symbols-outlined text-2xl", activeScreen === item.id && "text-primary")}>{item.icon}</span>
+      <span className="text-sm font-medium">{t(item.labelKey as any)}</span>
       {item.badge === 'lowStock' && lowStock.length > 0 && (
-        <span className="ml-auto px-1.5 py-0.5 bg-destructive text-destructive-foreground rounded-full text-[9px] font-bold">{lowStock.length}</span>
+        <span className="ml-auto px-2 py-0.5 bg-destructive text-destructive-foreground rounded-full text-[10px] font-bold">{lowStock.length}</span>
       )}
     </button>
   );
