@@ -123,15 +123,16 @@ export default function Signup() {
     },
   ];
 
+  const [signupSuccess, setSignupSuccess] = useState(false);
+
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) return;
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data: signUpData, error } = await supabase.auth.signUp({
         email, password,
         options: {
-          emailRedirectTo: window.location.origin,
           data: {
             shop_name: shopName,
             phone: phone,
@@ -139,7 +140,9 @@ export default function Signup() {
         }
       });
       if (error) throw error;
-      toast.success(lang === 'bn' ? 'অ্যাকাউন্ট তৈরি হয়েছে! ইমেইল চেক করুন।' : 'Account created! Check your email to verify.');
+      // Sign out immediately — user must wait for admin activation
+      await supabase.auth.signOut();
+      setSignupSuccess(true);
     } catch (err: any) {
       toast.error(err.message || 'Signup failed');
     } finally {
