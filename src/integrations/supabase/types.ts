@@ -719,6 +719,15 @@ export type Database = {
         }
         Returns: boolean
       }
+      notify_admins_new_signup: {
+        Args: {
+          p_email: string
+          p_phone?: string
+          p_shop_name?: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
