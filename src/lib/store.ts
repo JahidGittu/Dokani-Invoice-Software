@@ -440,5 +440,5 @@ export const PRODUCT_CATEGORIES = [
 ];
 
 export const PRODUCT_BRANDS = [
-  'Akij', 'RAK', 'Fresh', 'TYT', 'China', 'Bangla', 'Great Wall', 'Other'
+  'Akij', 'RAK', 'DBL', 'Great Wall', 'Mir', 'Star', 'Fresh', 'TYT', 'China', 'Bangla', 'Other'
 ];
