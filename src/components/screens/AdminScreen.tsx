@@ -53,7 +53,7 @@ export default function AdminScreen({ initialTab }: { initialTab?: string }) {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [search, setSearch] = useState('');
-  const [activeTab, setActiveTab] = useState<AdminTab>('licenses');
+  const [activeTab, setActiveTab] = useState<AdminTab>((initialTab as AdminTab) || 'licenses');
 
   // License form
   const [showLicenseForm, setShowLicenseForm] = useState(false);
