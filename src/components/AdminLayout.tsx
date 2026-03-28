@@ -19,6 +19,7 @@ interface Stats {
 
 interface LicenseRaw {
   id: string;
+  user_id: string;
   setup_fee: number;
   annual_fee: number;
   is_blocked: boolean;
