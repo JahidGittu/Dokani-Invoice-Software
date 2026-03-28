@@ -319,6 +319,7 @@ export type Database = {
           finish: string
           height: string
           id: string
+          image_url: string
           name: string
           pieces_per_box: number
           price_per_box: number
@@ -341,6 +342,7 @@ export type Database = {
           finish?: string
           height?: string
           id?: string
+          image_url?: string
           name: string
           pieces_per_box?: number
           price_per_box?: number
@@ -363,6 +365,7 @@ export type Database = {
           finish?: string
           height?: string
           id?: string
+          image_url?: string
           name?: string
           pieces_per_box?: number
           price_per_box?: number
