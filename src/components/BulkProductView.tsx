@@ -71,7 +71,19 @@ export default function BulkProductView({ products, onAddProduct, onUpdateProduc
   }), [processedRows]);
 
   const updateRow = (idx: number, field: keyof BulkRow, value: string) => {
-    setRows(prev => prev.map((r, i) => i === idx ? { ...r, [field]: value } : r));
+    setRows(prev => prev.map((r, i) => {
+      if (i !== idx) return r;
+      const next = { ...r, [field]: value };
+      // Auto-suggest piecesPerBox when height/width changes for SQFT
+      if ((field === 'height' || field === 'width') && next.unit === 'SQFT') {
+        const pkg = getAutoPackaging(
+          field === 'height' ? value : next.height,
+          field === 'width' ? value : next.width
+        );
+        if (pkg) next.piecesPerBox = String(pkg.piecesPerBox);
+      }
+      return next;
+    }));
   };
 
   const addOneRow = () => setRows(prev => [...prev, emptyRow()]);
