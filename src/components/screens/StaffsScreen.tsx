@@ -1,5 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useI18n } from "@/lib/i18n";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface Staff {
   id: string;
@@ -13,34 +16,54 @@ interface Staff {
 
 export default function StaffsScreen() {
   const { t } = useI18n();
+  const { user } = useAuth();
   const [staffs, setStaffs] = useState<Staff[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [role, setRole] = useState('Salesman');
   const [salary, setSalary] = useState('');
 
-  const handleAdd = () => {
-    if (!name.trim()) return;
-    setStaffs(prev => [...prev, {
-      id: crypto.randomUUID(),
-      name: name.trim(),
-      phone,
-      role,
-      salary: parseFloat(salary) || 0,
-      joinDate: new Date().toISOString(),
-      status: 'active',
-    }]);
+  const fetchStaffs = useCallback(async () => {
+    if (!user) return;
+    const { data, error } = await supabase.from('staffs').select('*').order('created_at', { ascending: false });
+    if (error) { console.error('Fetch staffs error:', error); return; }
+    setStaffs((data || []).map((s: any) => ({
+      id: s.id, name: s.name, phone: s.phone, role: s.role,
+      salary: Number(s.salary), joinDate: s.join_date, status: s.status as 'active' | 'inactive',
+    })));
+    setLoading(false);
+  }, [user]);
+
+  useEffect(() => { fetchStaffs(); }, [fetchStaffs]);
+
+  const handleAdd = async () => {
+    if (!name.trim() || !user) return;
+    const { error } = await supabase.from('staffs').insert({
+      user_id: user.id, name: name.trim(), phone, role,
+      salary: parseFloat(salary) || 0, status: 'active',
+    } as any);
+    if (error) { toast.error('Failed to add staff'); return; }
+    toast.success('Staff added');
     setName(''); setPhone(''); setRole('Salesman'); setSalary('');
     setShowForm(false);
+    fetchStaffs();
   };
 
-  const toggleStatus = (id: string) => {
-    setStaffs(prev => prev.map(s => s.id === id ? { ...s, status: s.status === 'active' ? 'inactive' : 'active' } : s));
+  const toggleStatus = async (id: string) => {
+    const staff = staffs.find(s => s.id === id);
+    if (!staff) return;
+    const newStatus = staff.status === 'active' ? 'inactive' : 'active';
+    await supabase.from('staffs').update({ status: newStatus } as any).eq('id', id);
+    fetchStaffs();
   };
 
-  const deleteStaff = (id: string) => {
-    if (confirm('Are you sure?')) setStaffs(prev => prev.filter(s => s.id !== id));
+  const deleteStaff = async (id: string) => {
+    if (!confirm('Are you sure?')) return;
+    await supabase.from('staffs').delete().eq('id', id);
+    toast.success('Staff deleted');
+    fetchStaffs();
   };
 
   return (
@@ -54,7 +77,6 @@ export default function StaffsScreen() {
         </button>
       </div>
 
-      {/* Add Form */}
       {showForm && (
         <div className="bg-card border border-border rounded-xl p-5 space-y-4">
           <h3 className="text-sm font-bold text-foreground">New Staff</h3>
@@ -97,8 +119,9 @@ export default function StaffsScreen() {
         </div>
       )}
 
-      {/* Staff List */}
-      {staffs.length === 0 ? (
+      {loading ? (
+        <div className="flex justify-center py-12"><span className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>
+      ) : staffs.length === 0 ? (
         <div className="bg-card border border-border rounded-xl p-12 text-center">
           <span className="material-symbols-outlined text-5xl text-muted-foreground/30 mb-3">badge</span>
           <p className="text-muted-foreground text-sm">No staff members added yet</p>
