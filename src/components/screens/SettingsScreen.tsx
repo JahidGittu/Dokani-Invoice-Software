@@ -70,28 +70,6 @@ export default function SettingsScreen({ settings, onUpdateSettings }: SettingsS
     const anyChecked = Object.values(clearChecks).some(Boolean);
     if (!anyChecked) { toast.error(t('noItemSelected')); return; }
 
-    // Clear local demo/local data by writing empty values so defaults do not come back
-    if (clearChecks.products) localStorage.setItem('tilepos_products', JSON.stringify([]));
-    if (clearChecks.customers) localStorage.setItem('tilepos_customers', JSON.stringify([]));
-    if (clearChecks.sales) {
-      localStorage.setItem('tilepos_sales', JSON.stringify([]));
-      localStorage.setItem('tilepos_suppliers', JSON.stringify([]));
-      localStorage.setItem('tilepos_purchases', JSON.stringify([]));
-    }
-    if (clearChecks.settings) localStorage.setItem('tilepos_settings', JSON.stringify({
-      ...settings,
-      name: '',
-      address: '',
-      phone: '',
-      email: '',
-      userName: '',
-      userRole: 'System Admin',
-      lowStockThreshold: 20,
-      invPrefix: 'INV',
-      darkMode: false,
-    }));
-    if (clearChecks.counter) localStorage.setItem('tilepos_inv_counter', JSON.stringify(1));
-
     if (user) {
       try {
         if (clearChecks.sales) {
@@ -101,6 +79,7 @@ export default function SettingsScreen({ settings, onUpdateSettings }: SettingsS
             await supabase.from('sale_items').delete().in('sale_id', saleIds);
           }
           await supabase.from('sales').delete().eq('user_id', user.id);
+          await supabase.from('purchases').delete().eq('user_id', user.id);
         }
         if (clearChecks.products) await supabase.from('products').delete().eq('user_id', user.id);
         if (clearChecks.customers) await supabase.from('customers').delete().eq('user_id', user.id);
