@@ -193,6 +193,7 @@ export default function Signup() {
 
       // Sign out immediately — user must wait for admin activation
       await supabase.auth.signOut();
+      signupDone.current = true;
       setSignupSuccess(true);
     } catch (err: any) {
       toast.error(err.message || 'Signup failed');
