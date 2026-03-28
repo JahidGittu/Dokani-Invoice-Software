@@ -39,8 +39,7 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
   const [search, setSearch] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [page, setPage] = useState(0);
-  const [showAddForm, setShowAddForm] = useState(true);
-  const [showBulkModal, setShowBulkModal] = useState(false);
+  const [activeView, setActiveView] = useState<'add' | 'bulk' | 'list'>('add');
 
   // Edit modal
   const [editProduct, setEditProduct] = useState<Product | null>(null);
