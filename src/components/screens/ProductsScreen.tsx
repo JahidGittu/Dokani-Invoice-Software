@@ -483,8 +483,8 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
                   <td className="px-3 py-3 text-center align-middle">
                     <span className="px-2 py-0.5 bg-pos-secondary-container text-pos-on-secondary-container rounded text-[10px] font-bold">{p.size || (p.height && p.width ? `${p.height}×${p.width}` : '—')}</span>
                   </td>
-                  <td className="px-3 py-3 text-right align-middle text-xs font-medium">{formatCurrency(p.buyRate || 0)}</td>
-                  <td className="px-3 py-3 text-right align-middle"><span className="font-bold text-pos-secondary text-sm">{formatCurrency(p.pricePerBox)}</span></td>
+                  <td className="px-3 py-3 align-middle"><div className="text-right text-xs font-medium tabular-nums">{formatCurrency(p.buyRate || 0)}</div></td>
+                  <td className="px-3 py-3 align-middle"><div className="text-right font-bold text-pos-secondary text-sm tabular-nums">{formatCurrency(p.pricePerBox)}</div></td>
                   <td className="px-3 py-3 text-center align-middle" onClick={e => e.stopPropagation()}>
                     <div className="flex items-center gap-2 justify-center">
                       {/* On/Off Toggle */}
