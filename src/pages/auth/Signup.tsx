@@ -7,6 +7,7 @@ import { useI18n } from '@/lib/i18n';
 import { toast } from 'sonner';
 
 export default function Signup() {
+  const { user, loading: authLoading } = useAuth();
   const { t, lang, setLang } = useI18n();
   const [shopName, setShopName] = useState('');
   const [email, setEmail] = useState('');
