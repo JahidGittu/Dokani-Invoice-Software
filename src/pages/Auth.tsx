@@ -159,7 +159,7 @@ export default function Auth() {
         </div>
 
         <p className="text-center text-xs text-gray-400 mt-6">
-          {lang === 'bn' ? 'নিরাপদ ক্লাউড ব্যাকআপ সহ' : 'With secure cloud backup'} · TilePOS v2.0
+          {lang === 'bn' ? 'নিরাপদ ক্লাউড ব্যাকআপ সহ' : 'With secure cloud backup'} · Dokani v2.0
         </p>
       </div>
     </div>
