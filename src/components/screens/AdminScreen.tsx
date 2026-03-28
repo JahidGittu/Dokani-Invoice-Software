@@ -114,49 +114,31 @@ export default function AdminScreen({ initialTab }: { initialTab?: string }) {
   };
 
   const loadUsers = async () => {
-    const [{ data: allRoles }, { data: allSettings }, { data: signupMessages }] = await Promise.all([
-      supabase.from('user_roles').select('*'),
-      supabase.from('company_settings').select('user_id, user_name, email'),
-      supabase.from('admin_messages').select('sender_id, message, created_at').eq('message_type', 'new_signup').order('created_at', { ascending: false }),
+    const [{ data: profiles }, { data: allRoles }, { data: allLicenses }] = await Promise.all([
+      supabase.from('profiles').select('user_id, email, shop_name, phone, status, created_at'),
+      supabase.from('user_roles').select('user_id, role'),
+      supabase.from('licenses').select('user_id'),
     ]);
 
-    const userMap = new Map<string, UserWithRole>();
+    const roleMap = new Map<string, string>();
+    allRoles?.forEach(r => roleMap.set(r.user_id, r.role));
 
-    allSettings?.forEach(s => {
-      userMap.set(s.user_id, {
-        id: s.user_id,
-        email: s.email || '',
-        created_at: '',
-        role: 'user',
-        blocked: false,
-      });
-    });
+    const licenseSet = new Set<string>();
+    allLicenses?.forEach(l => licenseSet.add(l.user_id));
 
-    allRoles?.forEach(r => {
-      const existing = userMap.get(r.user_id);
-      if (existing) existing.role = r.role;
-      else userMap.set(r.user_id, {
-        id: r.user_id,
-        email: '',
-        created_at: r.created_at,
-        role: r.role,
-        blocked: false,
-      });
-    });
+    const result: UserWithRole[] = (profiles || []).map((p: any) => ({
+      id: p.user_id,
+      email: p.email || '',
+      shop_name: p.shop_name || '',
+      phone: p.phone || '',
+      created_at: p.created_at,
+      role: roleMap.get(p.user_id) || 'user',
+      blocked: false,
+      status: licenseSet.has(p.user_id) ? 'active' : (p.status || 'pending'),
+      hasLicense: licenseSet.has(p.user_id),
+    }));
 
-    signupMessages?.forEach((msg: any) => {
-      if (userMap.has(msg.sender_id)) return;
-      const emailMatch = msg.message?.match(/📧\s*([^\n]+)/);
-      userMap.set(msg.sender_id, {
-        id: msg.sender_id,
-        email: emailMatch?.[1]?.trim() || '',
-        created_at: msg.created_at,
-        role: 'user',
-        blocked: false,
-      });
-    });
-
-    setUsers(Array.from(userMap.values()));
+    setUsers(result);
   };
 
   const loadLicenses = async () => {
