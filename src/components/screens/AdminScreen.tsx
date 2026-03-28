@@ -47,6 +47,13 @@ interface AdminMessage {
   created_at: string;
 }
 
+interface ProfileRecord {
+  user_id: string;
+  email: string;
+  shop_name: string;
+  phone: string;
+}
+
 type AdminTab = 'users' | 'licenses' | 'messages';
 
 export default function AdminScreen({ initialTab }: { initialTab?: string }) {
@@ -253,6 +260,24 @@ export default function AdminScreen({ initialTab }: { initialTab?: string }) {
 
   const deleteUser = async (userId: string) => {
     try {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('email, shop_name, phone')
+        .eq('user_id', userId)
+        .maybeSingle<ProfileRecord>();
+
+      const signupCleanupQueries = [
+        profile?.email
+          ? supabase.from('admin_messages').delete().eq('message_type', 'new_signup').ilike('message', `%${profile.email}%`)
+          : null,
+        profile?.shop_name
+          ? supabase.from('admin_messages').delete().eq('message_type', 'new_signup').eq('subject', `🆕 নতুন সাইনআপ: ${profile.shop_name}`)
+          : null,
+        profile?.shop_name
+          ? supabase.from('admin_messages').delete().eq('message_type', 'new_signup').ilike('message', `%${profile.shop_name}%`)
+          : null,
+      ].filter(Boolean);
+
       // Delete license, messages, profile, role
       await Promise.all([
         supabase.from('licenses').delete().eq('user_id', userId),
@@ -261,10 +286,11 @@ export default function AdminScreen({ initialTab }: { initialTab?: string }) {
         supabase.from('profiles').delete().eq('user_id', userId),
         supabase.from('user_roles').delete().eq('user_id', userId),
         supabase.from('company_settings').delete().eq('user_id', userId),
+        ...signupCleanupQueries,
       ]);
       toast.success(lang === 'bn' ? 'ইউজার ডিলেট করা হয়েছে' : 'User deleted');
       setConfirmDelete(null);
-      loadUsers(); loadLicenses();
+      loadUsers(); loadLicenses(); loadMessages();
     } catch (err: any) { toast.error(err.message); }
   };
 
