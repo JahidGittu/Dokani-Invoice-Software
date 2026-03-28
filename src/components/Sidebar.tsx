@@ -53,7 +53,6 @@ const navGroups: NavGroup[] = [
 ];
 
 const footerItems: NavItem[] = [
-  { id: 'admin', icon: 'admin_panel_settings', labelKey: 'adminPanel' },
   { id: 'excel', icon: 'file_upload', labelKey: 'excelImport' },
   { id: 'settings', icon: 'settings', labelKey: 'settings' },
 ];

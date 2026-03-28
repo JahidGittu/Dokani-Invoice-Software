@@ -64,6 +64,7 @@ export function useSupabaseProducts() {
     if (updates.brand !== undefined) dbUpdates.brand = updates.brand;
     if (updates.buyRate !== undefined) dbUpdates.buy_rate = updates.buyRate;
     if (updates.piecesPerBox !== undefined) dbUpdates.pieces_per_box = updates.piecesPerBox;
+    if (updates.barcode !== undefined) dbUpdates.barcode = updates.barcode;
     const { error } = await supabase.from('products').update(dbUpdates).eq('id', id);
     if (error) { toast.error('Failed to update product'); return; }
     fetchProducts();
