@@ -17,6 +17,7 @@ export default function Signup() {
   const [loading, setLoading] = useState(false);
   const [slide, setSlide] = useState(0);
   const [signupSuccess, setSignupSuccess] = useState(false);
+  const signupDone = useRef(false);
 
   // Auto-slide every 4 seconds
   useEffect(() => {
