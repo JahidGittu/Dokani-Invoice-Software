@@ -2,8 +2,17 @@ import { useState, useMemo, useRef, useEffect } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { type Product, type SaleRecord, type Customer, getLowStockProducts } from "@/lib/store";
 
+interface AdminMsg {
+  id: string;
+  subject: string;
+  message: string;
+  message_type: string;
+  is_read: boolean;
+  created_at: string;
+}
 interface HeaderProps {
   activeScreen: string;
   onToggleSidebar: () => void;
