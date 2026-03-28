@@ -169,36 +169,72 @@ export default function Signup() {
         {/* Decorative circles */}
         <div className="absolute top-[-100px] right-[-100px] w-[400px] h-[400px] rounded-full bg-white/5" />
         <div className="absolute bottom-[-150px] left-[-100px] w-[500px] h-[500px] rounded-full bg-white/5" />
+        <div className="absolute top-1/3 left-1/3 w-[250px] h-[250px] rounded-full bg-white/5" />
 
         <div className="relative z-10 text-center max-w-md">
-          {/* Features list */}
-          <div className="space-y-4 mb-8">
-            {[
-              { icon: 'inventory_2', title: lang === 'bn' ? 'স্টক ম্যানেজমেন্ট' : 'Stock Management', desc: lang === 'bn' ? 'সব প্রোডাক্ট ট্র্যাক করুন' : 'Track all your products' },
-              { icon: 'point_of_sale', title: lang === 'bn' ? 'সেলস POS' : 'Sales POS', desc: lang === 'bn' ? 'দ্রুত বিক্রয় করুন' : 'Quick and easy billing' },
-              { icon: 'group', title: lang === 'bn' ? 'কাস্টমার ম্যানেজমেন্ট' : 'Customer Management', desc: lang === 'bn' ? 'বাকি ও লেনদেন ট্র্যাক করুন' : 'Track dues & transactions' },
-              { icon: 'bar_chart', title: lang === 'bn' ? 'রিপোর্ট ও এনালিটিক্স' : 'Reports & Analytics', desc: lang === 'bn' ? 'ব্যবসার হিসাব দেখুন' : 'Business insights at a glance' },
-            ].map((f, i) => (
-              <div key={i} className="flex items-center gap-4 bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/10 text-left">
-                <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center shrink-0">
-                  <span className="material-symbols-outlined text-white">{f.icon}</span>
+          {/* Dashboard mockup card */}
+          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 mb-8 border border-white/20 shadow-2xl">
+            <div className="bg-white rounded-xl p-4 mb-3">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                  <span className="material-symbols-outlined text-green-600 text-sm">storefront</span>
                 </div>
                 <div>
-                  <p className="text-white font-bold text-sm">{f.title}</p>
-                  <p className="text-blue-200 text-xs">{f.desc}</p>
+                  <p className="text-[10px] text-gray-400">{lang === 'bn' ? 'আজকের বিক্রয়' : "Today's Sales"}</p>
+                  <p className="text-lg font-black text-gray-900">৳52,480</p>
+                </div>
+                <div className="ml-auto flex items-center gap-1 text-green-600">
+                  <span className="material-symbols-outlined text-sm">trending_up</span>
+                  <span className="text-xs font-bold">+12%</span>
                 </div>
               </div>
-            ))}
+              <div className="flex gap-2">
+                <div className="flex-1 bg-blue-50 rounded-lg p-2">
+                  <p className="text-[9px] text-gray-400">{lang === 'bn' ? 'প্রোডাক্ট' : 'Products'}</p>
+                  <p className="text-sm font-bold text-gray-900">1,248</p>
+                </div>
+                <div className="flex-1 bg-green-50 rounded-lg p-2">
+                  <p className="text-[9px] text-gray-400">{lang === 'bn' ? 'কাস্টমার' : 'Customers'}</p>
+                  <p className="text-sm font-bold text-gray-900">356</p>
+                </div>
+                <div className="flex-1 bg-orange-50 rounded-lg p-2">
+                  <p className="text-[9px] text-gray-400">{lang === 'bn' ? 'বকেয়া' : 'Dues'}</p>
+                  <p className="text-sm font-bold text-red-600">৳12,500</p>
+                </div>
+              </div>
+            </div>
+            {/* Mini chart bars */}
+            <div className="flex items-end gap-1.5 justify-center h-12 mt-2">
+              {[40, 65, 45, 80, 55, 90, 70, 85, 60, 95, 75, 50].map((h, i) => (
+                <div key={i} className="w-3 rounded-t-sm bg-white/30" style={{ height: `${h}%` }} />
+              ))}
+            </div>
           </div>
 
           <h2 className="text-2xl font-black text-white mb-3">
             {lang === 'bn' ? 'আজই শুরু করুন — ফ্রি!' : 'Start Today — It\'s Free!'}
           </h2>
-          <p className="text-blue-100 text-sm">
+          <p className="text-blue-100 text-sm leading-relaxed">
             {lang === 'bn'
-              ? 'বাংলাদেশের টাইলস শোরুমের জন্য সেরা POS সফটওয়্যার'
-              : 'The best POS software for tiles showrooms in Bangladesh'}
+              ? 'বাংলাদেশের টাইলস শোরুমের জন্য সেরা POS সফটওয়্যার। স্টক, বিক্রয়, বকেয়া সব এক জায়গায়।'
+              : 'The best POS software for tiles showrooms in Bangladesh. Stock, sales, dues — all in one place.'}
           </p>
+
+          {/* Trust badges */}
+          <div className="flex justify-center gap-4 mt-6">
+            <div className="flex items-center gap-1.5 text-white/70 text-xs">
+              <span className="material-symbols-outlined text-sm">verified</span>
+              {lang === 'bn' ? 'নিরাপদ' : 'Secure'}
+            </div>
+            <div className="flex items-center gap-1.5 text-white/70 text-xs">
+              <span className="material-symbols-outlined text-sm">cloud_done</span>
+              {lang === 'bn' ? 'ক্লাউড ব্যাকআপ' : 'Cloud Backup'}
+            </div>
+            <div className="flex items-center gap-1.5 text-white/70 text-xs">
+              <span className="material-symbols-outlined text-sm">support_agent</span>
+              {lang === 'bn' ? '24/7 সাপোর্ট' : '24/7 Support'}
+            </div>
+          </div>
         </div>
       </div>
     </div>

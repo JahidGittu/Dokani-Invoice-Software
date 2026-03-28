@@ -13,6 +13,7 @@ const translations = {
   reports: { en: 'Reports', bn: 'রিপোর্ট' },
   excelImport: { en: 'Excel Import', bn: 'এক্সেল ইম্পোর্ট' },
   settings: { en: 'Settings', bn: 'সেটিংস' },
+  adminPanel: { en: 'Admin Panel', bn: 'অ্যাডমিন প্যানেল' },
 
   // Dashboard
   businessOverview: { en: 'Business Overview', bn: 'ব্যবসার সারসংক্ষেপ' },

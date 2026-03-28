@@ -17,6 +17,7 @@ import SupplierScreen from "@/components/screens/SupplierScreen";
 import TransactionsScreen from "@/components/screens/TransactionsScreen";
 import StaffsScreen from "@/components/screens/StaffsScreen";
 import SmsEmailScreen from "@/components/screens/SmsEmailScreen";
+import AdminScreen from "@/components/screens/AdminScreen";
 import { useSupabaseProducts, useSupabaseCustomers, useSupabaseSales, useSupabaseSuppliers, useSupabasePurchases, useSupabaseSettings } from "@/lib/supabase-store";
 import { type SaleRecord, type Product } from "@/lib/store";
 
@@ -95,6 +96,7 @@ export default function Index() {
       case 'transactions': return <TransactionsScreen sales={sales} purchases={purchases} />;
       case 'staffs': return <StaffsScreen />;
       case 'sms-email': return <SmsEmailScreen customers={customers} suppliers={suppliers} />;
+      case 'admin': return <AdminScreen />;
       default: return <DashboardScreen onNavigate={setActiveScreen} products={products} customers={customers} sales={sales} />;
     }
   };
