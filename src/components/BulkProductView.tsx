@@ -277,8 +277,8 @@ export default function BulkProductView({ products, onAddProduct, onUpdateProduc
         </div>
       ) : (
         /* Spreadsheet Grid */
-        <div className="bg-pos-surface-lowest rounded-xl shadow-sm border border-pos-surface-container overflow-hidden">
-          <div className="overflow-auto max-h-[calc(100vh-340px)]">
+        <div className="bg-pos-surface-lowest rounded-xl shadow-sm border border-pos-surface-container">
+          <div className="overflow-x-auto overflow-y-visible">
             <table className="w-full">
               <thead className="sticky top-0 z-10">
                 <tr className="text-[10px] font-bold text-pos-on-surface-variant uppercase tracking-wider bg-pos-surface-container">
