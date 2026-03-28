@@ -315,6 +315,27 @@ export default function CustomersScreen({ customers, sales = [], onAddCustomer, 
               </div>
             )}
 
+            {/* Payment History */}
+            {duePayments.length > 0 && (
+              <div className="px-6 pb-4">
+                <h4 className="text-sm font-bold uppercase text-muted-foreground mb-3">💰 Payment History</h4>
+                <div className="space-y-2">
+                  {duePayments.map((p: any) => (
+                    <div key={p.id} className="bg-pos-tertiary-container/30 rounded-lg p-3 flex items-center justify-between">
+                      <div>
+                        <div className="text-xs font-semibold text-pos-tertiary">৳{Number(p.amount).toLocaleString()}</div>
+                        <div className="text-[10px] text-muted-foreground">{new Date(p.payment_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[10px] bg-pos-surface-container px-2 py-0.5 rounded-full">{p.payment_method}</span>
+                        {p.note && <div className="text-[10px] text-muted-foreground mt-1">{p.note}</div>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Sales History */}
             <div className="px-6 pb-6">
               <h4 className="text-sm font-bold uppercase text-muted-foreground mb-3">Sales History</h4>
