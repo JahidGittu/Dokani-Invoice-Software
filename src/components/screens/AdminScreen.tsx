@@ -507,7 +507,47 @@ export default function AdminScreen({ initialTab }: { initialTab?: string }) {
                 </tr>
               </thead>
               <tbody>
-                {filteredUsers.map(u => (
+                {/* Admins first */}
+                {filteredUsers.filter(u => u.role === 'admin').map(u => (
+                  <tr key={u.id} className="border-b-2 border-blue-500/30 bg-blue-950/20">
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-full flex items-center justify-center bg-gradient-to-br from-blue-500/30 to-purple-500/30 ring-2 ring-blue-500/40">
+                          <span className="text-xs font-bold text-blue-300">
+                            {(u.email || 'A').substring(0, 2).toUpperCase()}
+                          </span>
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-blue-300 flex items-center gap-1.5">
+                            <span className="material-symbols-outlined text-sm text-blue-400">shield</span>
+                            {u.shop_name || u.email || 'System Admin'}
+                          </p>
+                          <p className="text-[10px] text-gray-500">{u.email}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3"><span className="text-xs text-gray-400">{u.phone || '—'}</span></td>
+                    <td className="px-4 py-3">
+                      <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-blue-500/20 text-blue-400">
+                        🛡️ {lang === 'bn' ? 'সিস্টেম অ্যাডমিন' : 'System Admin'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="text-xs font-bold px-3 py-1.5 rounded-lg bg-blue-500/20 text-blue-400">
+                        {lang === 'bn' ? 'অ্যাডমিন' : 'Admin'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="text-[10px] text-gray-600 italic">{lang === 'bn' ? 'সুরক্ষিত' : 'Protected'}</span>
+                    </td>
+                  </tr>
+                ))}
+                {/* Separator */}
+                {filteredUsers.some(u => u.role === 'admin') && filteredUsers.some(u => u.role !== 'admin') && (
+                  <tr><td colSpan={5} className="py-1 bg-gray-800/30"><div className="border-t border-dashed border-gray-700" /></td></tr>
+                )}
+                {/* Regular users */}
+                {filteredUsers.filter(u => u.role !== 'admin').map(u => (
                   <tr key={u.id} className="border-b border-gray-800 last:border-0 hover:bg-gray-800/30">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
