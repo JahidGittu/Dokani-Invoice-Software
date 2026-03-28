@@ -225,48 +225,27 @@ export default function SettingsScreen({ settings, onUpdateSettings }: SettingsS
 
         {/* ── Column 3 (4 cols): Cloud Backup + Data Management ── */}
         <div className="lg:col-span-4 space-y-4">
-          {/* Cloud Backup */}
+          {/* Cloud Status */}
           <div className="bg-pos-surface-lowest rounded-2xl border border-pos-surface-container overflow-hidden">
             <div className="px-4 py-2.5 bg-gradient-to-r from-sky-500/5 to-transparent border-b border-pos-surface-container">
               <h3 className="text-[10px] font-bold text-pos-on-surface-variant uppercase tracking-widest flex items-center gap-1.5">
                 <span className="material-symbols-outlined text-sm">cloud</span>
-                {lang === 'bn' ? 'ক্লাউড ব্যাকআপ' : 'Cloud Backup'}
+                {lang === 'bn' ? 'ক্লাউড স্ট্যাটাস' : 'Cloud Status'}
               </h3>
             </div>
             <div className="p-4">
-              {user ? (
-                <div className="space-y-2.5">
-                  <div className="flex items-center gap-2 p-2.5 bg-[hsl(125,100%,95%)] rounded-lg">
-                    <span className="material-symbols-outlined text-[hsl(125,60%,35%)] text-lg">check_circle</span>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-xs font-semibold text-pos-on-surface">{lang === 'bn' ? 'লগইন করা আছে' : 'Logged in'}</div>
-                      <div className="text-[10px] text-pos-on-surface-variant truncate">{user.email}</div>
-                    </div>
+              <div className="space-y-2.5">
+                <div className="flex items-center gap-2 p-2.5 bg-[hsl(125,100%,95%)] dark:bg-[hsl(125,20%,15%)] rounded-lg">
+                  <span className="material-symbols-outlined text-[hsl(125,60%,35%)] text-lg">check_circle</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs font-semibold text-pos-on-surface">{lang === 'bn' ? 'ক্লাউড সংযুক্ত' : 'Cloud Connected'}</div>
+                    <div className="text-[10px] text-pos-on-surface-variant truncate">{user?.email}</div>
                   </div>
-                  <button onClick={handleCloudBackupClick} className="w-full py-2.5 bg-pos-tertiary-container text-pos-on-tertiary-container rounded-lg font-semibold text-xs flex items-center justify-center gap-1.5 hover:opacity-90 transition-opacity">
-                    <span className="material-symbols-outlined text-sm">cloud_upload</span>
-                    {lang === 'bn' ? 'ড্রাইভে ব্যাকআপ' : 'Backup to Drive'}
-                  </button>
-                  <button onClick={handleSignOut} className="w-full py-2 bg-pos-surface-container text-pos-on-surface-variant rounded-lg font-semibold text-xs flex items-center justify-center gap-1.5 hover:bg-pos-surface-container-highest transition-colors">
-                    <span className="material-symbols-outlined text-sm">logout</span>{t('logout')}
-                  </button>
                 </div>
-              ) : (
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3 p-3 bg-pos-surface-high/50 rounded-xl">
-                    <div className="w-10 h-10 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center shrink-0">
-                      <span className="material-symbols-outlined text-xl">cloud_off</span>
-                    </div>
-                    <p className="text-[10px] text-pos-on-surface-variant leading-relaxed">
-                      {lang === 'bn' ? 'Google Drive এ ডাটা ব্যাকআপ রাখুন।' : 'Backup data to Google Drive.'}
-                    </p>
-                  </div>
-                  <button onClick={() => setShowAuthModal(true)} className="w-full py-2.5 bg-gradient-to-b from-pos-secondary to-pos-secondary-dim text-white rounded-lg font-semibold text-xs flex items-center justify-center gap-1.5 shadow-md hover:-translate-y-0.5 transition-transform">
-                    <span className="material-symbols-outlined text-sm">cloud_upload</span>
-                    {lang === 'bn' ? 'ক্লাউড ব্যাকআপ চালু করুন' : 'Enable Cloud Backup'}
-                  </button>
-                </div>
-              )}
+                <button onClick={signOut} className="w-full py-2 bg-pos-surface-container text-pos-on-surface-variant rounded-lg font-semibold text-xs flex items-center justify-center gap-1.5 hover:bg-pos-surface-container-highest transition-colors">
+                  <span className="material-symbols-outlined text-sm">logout</span>{t('logout')}
+                </button>
+              </div>
             </div>
           </div>
 
