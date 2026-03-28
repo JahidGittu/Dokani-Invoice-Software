@@ -21,6 +21,87 @@ export default function Login() {
     return () => clearInterval(timer);
   }, []);
 
+  if (!authLoading && user) return <Navigate to="/" replace />;
+
+  const slides = [
+    {
+      mockup: (
+        <div className="bg-white rounded-xl p-4 mb-3">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+              <span className="material-symbols-outlined text-blue-600 text-sm">trending_up</span>
+            </div>
+            <div>
+              <p className="text-[10px] text-gray-400">Total Sales</p>
+              <p className="text-lg font-black text-gray-900">৳1,89,374</p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <div className="flex-1 bg-blue-50 rounded-lg p-2"><p className="text-[9px] text-gray-400">Products</p><p className="text-sm font-bold text-gray-900">1,248</p></div>
+            <div className="flex-1 bg-green-50 rounded-lg p-2"><p className="text-[9px] text-gray-400">Customers</p><p className="text-sm font-bold text-gray-900">356</p></div>
+            <div className="flex-1 bg-purple-50 rounded-lg p-2"><p className="text-[9px] text-gray-400">Orders</p><p className="text-sm font-bold text-gray-900">6,248</p></div>
+          </div>
+        </div>
+      ),
+      title: lang === 'bn' ? 'আপনার ব্যবসা ম্যানেজ করুন সহজে' : 'Effortlessly manage your business',
+      desc: lang === 'bn' ? 'TilePOS দিয়ে আপনার টাইলস শোরুমের বিক্রয়, স্টক, কাস্টমার সব এক জায়গায়।' : 'Manage your tiles showroom sales, stock & customers all in one place.',
+    },
+    {
+      mockup: (
+        <div className="bg-white rounded-xl p-4 mb-3">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+              <span className="material-symbols-outlined text-green-600 text-sm">receipt_long</span>
+            </div>
+            <div>
+              <p className="text-[10px] text-gray-400">{lang === 'bn' ? 'ইনভয়েস' : 'Invoice'} #INV-2458</p>
+              <p className="text-lg font-black text-gray-900">৳52,480</p>
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            {['RAK Glossy 60x60 — 25 ctn', 'DBL Matt 40x40 — 10 ctn', 'Labour — ৳1,200'].map((item, i) => (
+              <div key={i} className="flex items-center gap-2 text-[10px] text-gray-600 bg-gray-50 rounded-lg px-3 py-1.5">
+                <span className="material-symbols-outlined text-gray-400 text-xs">check_circle</span>
+                {item}
+              </div>
+            ))}
+          </div>
+        </div>
+      ),
+      title: lang === 'bn' ? 'প্রফেশনাল ইনভয়েস তৈরি করুন' : 'Create professional invoices',
+      desc: lang === 'bn' ? 'এক ক্লিকে ইনভয়েস প্রিন্ট করুন, PDF ডাউনলোড করুন।' : 'Print invoices or download PDFs with a single click.',
+    },
+    {
+      mockup: (
+        <div className="bg-white rounded-xl p-4 mb-3">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+              <span className="material-symbols-outlined text-orange-600 text-sm">group</span>
+            </div>
+            <div>
+              <p className="text-[10px] text-gray-400">{lang === 'bn' ? 'বকেয়া ট্র্যাকিং' : 'Due Tracking'}</p>
+              <p className="text-lg font-black text-gray-900">৳1,25,000</p>
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            {[
+              { name: 'আব্দুল করিম', due: '৳45,000', color: 'bg-red-50 text-red-600' },
+              { name: 'রহিম উদ্দিন', due: '৳32,000', color: 'bg-orange-50 text-orange-600' },
+              { name: 'জামাল হোসেন', due: '৳28,000', color: 'bg-yellow-50 text-yellow-600' },
+            ].map((c, i) => (
+              <div key={i} className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-1.5">
+                <span className="text-[10px] text-gray-700 font-medium">{c.name}</span>
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${c.color}`}>{c.due}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ),
+      title: lang === 'bn' ? 'বকেয়া ও লেনদেন ট্র্যাক করুন' : 'Track dues & transactions',
+      desc: lang === 'bn' ? 'কাস্টমার ও সাপ্লায়ারের বকেয়া, আংশিক পেমেন্ট সব হিসাব রাখুন।' : 'Keep track of customer & supplier dues with partial payment support.',
+    },
+  ];
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) return;
