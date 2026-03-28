@@ -385,12 +385,13 @@ export function useSupabaseSettings() {
     } else {
       // Pull signup data from profiles table to pre-fill settings
       const { data: profile } = await supabase.from('profiles').select('email, shop_name, phone').eq('user_id', user.id).maybeSingle();
+      const fullName = user.user_metadata?.full_name || '';
       await supabase.from('company_settings').insert({
         user_id: user.id,
-        name: profile?.shop_name || 'Dokani',
+        name: profile?.shop_name || user.user_metadata?.shop_name || 'Dokani',
         email: profile?.email || user.email || '',
-        phone: profile?.phone || '',
-        user_name: user.user_metadata?.shop_name || profile?.shop_name || '',
+        phone: profile?.phone || user.user_metadata?.phone || '',
+        user_name: fullName || profile?.shop_name || '',
       });
       fetchSettings();
     }
