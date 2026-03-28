@@ -37,8 +37,8 @@ export default function Signup() {
               <span className="material-symbols-outlined text-emerald-600 text-sm">rocket_launch</span>
             </div>
             <div>
-              <p className="text-[10px] text-gray-400">{lang === 'bn' ? '৫ মিনিটে শুরু করুন' : 'Setup in 5 min'}</p>
-              <p className="text-lg font-black text-gray-900">{lang === 'bn' ? 'একদম ফ্রি!' : 'Totally Free!'}</p>
+              <p className="text-[10px] text-gray-400">{lang === 'bn' ? 'সহজ সেটআপ' : 'Easy Setup'}</p>
+              <p className="text-lg font-black text-gray-900">{lang === 'bn' ? '৫ মিনিটে শুরু' : 'Start in 5 min'}</p>
             </div>
           </div>
           <div className="space-y-2">
