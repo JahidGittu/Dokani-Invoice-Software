@@ -92,6 +92,9 @@ export default function AdminScreen({ initialTab }: { initialTab?: string }) {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'user_roles' }, () => {
         loadUsers();
       })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => {
+        loadUsers();
+      })
       .subscribe();
 
     return () => {
