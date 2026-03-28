@@ -9,6 +9,7 @@ interface UserWithRole {
   email: string;
   shop_name: string;
   phone: string;
+  full_name: string;
   created_at: string;
   role: string;
   blocked: boolean;
@@ -125,7 +126,7 @@ export default function AdminScreen({ initialTab }: { initialTab?: string }) {
 
   const loadUsers = async () => {
     const [{ data: profiles }, { data: allRoles }, { data: allLicenses }] = await Promise.all([
-      supabase.from('profiles').select('user_id, email, shop_name, phone, status, created_at'),
+      supabase.from('profiles').select('user_id, email, shop_name, phone, full_name, status, created_at'),
       supabase.from('user_roles').select('user_id, role'),
       supabase.from('licenses').select('user_id'),
     ]);
@@ -141,6 +142,7 @@ export default function AdminScreen({ initialTab }: { initialTab?: string }) {
       email: p.email || '',
       shop_name: p.shop_name || '',
       phone: p.phone || '',
+      full_name: p.full_name || '',
       created_at: p.created_at,
       role: roleMap.get(p.user_id) || 'user',
       blocked: false,
@@ -605,7 +607,7 @@ export default function AdminScreen({ initialTab }: { initialTab?: string }) {
                             setShowLicenseForm(true);
                             setEditingLicenseId(null);
                             setLicenseForm({
-                              user_id: u.id, shop_name: u.shop_name || '', owner_name: '', owner_phone: u.phone || '',
+                              user_id: u.id, shop_name: u.shop_name || '', owner_name: u.full_name || '', owner_phone: u.phone || '',
                               owner_email: u.email || '', setup_fee: 10000, annual_fee: 3000,
                               license_start: new Date().toISOString().slice(0, 10),
                               license_expiry: new Date(Date.now() + 365 * 86400000).toISOString().slice(0, 10), notes: '',
