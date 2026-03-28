@@ -30,10 +30,6 @@ const emptyForm = (): AddFormData => ({
   size: '', finish: 'Glossy', sqftPerBox: '', batch: '',
 });
 
-type EditableField = 'name' | 'category' | 'brand' | 'size' | 'finish' | 'buyRate' | 'pricePerBox' | 'sqftPerBox' | 'piecesPerBox' | 'stock' | 'batch';
-type ComboField = 'category' | 'brand' | 'size' | 'finish';
-const COMBO_FIELDS: ComboField[] = ['category', 'brand', 'size', 'finish'];
-
 export default function ProductsScreen({ products, onAddProduct, onUpdateProduct, onDeleteProduct }: ProductsScreenProps) {
   const { t } = useI18n();
   const { getOptions, addOption } = useProductOptions();
@@ -42,10 +38,9 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
   const [page, setPage] = useState(0);
   const [showAddForm, setShowAddForm] = useState(true);
 
-  // Inline cell editing
-  const [editingCell, setEditingCell] = useState<string | null>(null);
-  const [editValue, setEditValue] = useState('');
-  const editRef = useRef<HTMLInputElement>(null);
+  // Edit modal
+  const [editProduct, setEditProduct] = useState<Product | null>(null);
+  const [editForm, setEditForm] = useState<AddFormData>(emptyForm());
 
   // Add form
   const [form, setForm] = useState<AddFormData>(emptyForm());
@@ -84,25 +79,6 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginatedProducts = useMemo(() => filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE), [filtered, page]);
 
-  // ── Inline cell edit helpers ──
-  const startEdit = (productId: string, field: EditableField, currentValue: string | number) => {
-    setEditingCell(`${productId}:${field}`);
-    setEditValue(String(currentValue ?? ''));
-    setTimeout(() => editRef.current?.focus(), 30);
-  };
-
-  const commitEdit = useCallback((productId: string, field: EditableField, value: string) => {
-    const numericFields = ['buyRate', 'pricePerBox', 'sqftPerBox', 'piecesPerBox', 'stock'];
-    const update: Partial<Product> = {};
-    if (numericFields.includes(field)) {
-      (update as any)[field] = parseFloat(value) || 0;
-    } else {
-      (update as any)[field] = value;
-    }
-    onUpdateProduct(productId, update);
-    setEditingCell(null);
-  }, [onUpdateProduct]);
-
   const confirmDelete = () => {
     if (showDeleteConfirm && onDeleteProduct) { onDeleteProduct(showDeleteConfirm); toast.success(t('productDeleted')); }
     setShowDeleteConfirm(null);
@@ -116,24 +92,14 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
   const handleSave = () => {
     if (!form.name.trim()) { toast.error('Product Name is required'); return; }
     if (!form.buyRate && !form.pricePerBox) { toast.error('Buy Rate or Sales Rate is required'); return; }
-
     onAddProduct({
-      name: form.name.trim(),
-      category: form.category,
-      brand: form.brand,
+      name: form.name.trim(), category: form.category, brand: form.brand,
       size: form.size || (form.height && form.width ? `${form.height}×${form.width}` : ''),
-      finish: form.finish,
-      unit: form.unit,
-      height: form.height,
-      width: form.width,
-      piecesPerBox: parseInt(form.piecesPerBox) || 4,
-      buyRate: parseFloat(form.buyRate) || 0,
-      pricePerBox: parseFloat(form.pricePerBox) || 0,
-      sqftPerBox: parseFloat(form.sqftPerBox) || 0,
-      stock: parseInt(form.stock) || 0,
-      reorderLimit: parseInt(form.reorderLimit) || 0,
-      batch: form.batch || form.barcode,
-      barcode: form.barcode,
+      finish: form.finish, unit: form.unit, height: form.height, width: form.width,
+      piecesPerBox: parseInt(form.piecesPerBox) || 4, buyRate: parseFloat(form.buyRate) || 0,
+      pricePerBox: parseFloat(form.pricePerBox) || 0, sqftPerBox: parseFloat(form.sqftPerBox) || 0,
+      stock: parseInt(form.stock) || 0, reorderLimit: parseInt(form.reorderLimit) || 0,
+      batch: form.batch || form.barcode, barcode: form.barcode,
     });
     toast.success(`✓ ${form.name} সেভ হয়েছে`);
     setForm(emptyForm());
@@ -142,59 +108,104 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
 
   const handleReset = () => setForm(emptyForm());
 
-  const editInputCls = "w-full bg-[hsl(var(--accent))] border border-primary/30 text-xs py-1 px-1.5 outline-none rounded";
+  // ── Edit modal helpers ──
+  const openEditModal = (p: Product) => {
+    setEditProduct(p);
+    setEditForm({
+      barcode: p.barcode || '', category: p.category || '', name: p.name, brand: p.brand || '',
+      unit: p.unit || 'SQFT', height: p.height || '', width: p.width || '', piecesPerBox: String(p.piecesPerBox || 4),
+      buyRate: String(p.buyRate || ''), pricePerBox: String(p.pricePerBox || ''),
+      stock: String(p.stock || ''), reorderLimit: String(p.reorderLimit || 0),
+      size: p.size || '', finish: p.finish || '', sqftPerBox: String(p.sqftPerBox || ''), batch: p.batch || '',
+    });
+  };
+
+  const saveEdit = () => {
+    if (!editProduct) return;
+    if (!editForm.name.trim()) { toast.error('Product Name is required'); return; }
+    onUpdateProduct(editProduct.id, {
+      name: editForm.name.trim(), category: editForm.category, brand: editForm.brand,
+      size: editForm.size || (editForm.height && editForm.width ? `${editForm.height}×${editForm.width}` : ''),
+      finish: editForm.finish, unit: editForm.unit, height: editForm.height, width: editForm.width,
+      piecesPerBox: parseInt(editForm.piecesPerBox) || 4, buyRate: parseFloat(editForm.buyRate) || 0,
+      pricePerBox: parseFloat(editForm.pricePerBox) || 0, sqftPerBox: parseFloat(editForm.sqftPerBox) || 0,
+      stock: parseInt(editForm.stock) || 0, reorderLimit: parseInt(editForm.reorderLimit) || 0,
+      batch: editForm.batch || editForm.barcode, barcode: editForm.barcode,
+    });
+    toast.success(`✓ ${editForm.name} আপডেট হয়েছে`);
+    setEditProduct(null);
+  };
+
+  const updateEditForm = (field: keyof AddFormData, value: string) => {
+    setEditForm(prev => ({ ...prev, [field]: value }));
+  };
+
   const formInputCls = "w-full bg-[hsl(220,60%,97%)] dark:bg-[hsl(220,20%,15%)] border border-[hsl(220,30%,85%)] dark:border-[hsl(220,20%,25%)] rounded-md text-sm py-2.5 px-3 outline-none focus:ring-2 focus:ring-[hsl(var(--primary))] focus:border-[hsl(var(--primary))] transition-all";
 
-  // Render an editable cell
-  const renderCell = (p: Product, field: EditableField, display: React.ReactNode, align?: string) => {
-    const cellKey = `${p.id}:${field}`;
-    const isEditing = editingCell === cellKey;
-    const isCombo = (COMBO_FIELDS as string[]).includes(field);
-
-    if (isEditing && isCombo) {
-      return (
-        <td className="px-0 py-0.5" onClick={e => e.stopPropagation()}>
-          <ComboInput
-            value={editValue}
-            onChange={v => { setEditValue(v); commitEdit(p.id, field, v); }}
-            options={getOptions(field as ComboField)}
-            onAddNew={v => addOption(field as ComboField, v)}
-            placeholder={field}
-            className={editInputCls}
-          />
-        </td>
-      );
-    }
-
-    if (isEditing) {
-      return (
-        <td className="px-0 py-0.5" onClick={e => e.stopPropagation()}>
-          <input
-            ref={editRef}
-            value={editValue}
-            onChange={e => setEditValue(e.target.value)}
-            onKeyDown={e => {
-              if (e.key === 'Enter') { e.preventDefault(); commitEdit(p.id, field, editValue); }
-              if (e.key === 'Escape') setEditingCell(null);
-            }}
-            onBlur={() => commitEdit(p.id, field, editValue)}
-            type={['buyRate', 'pricePerBox', 'sqftPerBox', 'piecesPerBox', 'stock'].includes(field) ? 'number' : 'text'}
-            className={`${editInputCls} ${align || ''}`}
-          />
-        </td>
-      );
-    }
-
-    return (
-      <td
-        className={`px-2 py-2.5 cursor-pointer hover:bg-[hsl(var(--accent))] transition-colors ${align || ''}`}
-        onDoubleClick={() => startEdit(p.id, field, (p as any)[field] ?? '')}
-        title="ডাবল ক্লিক করে এডিট করুন"
-      >
-        {display}
-      </td>
-    );
-  };
+  // Shared form renderer for both add & edit
+  const renderFormFields = (f: AddFormData, update: (field: keyof AddFormData, val: string) => void, ref?: React.RefObject<HTMLInputElement>) => (
+    <>
+      {/* Row 1 */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
+        <div>
+          <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">Barcode</label>
+          <input value={f.barcode} onChange={e => update('barcode', e.target.value)} className={formInputCls} placeholder="Barcode / Product Code" />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">Category <span className="text-destructive">*</span></label>
+          <ComboInput value={f.category} onChange={v => update('category', v)} options={getOptions('category')} onAddNew={v => addOption('category', v)} placeholder="Select Category" className={formInputCls} />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">Product Name <span className="text-destructive">*</span></label>
+          <input ref={ref || undefined} value={f.name} onChange={e => update('name', e.target.value)} className={formInputCls} placeholder="Enter product name" />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">Product Brand</label>
+          <ComboInput value={f.brand} onChange={v => update('brand', v)} options={getOptions('brand')} onAddNew={v => addOption('brand', v)} placeholder="Select Brand" className={formInputCls} />
+        </div>
+      </div>
+      {/* Row 2 */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-5">
+        <div>
+          <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">Unit <span className="text-destructive">*</span></label>
+          <select value={f.unit} onChange={e => update('unit', e.target.value)} className={formInputCls}>
+            {UNIT_OPTIONS.map(u => <option key={u} value={u}>{u}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">Height</label>
+          <input type="number" value={f.height} onChange={e => update('height', e.target.value)} className={formInputCls} placeholder="Height" />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">Width</label>
+          <input type="number" value={f.width} onChange={e => update('width', e.target.value)} className={formInputCls} placeholder="Width" />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">Unit Per Carton</label>
+          <input type="number" value={f.piecesPerBox} onChange={e => update('piecesPerBox', e.target.value)} className={formInputCls} placeholder="e.g. 10" />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">Buy Rate <span className="text-destructive">*</span></label>
+          <input type="number" value={f.buyRate} onChange={e => update('buyRate', e.target.value)} className={formInputCls} placeholder="৳ 0" />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">Sales Rate</label>
+          <input type="number" value={f.pricePerBox} onChange={e => update('pricePerBox', e.target.value)} className={formInputCls} placeholder="৳ 0" />
+        </div>
+      </div>
+      {/* Row 3 */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div>
+          <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">Opening Stock</label>
+          <input type="number" value={f.stock} onChange={e => update('stock', e.target.value)} className={formInputCls} placeholder="0" />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">Re-Order Limit</label>
+          <input type="number" value={f.reorderLimit} onChange={e => update('reorderLimit', e.target.value)} className={formInputCls} placeholder="15" />
+        </div>
+      </div>
+    </>
+  );
 
   return (
     <section className="p-4 sm:p-6 max-w-[1600px] mx-auto space-y-5">
@@ -219,90 +230,18 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
         </button>
       </div>
 
-      {/* ═══ ADD PRODUCT FORM (Card Style like epos) ═══ */}
+      {/* ═══ ADD PRODUCT FORM ═══ */}
       {showAddForm && (
         <div className="bg-pos-surface-lowest rounded-xl shadow-sm border border-pos-surface-container p-5 sm:p-6">
-          {/* Row 1: Barcode, Category, Product Name, Brand */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-            <div>
-              <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">Barcode</label>
-              <input value={form.barcode} onChange={e => updateForm('barcode', e.target.value)} className={formInputCls} placeholder="Barcode / Product Code" />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">
-                Category <span className="text-red-500">*</span>
-              </label>
-              <ComboInput value={form.category} onChange={v => updateForm('category', v)} options={getOptions('category')} onAddNew={v => addOption('category', v)} placeholder="Select Category" className={formInputCls} />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">
-                Product Name <span className="text-red-500">*</span>
-              </label>
-              <input ref={nameRef} value={form.name} onChange={e => updateForm('name', e.target.value)} className={formInputCls} placeholder="Enter product name" autoFocus />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">Product Brand</label>
-              <ComboInput value={form.brand} onChange={v => updateForm('brand', v)} options={getOptions('brand')} onAddNew={v => addOption('brand', v)} placeholder="Select Brand" className={formInputCls} />
-            </div>
-          </div>
-
-          {/* Row 2: Unit, Height, Width, Unit Per Carton, Buy Rate, Sales Rate */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-5">
-            <div>
-              <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">
-                Unit <span className="text-red-500">*</span>
-              </label>
-              <select value={form.unit} onChange={e => updateForm('unit', e.target.value)} className={formInputCls}>
-                {UNIT_OPTIONS.map(u => <option key={u} value={u}>{u}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">Height</label>
-              <input type="number" value={form.height} onChange={e => updateForm('height', e.target.value)} className={formInputCls} placeholder="Height" />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">Width</label>
-              <input type="number" value={form.width} onChange={e => updateForm('width', e.target.value)} className={formInputCls} placeholder="Width" />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">Unit Per Carton</label>
-              <input type="number" value={form.piecesPerBox} onChange={e => updateForm('piecesPerBox', e.target.value)} className={formInputCls} placeholder="e.g. 10" />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">
-                Buy Rate <span className="text-red-500">*</span>
-              </label>
-              <input type="number" value={form.buyRate} onChange={e => updateForm('buyRate', e.target.value)} className={formInputCls} placeholder="৳ 0" />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">Sales Rate</label>
-              <input type="number" value={form.pricePerBox} onChange={e => updateForm('pricePerBox', e.target.value)} className={formInputCls} placeholder="৳ 0" />
-            </div>
-          </div>
-
-          {/* Row 3: Opening Stock, Re-Order Limit */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
-            <div>
-              <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">Opening Stock</label>
-              <input type="number" value={form.stock} onChange={e => updateForm('stock', e.target.value)} className={formInputCls} placeholder="0" />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">Re-Order Limit</label>
-              <input type="number" value={form.reorderLimit} onChange={e => updateForm('reorderLimit', e.target.value)} className={formInputCls} placeholder="15" />
-            </div>
-          </div>
-
-          {/* Save & Reset Buttons */}
-          <div className="flex gap-3">
+          {renderFormFields(form, updateForm, nameRef)}
+          <div className="flex gap-3 mt-6">
             <button onClick={handleSave}
               className="px-6 py-2.5 bg-[hsl(125,60%,38%)] text-white rounded-lg font-semibold text-sm hover:bg-[hsl(125,60%,32%)] transition-colors shadow-sm flex items-center gap-2">
-              <span className="material-symbols-outlined text-base">save</span>
-              Save
+              <span className="material-symbols-outlined text-base">save</span> Save
             </button>
             <button onClick={handleReset}
               className="px-6 py-2.5 bg-pos-surface-container text-pos-on-surface-variant rounded-lg font-semibold text-sm hover:bg-pos-surface-high transition-colors flex items-center gap-2">
-              <span className="material-symbols-outlined text-base">restart_alt</span>
-              Reset
+              <span className="material-symbols-outlined text-base">restart_alt</span> Reset
             </button>
           </div>
         </div>
@@ -335,31 +274,40 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
                 <th className="px-2 py-2.5 text-right cursor-pointer select-none" onClick={() => toggleSort('pricePerBox')}>
                   <span className="inline-flex items-center gap-0.5 justify-end">{t('salesRateLabel')} <span className="material-symbols-outlined text-[10px]">{sortIcon('pricePerBox')}</span></span>
                 </th>
-                <th className="px-2 py-2.5 text-center w-28">{t('action')}</th>
+                <th className="px-2 py-2.5 text-center w-32">{t('action')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-pos-surface-container">
               {paginatedProducts.map((p, idx) => (
-                <tr key={p.id} className="hover:bg-pos-surface-low transition-colors group">
+                <tr key={p.id} className="hover:bg-pos-surface-low transition-colors group cursor-pointer"
+                  onDoubleClick={() => openEditModal(p)} title="ডাবল ক্লিক করে এডিট করুন">
                   <td className="px-2 py-2.5 text-center text-[10px] text-muted-foreground font-mono">{page * PAGE_SIZE + idx + 1}</td>
-                  {renderCell(p, 'name', <span className="font-semibold text-sm">{p.name}</span>)}
-                  {renderCell(p, 'category', <span className="text-xs">{p.category || '—'}</span>)}
-                  {renderCell(p, 'brand', <span className="text-xs">{p.brand || '—'}</span>)}
-                  {renderCell(p, 'size', <span className="px-1.5 py-0.5 bg-pos-secondary-container text-pos-on-secondary-container rounded text-[10px] font-bold">{p.size || '—'}</span>)}
-                  {renderCell(p, 'buyRate', <span className="text-xs">{formatCurrency(p.buyRate || 0)}</span>, 'text-right')}
-                  {renderCell(p, 'pricePerBox', <span className="font-bold text-pos-secondary text-sm">{formatCurrency(p.pricePerBox)}</span>, 'text-right')}
-                  <td className="px-2 py-2.5 text-center">
+                  <td className="px-2 py-2.5"><span className="font-semibold text-sm">{p.name}</span></td>
+                  <td className="px-2 py-2.5 text-xs">{p.category || '—'}</td>
+                  <td className="px-2 py-2.5 text-xs">{p.brand || '—'}</td>
+                  <td className="px-2 py-2.5">
+                    <span className="px-1.5 py-0.5 bg-pos-secondary-container text-pos-on-secondary-container rounded text-[10px] font-bold">{p.size || (p.height && p.width ? `${p.height}×${p.width}` : '—')}</span>
+                  </td>
+                  <td className="px-2 py-2.5 text-right text-xs">{formatCurrency(p.buyRate || 0)}</td>
+                  <td className="px-2 py-2.5 text-right"><span className="font-bold text-pos-secondary text-sm">{formatCurrency(p.pricePerBox)}</span></td>
+                  <td className="px-2 py-2.5 text-center" onClick={e => e.stopPropagation()}>
                     <div className="flex items-center gap-2 justify-center">
                       {/* On/Off Toggle */}
                       <button
-                        onClick={() => onUpdateProduct(p.id, { stock: p.stock > 0 ? 0 : 1 })}
+                        onClick={(e) => { e.stopPropagation(); onUpdateProduct(p.id, { stock: p.stock > 0 ? 0 : 1 }); }}
                         className={`w-9 h-5 rounded-full relative transition-colors ${p.stock > 0 ? 'bg-[hsl(125,60%,40%)]' : 'bg-muted'}`}
                         title={p.stock > 0 ? 'Active' : 'Inactive'}
                       >
                         <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${p.stock > 0 ? 'left-[18px]' : 'left-0.5'}`} />
                       </button>
+                      {/* Edit */}
+                      <button onClick={(e) => { e.stopPropagation(); openEditModal(p); }}
+                        className="w-6 h-6 rounded bg-[hsl(var(--primary))] text-primary-foreground flex items-center justify-center opacity-70 group-hover:opacity-100 transition-opacity" title="Edit">
+                        <span className="material-symbols-outlined text-sm">edit</span>
+                      </button>
                       {/* Barcode */}
-                      <button onClick={() => {
+                      <button onClick={(e) => {
+                        e.stopPropagation();
                         const w = window.open('', '_blank', 'width=400,height=300');
                         if (!w) return;
                         w.document.write(`<!DOCTYPE html><html><head><title>Barcode</title><style>body{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;font-family:monospace;text-align:center}h2{margin:0;font-size:18px}p{font-size:24px;letter-spacing:4px;font-weight:900;margin:8px 0}@media print{body{margin:0}}</style></head><body><h2>${p.name}</h2><p>${p.barcode || p.batch || p.id.slice(0,8)}</p><div style="font-size:12px">${p.size} · ${p.category || ''}</div></body></html>`);
@@ -370,7 +318,8 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
                       </button>
                       {/* Delete */}
                       {onDeleteProduct && (
-                        <button onClick={() => setShowDeleteConfirm(p.id)} className="w-6 h-6 rounded bg-pos-error text-white flex items-center justify-center opacity-70 group-hover:opacity-100 transition-opacity" title={t('delete')}>
+                        <button onClick={(e) => { e.stopPropagation(); setShowDeleteConfirm(p.id); }}
+                          className="w-6 h-6 rounded bg-pos-error text-white flex items-center justify-center opacity-70 group-hover:opacity-100 transition-opacity" title={t('delete')}>
                           <span className="material-symbols-outlined text-sm">delete</span>
                         </button>
                       )}
@@ -401,10 +350,47 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
 
         {/* Hint bar */}
         <div className="px-4 py-2 bg-pos-surface-low border-t border-pos-surface-container flex items-center gap-4 text-[10px] text-muted-foreground">
-          <span><kbd className="px-1 py-0.5 bg-pos-surface-container rounded text-[9px] font-mono">Double Click</kbd> সেল এডিট</span>
-          <span>টেবিলে যেকোনো সেল ডাবল ক্লিক করে এডিট করুন</span>
+          <span><kbd className="px-1 py-0.5 bg-pos-surface-container rounded text-[9px] font-mono">Double Click</kbd> রো তে ডাবল ক্লিক করে এডিট করুন</span>
         </div>
       </div>
+
+      {/* ═══ EDIT MODAL ═══ */}
+      {editProduct && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[1000] p-4" onClick={() => setEditProduct(null)}>
+          <div className="bg-pos-surface-lowest rounded-2xl w-full max-w-[900px] shadow-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-5 border-b border-pos-surface-container sticky top-0 bg-pos-surface-lowest rounded-t-2xl z-10">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[hsl(var(--primary))]/10 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-[hsl(var(--primary))]">edit_note</span>
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-pos-on-surface">Edit Product</h3>
+                  <p className="text-xs text-muted-foreground">{editProduct.name}</p>
+                </div>
+              </div>
+              <button onClick={() => setEditProduct(null)} className="w-8 h-8 rounded-lg hover:bg-pos-surface-container flex items-center justify-center transition-colors">
+                <span className="material-symbols-outlined text-pos-on-surface-variant">close</span>
+              </button>
+            </div>
+            {/* Modal Body */}
+            <div className="p-5 sm:p-6">
+              {renderFormFields(editForm, updateEditForm)}
+            </div>
+            {/* Modal Footer */}
+            <div className="flex gap-3 p-5 border-t border-pos-surface-container sticky bottom-0 bg-pos-surface-lowest rounded-b-2xl">
+              <button onClick={() => setEditProduct(null)}
+                className="flex-1 py-2.5 bg-pos-surface-container text-pos-on-surface-variant rounded-lg font-semibold text-sm hover:bg-pos-surface-high transition-colors">
+                Cancel
+              </button>
+              <button onClick={saveEdit}
+                className="flex-1 py-2.5 bg-[hsl(var(--primary))] text-primary-foreground rounded-lg font-semibold text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
+                <span className="material-symbols-outlined text-base">save</span> Update Product
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Delete confirm */}
       {showDeleteConfirm && (
