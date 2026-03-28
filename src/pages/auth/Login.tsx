@@ -13,8 +13,13 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [slide, setSlide] = useState(0);
 
-  if (!authLoading && user) return <Navigate to="/" replace />;
+  // Auto-slide every 4 seconds
+  useEffect(() => {
+    const timer = setInterval(() => setSlide(prev => (prev + 1) % 3), 4000);
+    return () => clearInterval(timer);
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
