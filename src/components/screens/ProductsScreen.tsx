@@ -381,7 +381,7 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
             <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">
               Width {sqftRequired && <span className="text-destructive">*</span>}
             </label>
-            <input type="number" value={f.width} onChange={e => update('width', e.target.value)} className={`${formInputCls} ${sqftRequired && !f.width.trim() ? 'ring-2 ring-destructive/50' : ''}`} placeholder="Width" />
+            <input type="number" value={f.width} onChange={e => update('width', e.target.value)} className={`${formInputCls} ${sqftRequired && !f.width.trim() ? 'ring-2 ring-destructive/50' : ''}`} placeholder="সে.মি." />
           </div>
           <div>
             <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">
