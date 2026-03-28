@@ -280,8 +280,8 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
             </div>
           </div>
 
-          {/* Row 3: Opening Stock, Re-Order Limit, Size, Finish, Sqft/Box */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
+          {/* Row 3: Opening Stock, Re-Order Limit */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
             <div>
               <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">Opening Stock</label>
               <input type="number" value={form.stock} onChange={e => updateForm('stock', e.target.value)} className={formInputCls} placeholder="0" />
@@ -289,18 +289,6 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
             <div>
               <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">Re-Order Limit</label>
               <input type="number" value={form.reorderLimit} onChange={e => updateForm('reorderLimit', e.target.value)} className={formInputCls} placeholder="15" />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">Size</label>
-              <ComboInput value={form.size} onChange={v => updateForm('size', v)} options={getOptions('size')} onAddNew={v => addOption('size', v)} placeholder="e.g. 60×60" className={formInputCls} />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">Finish</label>
-              <ComboInput value={form.finish} onChange={v => updateForm('finish', v)} options={getOptions('finish')} onAddNew={v => addOption('finish', v)} placeholder="Finish" className={formInputCls} />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">Sqft/Box</label>
-              <input type="number" value={form.sqftPerBox} onChange={e => updateForm('sqftPerBox', e.target.value)} className={formInputCls} placeholder="0" />
             </div>
           </div>
 
