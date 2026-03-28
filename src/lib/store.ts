@@ -144,10 +144,10 @@ const defaultSuppliers: Supplier[] = [
 const defaultPurchases: PurchaseRecord[] = [];
 
 const defaultSettings: CompanySettings = {
-  name: 'TilePOS Lite',
+  name: 'Dokani',
   address: 'Chattogram, Bangladesh',
   phone: '01700-000000',
-  email: 'info@tilepos.com',
+  email: 'info@dokani.com.bd',
   userName: 'Arif Rahman',
   userRole: 'Administrator',
   lowStockThreshold: 20,
