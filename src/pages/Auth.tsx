@@ -73,7 +73,7 @@ export default function Auth() {
           <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-2xl mb-4">
             <span className="material-symbols-outlined text-white text-3xl">store</span>
           </div>
-          <h1 className="text-3xl font-black tracking-tight text-gray-900">TilePOS</h1>
+          <h1 className="text-3xl font-black tracking-tight text-gray-900">Dokani</h1>
           <p className="text-sm text-gray-500 mt-1">
             {lang === 'bn' ? 'আপনার ব্যবসা ম্যানেজ করুন সহজে' : 'Manage your business with ease'}
           </p>
