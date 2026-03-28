@@ -182,6 +182,45 @@ export type Database = {
         }
         Relationships: []
       }
+      inventory_logs: {
+        Row: {
+          created_at: string
+          id: string
+          log_type: string
+          note: string
+          product_id: string
+          product_name: string
+          qty: number
+          reference_id: string
+          total_after: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          log_type?: string
+          note?: string
+          product_id: string
+          product_name?: string
+          qty?: number
+          reference_id?: string
+          total_after?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          log_type?: string
+          note?: string
+          product_id?: string
+          product_name?: string
+          qty?: number
+          reference_id?: string
+          total_after?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       licenses: {
         Row: {
           annual_fee: number
@@ -567,6 +606,45 @@ export type Database = {
         }
         Relationships: []
       }
+      staffs: {
+        Row: {
+          created_at: string
+          id: string
+          join_date: string
+          name: string
+          phone: string
+          role: string
+          salary: number
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          join_date?: string
+          name: string
+          phone?: string
+          role?: string
+          salary?: number
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          join_date?: string
+          name?: string
+          phone?: string
+          role?: string
+          salary?: number
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       suppliers: {
         Row: {
           address: string
@@ -626,6 +704,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_stock: {
+        Args: { p_product_id: string; p_qty: number }
+        Returns: undefined
+      }
+      deduct_stock: {
+        Args: { p_product_id: string; p_qty: number }
+        Returns: undefined
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

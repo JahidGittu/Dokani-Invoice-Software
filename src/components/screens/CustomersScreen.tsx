@@ -1,5 +1,7 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useI18n } from "@/lib/i18n";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { type Customer, type SaleRecord, formatCurrency } from "@/lib/store";
 import { toast } from "sonner";
 
@@ -20,6 +22,7 @@ const colorMap: Record<string, string> = {
 
 export default function CustomersScreen({ customers, sales = [], onAddCustomer, onDeleteCustomer, onUpdateCustomerDue }: CustomersScreenProps) {
   const { t } = useI18n();
+  const { user } = useAuth();
   const [showAdd, setShowAdd] = useState(false);
   const [form, setForm] = useState({ name: '', phone: '', address: '' });
   const [search, setSearch] = useState('');
@@ -27,6 +30,23 @@ export default function CustomersScreen({ customers, sales = [], onAddCustomer, 
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [showCollectDue, setShowCollectDue] = useState<Customer | null>(null);
   const [collectAmount, setCollectAmount] = useState('');
+  const [collectMethod, setCollectMethod] = useState('Cash');
+  const [collectNote, setCollectNote] = useState('');
+  const [duePayments, setDuePayments] = useState<any[]>([]);
+
+  // Fetch due payment history for selected customer
+  const fetchDuePayments = useCallback(async (customerName: string) => {
+    if (!user) return;
+    const { data } = await supabase.from('due_payments').select('*')
+      .eq('customer_or_supplier', customerName)
+      .eq('reference_type', 'sale')
+      .order('payment_date', { ascending: false });
+    setDuePayments(data || []);
+  }, [user]);
+
+  useEffect(() => {
+    if (selectedCustomer) fetchDuePayments(selectedCustomer.name);
+  }, [selectedCustomer, fetchDuePayments]);
 
   const filtered = useMemo(() => {
     if (!search) return customers;
@@ -54,18 +74,30 @@ export default function CustomersScreen({ customers, sales = [], onAddCustomer, 
     setShowDeleteConfirm(null);
   };
 
-  const handleCollectDue = () => {
-    if (!showCollectDue || !collectAmount) return;
+  const handleCollectDue = async () => {
+    if (!showCollectDue || !collectAmount || !user) return;
     const amount = Number(collectAmount);
     if (amount <= 0 || amount > (showCollectDue.totalDue || 0)) {
       toast.error('Invalid amount');
       return;
     }
+    // Log payment to due_payments table
+    await supabase.from('due_payments').insert({
+      user_id: user.id,
+      reference_type: 'sale',
+      reference_id: showCollectDue.id,
+      customer_or_supplier: showCollectDue.name,
+      amount,
+      payment_method: collectMethod,
+      note: collectNote || `Due collected from ${showCollectDue.name}`,
+    } as any);
     const newDue = (showCollectDue.totalDue || 0) - amount;
     onUpdateCustomerDue?.(showCollectDue.id, newDue);
     toast.success(`৳${amount} collected from ${showCollectDue.name}`);
     setShowCollectDue(null);
     setCollectAmount('');
+    setCollectMethod('Cash');
+    setCollectNote('');
   };
 
   // Get customer's sales history
@@ -211,6 +243,18 @@ export default function CustomersScreen({ customers, sales = [], onAddCustomer, 
                   placeholder="Enter amount" max={showCollectDue.totalDue || 0}
                   className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" />
               </div>
+              <div>
+                <label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">Payment Method</label>
+                <select value={collectMethod} onChange={e => setCollectMethod(e.target.value)}
+                  className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none">
+                  <option>Cash</option><option>bKash</option><option>Nagad</option><option>Bank</option><option>Other</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-pos-on-surface-variant uppercase mb-1.5">Note</label>
+                <input value={collectNote} onChange={e => setCollectNote(e.target.value)}
+                  placeholder="Optional note" className="w-full bg-pos-surface-high border-none rounded-lg text-sm py-2.5 px-3 focus:ring-2 focus:ring-pos-secondary outline-none" />
+              </div>
               <div className="text-xs text-muted-foreground">
                 Remaining after collection: <span className="font-bold">{formatCurrency(Math.max(0, (showCollectDue.totalDue || 0) - Number(collectAmount || 0)))}</span>
               </div>
@@ -268,6 +312,27 @@ export default function CustomersScreen({ customers, sales = [], onAddCustomer, 
                   <span className="material-symbols-outlined text-lg">payments</span>
                   Collect Due ({formatCurrency(selectedCustomer.totalDue || 0)})
                 </button>
+              </div>
+            )}
+
+            {/* Payment History */}
+            {duePayments.length > 0 && (
+              <div className="px-6 pb-4">
+                <h4 className="text-sm font-bold uppercase text-muted-foreground mb-3">💰 Payment History</h4>
+                <div className="space-y-2">
+                  {duePayments.map((p: any) => (
+                    <div key={p.id} className="bg-pos-tertiary-container/30 rounded-lg p-3 flex items-center justify-between">
+                      <div>
+                        <div className="text-xs font-semibold text-pos-tertiary">৳{Number(p.amount).toLocaleString()}</div>
+                        <div className="text-[10px] text-muted-foreground">{new Date(p.payment_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[10px] bg-pos-surface-container px-2 py-0.5 rounded-full">{p.payment_method}</span>
+                        {p.note && <div className="text-[10px] text-muted-foreground mt-1">{p.note}</div>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 

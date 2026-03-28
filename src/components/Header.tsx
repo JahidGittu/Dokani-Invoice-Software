@@ -41,7 +41,7 @@ export default function Header({ activeScreen, onToggleSidebar, onNavigate, onSe
 
   const debouncedQuery = useDebounce(searchQuery, 250);
 
-  // Load admin messages for current user
+  // Load admin messages for current user with realtime
   useEffect(() => {
     if (!user) return;
     const loadMessages = async () => {
@@ -50,8 +50,17 @@ export default function Header({ activeScreen, onToggleSidebar, onNavigate, onSe
       if (data) setMessages(data as any);
     };
     loadMessages();
-    const interval = setInterval(loadMessages, 30000); // poll every 30s
-    return () => clearInterval(interval);
+
+    // Realtime subscription instead of polling
+    const channel = supabase
+      .channel('header-messages')
+      .on('postgres_changes', {
+        event: '*', schema: 'public', table: 'admin_messages',
+        filter: `recipient_id=eq.${user.id}`,
+      }, () => loadMessages())
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, [user]);
 
   // Close dropdown on outside click
