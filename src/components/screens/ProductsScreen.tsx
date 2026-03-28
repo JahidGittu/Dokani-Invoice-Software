@@ -8,6 +8,7 @@ import ComboInput from "@/components/ComboInput";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import JsBarcode from "jsbarcode";
+import { TILE_SIZE_OPTIONS, getAutoPackaging } from "@/lib/tile-packaging";
 
 interface ProductsScreenProps {
   products: Product[];
