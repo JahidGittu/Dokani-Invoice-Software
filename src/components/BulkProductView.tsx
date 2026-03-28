@@ -3,7 +3,7 @@ import { type Product } from "@/lib/store";
 import { useProductOptions } from "@/hooks/useProductOptions";
 import ComboInput from "@/components/ComboInput";
 import { toast } from "sonner";
-import { getAutoPackaging } from "@/lib/tile-packaging";
+import { getAutoPackaging, TILE_SIZE_OPTIONS } from "@/lib/tile-packaging";
 
 interface BulkProductViewProps {
   products: Product[];
