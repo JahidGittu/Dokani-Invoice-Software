@@ -44,7 +44,7 @@ export default function Login() {
         </div>
       ),
       title: lang === 'bn' ? 'আপনার ব্যবসা ম্যানেজ করুন সহজে' : 'Effortlessly manage your business',
-      desc: lang === 'bn' ? 'TilePOS দিয়ে আপনার টাইলস শোরুমের বিক্রয়, স্টক, কাস্টমার সব এক জায়গায়।' : 'Manage your tiles showroom sales, stock & customers all in one place.',
+      desc: lang === 'bn' ? 'Dokani দিয়ে আপনার দোকানের বিক্রয়, স্টক, কাস্টমার সব এক জায়গায়।' : 'Manage your shop sales, stock & customers all in one place with Dokani.',
     },
     {
       mockup: (

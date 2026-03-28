@@ -400,7 +400,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   });
 
   useEffect(() => {
-    localStorage.setItem('tilepos_lang', lang);
+    localStorage.setItem('dokani_lang', lang);
   }, [lang]);
 
   const t = (key: TranslationKey): string => {

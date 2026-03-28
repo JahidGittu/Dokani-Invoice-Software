@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,8 +15,113 @@ export default function Signup() {
   const [phone, setPhone] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [slide, setSlide] = useState(0);
+
+  // Auto-slide every 4 seconds
+  useEffect(() => {
+    const timer = setInterval(() => setSlide(prev => (prev + 1) % 3), 4000);
+    return () => clearInterval(timer);
+  }, []);
 
   if (!authLoading && user) return <Navigate to="/" replace />;
+
+  const slides = [
+    {
+      icon: 'rocket_launch',
+      iconBg: 'bg-emerald-100',
+      iconColor: 'text-emerald-600',
+      mockup: (
+        <div className="bg-white rounded-xl p-4 mb-3">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
+              <span className="material-symbols-outlined text-emerald-600 text-sm">rocket_launch</span>
+            </div>
+            <div>
+              <p className="text-[10px] text-gray-400">{lang === 'bn' ? '৫ মিনিটে শুরু করুন' : 'Setup in 5 min'}</p>
+              <p className="text-lg font-black text-gray-900">{lang === 'bn' ? 'একদম ফ্রি!' : 'Totally Free!'}</p>
+            </div>
+          </div>
+          <div className="space-y-2">
+            {[
+              { step: '1', text: lang === 'bn' ? 'অ্যাকাউন্ট তৈরি করুন' : 'Create account', done: true },
+              { step: '2', text: lang === 'bn' ? 'দোকানের তথ্য দিন' : 'Add shop info', done: true },
+              { step: '3', text: lang === 'bn' ? 'প্রোডাক্ট যোগ করুন' : 'Add products', done: false },
+            ].map((s, i) => (
+              <div key={i} className="flex items-center gap-2.5 bg-gray-50 rounded-lg px-3 py-2">
+                <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${s.done ? 'bg-emerald-500 text-white' : 'bg-gray-200 text-gray-500'}`}>
+                  {s.done ? '✓' : s.step}
+                </div>
+                <span className="text-[11px] text-gray-700 font-medium">{s.text}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ),
+      title: lang === 'bn' ? '৫ মিনিটে সবকিছু সেটআপ' : 'Set up everything in 5 minutes',
+      desc: lang === 'bn' ? 'দোকানের নাম দিন, প্রোডাক্ট যোগ করুন, বিক্রয় শুরু করুন — এতটুকুই!' : 'Add your shop, products, and start selling — that simple!',
+    },
+    {
+      icon: 'bar_chart',
+      iconBg: 'bg-blue-100',
+      iconColor: 'text-blue-600',
+      mockup: (
+        <div className="bg-white rounded-xl p-4 mb-3">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+              <span className="material-symbols-outlined text-blue-600 text-sm">bar_chart</span>
+            </div>
+            <div>
+              <p className="text-[10px] text-gray-400">{lang === 'bn' ? 'এই মাসের বিক্রয়' : "This Month's Sales"}</p>
+              <p className="text-lg font-black text-gray-900">৳3,45,600</p>
+            </div>
+            <div className="ml-auto flex items-center gap-1 text-emerald-600">
+              <span className="material-symbols-outlined text-sm">trending_up</span>
+              <span className="text-xs font-bold">+18%</span>
+            </div>
+          </div>
+          <div className="flex items-end gap-1.5 justify-center h-10">
+            {[35, 55, 40, 70, 50, 85, 65, 90, 55, 75, 60, 45].map((h, i) => (
+              <div key={i} className="w-3 rounded-t-sm bg-blue-400/60" style={{ height: `${h}%` }} />
+            ))}
+          </div>
+        </div>
+      ),
+      title: lang === 'bn' ? 'ব্যবসার রিপোর্ট এক নজরে' : 'Business reports at a glance',
+      desc: lang === 'bn' ? 'দৈনিক, সাপ্তাহিক, মাসিক — সব রিপোর্ট অটোমেটিক তৈরি হয়।' : 'Daily, weekly, monthly — all reports generated automatically.',
+    },
+    {
+      icon: 'devices',
+      iconBg: 'bg-purple-100',
+      iconColor: 'text-purple-600',
+      mockup: (
+        <div className="bg-white rounded-xl p-4 mb-3">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+              <span className="material-symbols-outlined text-purple-600 text-sm">devices</span>
+            </div>
+            <div>
+              <p className="text-[10px] text-gray-400">{lang === 'bn' ? 'যেকোনো ডিভাইসে' : 'Any Device'}</p>
+              <p className="text-lg font-black text-gray-900">{lang === 'bn' ? 'ক্লাউড সিঙ্ক' : 'Cloud Sync'}</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { icon: 'smartphone', label: lang === 'bn' ? 'মোবাইল' : 'Mobile', color: 'bg-green-50 text-green-600' },
+              { icon: 'laptop', label: lang === 'bn' ? 'ল্যাপটপ' : 'Laptop', color: 'bg-blue-50 text-blue-600' },
+              { icon: 'tablet', label: lang === 'bn' ? 'ট্যাবলেট' : 'Tablet', color: 'bg-orange-50 text-orange-600' },
+            ].map((d, i) => (
+              <div key={i} className={`rounded-lg p-2.5 text-center ${d.color}`}>
+                <span className="material-symbols-outlined text-xl mb-1 block">{d.icon}</span>
+                <p className="text-[9px] font-bold">{d.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      ),
+      title: lang === 'bn' ? 'মোবাইল, ল্যাপটপ যেকোনো জায়গায়' : 'Access from anywhere, any device',
+      desc: lang === 'bn' ? 'ক্লাউডে আপনার সব ডাটা নিরাপদ। ইন্টারনেট থাকলেই চলবে।' : 'Your data is safe in the cloud. Works wherever there is internet.',
+    },
+  ];
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,7 +169,7 @@ export default function Signup() {
           <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
             <span className="material-symbols-outlined text-white text-xl">store</span>
           </div>
-          <span className="text-xl font-black text-gray-900 tracking-tight">TilePOS</span>
+          <span className="text-xl font-black text-gray-900 tracking-tight">Dokani</span>
         </div>
 
         {/* Language Toggle */}
@@ -159,81 +264,51 @@ export default function Signup() {
 
         {/* Footer */}
         <div className="absolute bottom-6 left-6 sm:left-12 lg:left-20 right-6 sm:right-12 lg:right-20 flex items-center justify-between text-xs text-gray-400">
-          <span>© 2026 TilePOS. All rights reserved.</span>
+          <span>© 2026 Dokani. All rights reserved.</span>
           <span>Privacy Policy</span>
         </div>
       </div>
 
-      {/* Right Side - Blue Hero Panel */}
+      {/* Right Side - Blue Hero Panel with Auto-Slider */}
       <div className="hidden lg:flex flex-1 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 relative overflow-hidden items-center justify-center p-12">
         {/* Decorative circles */}
         <div className="absolute top-[-100px] right-[-100px] w-[400px] h-[400px] rounded-full bg-white/5" />
         <div className="absolute bottom-[-150px] left-[-100px] w-[500px] h-[500px] rounded-full bg-white/5" />
-        <div className="absolute top-1/3 left-1/3 w-[250px] h-[250px] rounded-full bg-white/5" />
+        <div className="absolute top-1/2 left-1/4 w-[200px] h-[200px] rounded-full bg-white/5" />
 
-        <div className="relative z-10 text-center max-w-md">
-          {/* Dashboard mockup card */}
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 mb-8 border border-white/20 shadow-2xl">
-            <div className="bg-white rounded-xl p-4 mb-3">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                  <span className="material-symbols-outlined text-green-600 text-sm">storefront</span>
+        <div className="relative z-10 text-center max-w-md w-full">
+          {/* Slide content with transition */}
+          <div className="relative h-[380px]">
+            {slides.map((s, i) => (
+              <div
+                key={i}
+                className="absolute inset-0 transition-all duration-700 ease-in-out"
+                style={{
+                  opacity: slide === i ? 1 : 0,
+                  transform: slide === i ? 'translateX(0) scale(1)' : 'translateX(40px) scale(0.95)',
+                  pointerEvents: slide === i ? 'auto' : 'none',
+                }}
+              >
+                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 mb-6 border border-white/20 shadow-2xl">
+                  {s.mockup}
                 </div>
-                <div>
-                  <p className="text-[10px] text-gray-400">{lang === 'bn' ? 'আজকের বিক্রয়' : "Today's Sales"}</p>
-                  <p className="text-lg font-black text-gray-900">৳52,480</p>
-                </div>
-                <div className="ml-auto flex items-center gap-1 text-green-600">
-                  <span className="material-symbols-outlined text-sm">trending_up</span>
-                  <span className="text-xs font-bold">+12%</span>
-                </div>
+                <h2 className="text-2xl font-black text-white mb-3">{s.title}</h2>
+                <p className="text-blue-100 text-sm leading-relaxed">{s.desc}</p>
               </div>
-              <div className="flex gap-2">
-                <div className="flex-1 bg-blue-50 rounded-lg p-2">
-                  <p className="text-[9px] text-gray-400">{lang === 'bn' ? 'প্রোডাক্ট' : 'Products'}</p>
-                  <p className="text-sm font-bold text-gray-900">1,248</p>
-                </div>
-                <div className="flex-1 bg-green-50 rounded-lg p-2">
-                  <p className="text-[9px] text-gray-400">{lang === 'bn' ? 'কাস্টমার' : 'Customers'}</p>
-                  <p className="text-sm font-bold text-gray-900">356</p>
-                </div>
-                <div className="flex-1 bg-orange-50 rounded-lg p-2">
-                  <p className="text-[9px] text-gray-400">{lang === 'bn' ? 'বকেয়া' : 'Dues'}</p>
-                  <p className="text-sm font-bold text-red-600">৳12,500</p>
-                </div>
-              </div>
-            </div>
-            {/* Mini chart bars */}
-            <div className="flex items-end gap-1.5 justify-center h-12 mt-2">
-              {[40, 65, 45, 80, 55, 90, 70, 85, 60, 95, 75, 50].map((h, i) => (
-                <div key={i} className="w-3 rounded-t-sm bg-white/30" style={{ height: `${h}%` }} />
-              ))}
-            </div>
+            ))}
           </div>
 
-          <h2 className="text-2xl font-black text-white mb-3">
-            {lang === 'bn' ? 'আজই শুরু করুন — ফ্রি!' : 'Start Today — It\'s Free!'}
-          </h2>
-          <p className="text-blue-100 text-sm leading-relaxed">
-            {lang === 'bn'
-              ? 'বাংলাদেশের টাইলস শোরুমের জন্য সেরা POS সফটওয়্যার। স্টক, বিক্রয়, বকেয়া সব এক জায়গায়।'
-              : 'The best POS software for tiles showrooms in Bangladesh. Stock, sales, dues — all in one place.'}
-          </p>
-
-          {/* Trust badges */}
-          <div className="flex justify-center gap-4 mt-6">
-            <div className="flex items-center gap-1.5 text-white/70 text-xs">
-              <span className="material-symbols-outlined text-sm">verified</span>
-              {lang === 'bn' ? 'নিরাপদ' : 'Secure'}
-            </div>
-            <div className="flex items-center gap-1.5 text-white/70 text-xs">
-              <span className="material-symbols-outlined text-sm">cloud_done</span>
-              {lang === 'bn' ? 'ক্লাউড ব্যাকআপ' : 'Cloud Backup'}
-            </div>
-            <div className="flex items-center gap-1.5 text-white/70 text-xs">
-              <span className="material-symbols-outlined text-sm">support_agent</span>
-              {lang === 'bn' ? '24/7 সাপোর্ট' : '24/7 Support'}
-            </div>
+          {/* Dot indicators - clickable */}
+          <div className="flex justify-center gap-2 mt-4">
+            {slides.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setSlide(i)}
+                className={`rounded-full transition-all duration-300 ${
+                  slide === i ? 'w-6 h-2 bg-white' : 'w-2 h-2 bg-white/40 hover:bg-white/60'
+                }`}
+              />
+            ))}
           </div>
         </div>
       </div>
