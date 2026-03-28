@@ -89,6 +89,36 @@ export default function Index() {
   // Admin gets completely separate control panel
   if (isAdmin) return <AdminLayout />;
 
+  // No license = pending activation by System Admin
+  if (!license && !isBlocked) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-4">
+        <div className="max-w-md w-full text-center">
+          <div className="bg-white rounded-2xl shadow-xl border p-8 space-y-5">
+            <div className="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mx-auto">
+              <span className="material-symbols-outlined text-amber-600 text-4xl">hourglass_top</span>
+            </div>
+            <h1 className="text-2xl font-black text-gray-900">
+              অ্যাকাউন্ট অ্যাক্টিভেশন অপেক্ষায়
+            </h1>
+            <p className="text-gray-500 text-sm leading-relaxed">
+              আপনার অ্যাকাউন্ট তৈরি হয়েছে কিন্তু এখনও System Admin দ্বারা অ্যাক্টিভেট করা হয়নি। অনুগ্রহ করে অপেক্ষা করুন অথবা নিচের নম্বরে যোগাযোগ করুন।
+            </p>
+            <div className="bg-blue-50 rounded-xl p-4 text-left space-y-1">
+              <p className="text-xs font-bold text-blue-800">যোগাযোগ করুন:</p>
+              <p className="text-xs text-blue-700">📞 01777615690</p>
+              <p className="text-xs text-blue-700">✉️ admin@dokani.com.bd</p>
+            </div>
+            <button onClick={signOut} className="inline-flex items-center gap-2 px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold text-sm hover:bg-gray-200 transition-all">
+              <span className="material-symbols-outlined text-lg">logout</span>
+              লগআউট
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (isBlocked) {
     return (
       <LicenseExpiredView
