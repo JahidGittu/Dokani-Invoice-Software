@@ -17,6 +17,7 @@ import SupplierScreen from "@/components/screens/SupplierScreen";
 import TransactionsScreen from "@/components/screens/TransactionsScreen";
 import StaffsScreen from "@/components/screens/StaffsScreen";
 import SmsEmailScreen from "@/components/screens/SmsEmailScreen";
+import AdminScreen from "@/components/screens/AdminScreen";
 import { useSupabaseProducts, useSupabaseCustomers, useSupabaseSales, useSupabaseSuppliers, useSupabasePurchases, useSupabaseSettings } from "@/lib/supabase-store";
 import { type SaleRecord, type Product } from "@/lib/store";
 
