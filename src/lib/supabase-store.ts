@@ -43,12 +43,14 @@ export function useSupabaseProducts() {
 
   const addProduct = useCallback(async (p: Omit<Product, 'id'>) => {
     if (!user) return;
-    const { error } = await supabase.from('products').insert({
+    const { error } = await (supabase.from('products') as any).insert({
       user_id: user.id, name: p.name, size: p.size, finish: p.finish,
       price_per_box: p.pricePerBox, sqft_per_box: p.sqftPerBox,
       stock: p.stock, batch: p.batch, barcode: p.barcode || '',
       category: p.category || '', brand: p.brand || '',
       buy_rate: p.buyRate || 0, pieces_per_box: p.piecesPerBox || 4,
+      unit: p.unit || 'SQFT', height: p.height || '', width: p.width || '',
+      reorder_limit: p.reorderLimit || 0,
     });
     if (error) { toast.error('Failed to add product'); return; }
     fetchProducts();
