@@ -168,6 +168,64 @@ export default function Header({ activeScreen, onToggleSidebar, onNavigate, onSe
           </button>
         )}
 
+        {/* Messages Notification */}
+        <div className="relative">
+          <button
+            onClick={() => toggleDropdown('messages')}
+            className="relative flex items-center gap-1 px-2 py-1.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-all"
+          >
+            <span className="material-symbols-outlined text-lg">mail</span>
+            {unreadCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 w-4.5 h-4.5 bg-red-500 text-white rounded-full text-[9px] font-bold flex items-center justify-center min-w-[18px] h-[18px]">
+                {unreadCount}
+              </span>
+            )}
+          </button>
+          {openDropdown === 'messages' && (
+            <div className="absolute right-0 top-full mt-1 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 z-50 w-[320px] max-h-[400px] overflow-hidden">
+              <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                <p className="text-sm font-bold text-gray-900 dark:text-white">
+                  {lang === 'bn' ? 'বার্তা' : 'Messages'}
+                  {unreadCount > 0 && <span className="ml-2 text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full">{unreadCount}</span>}
+                </p>
+              </div>
+              <div className="divide-y divide-gray-100 dark:divide-gray-700 overflow-y-auto max-h-[340px]">
+                {messages.length === 0 ? (
+                  <div className="text-center py-8 text-gray-400 text-sm">
+                    <span className="material-symbols-outlined text-3xl mb-2 block">inbox</span>
+                    {lang === 'bn' ? 'কোনো বার্তা নেই' : 'No messages'}
+                  </div>
+                ) : messages.map(m => (
+                  <button key={m.id} className={`w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors ${!m.is_read ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''}`}
+                    onClick={async () => {
+                      if (!m.is_read) {
+                        await supabase.from('admin_messages').update({ is_read: true } as any).eq('id', m.id);
+                        setMessages(prev => prev.map(msg => msg.id === m.id ? { ...msg, is_read: true } : msg));
+                      }
+                    }}>
+                    <div className="flex items-start gap-2">
+                      <span className={`material-symbols-outlined text-lg mt-0.5 ${
+                        m.message_type === 'license_warning' ? 'text-orange-500' :
+                        m.message_type === 'payment_reminder' ? 'text-red-500' : 'text-blue-500'
+                      }`}>
+                        {m.message_type === 'license_warning' ? 'warning' : m.message_type === 'payment_reminder' ? 'payments' : 'mail'}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <p className={`text-xs font-semibold truncate ${!m.is_read ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-400'}`}>{m.subject || 'Message'}</p>
+                          {!m.is_read && <span className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 ml-1" />}
+                        </div>
+                        <p className="text-[11px] text-gray-500 line-clamp-2 mt-0.5">{m.message}</p>
+                        <p className="text-[10px] text-gray-400 mt-1">{new Date(m.created_at).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Info Dropdown */}
         <DropdownButton id="info" icon="info" label={lang === 'bn' ? 'তথ্য' : 'Info'}>
           <DropdownItem icon="dashboard" label={lang === 'bn' ? 'ড্যাশবোর্ড' : 'Dashboard'} onClick={() => onNavigate('dashboard')} />
