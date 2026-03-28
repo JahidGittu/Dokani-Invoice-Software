@@ -12,7 +12,7 @@ interface DashboardScreenProps {
 }
 
 export default function DashboardScreen({ onNavigate, products, customers, sales, suppliers = [], purchases = [] }: DashboardScreenProps) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const todayStr = new Date().toDateString();
 
   const { todayTotal, todayCount, todayCashSales, todayDueSales, todayCashReceive, todayCashPayment } = useMemo(() => {
@@ -77,33 +77,33 @@ export default function DashboardScreen({ onNavigate, products, customers, sales
   const totalBalance = Object.values(accountBalances).reduce((s, v) => s + v, 0);
 
   return (
-    <section className="p-4 sm:p-8 max-w-7xl mx-auto space-y-8">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+    <section className="p-4 sm:p-8 max-w-7xl mx-auto space-y-6">
+      {/* ── Quick Actions Grid — Big icon buttons for illiterate users ── */}
+      <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3">
+        {[
+          { id: 'new-sale', icon: 'add_shopping_cart', label: lang === 'bn' ? '🛒 নতুন বিক্রয়' : '🛒 New Sale', color: 'bg-green-500 hover:bg-green-600', textColor: 'text-white' },
+          { id: 'products', icon: 'inventory_2', label: lang === 'bn' ? '📦 প্রোডাক্ট' : '📦 Products', color: 'bg-blue-500 hover:bg-blue-600', textColor: 'text-white' },
+          { id: 'customers', icon: 'group', label: lang === 'bn' ? '👥 কাস্টমার' : '👥 Customers', color: 'bg-purple-500 hover:bg-purple-600', textColor: 'text-white' },
+          { id: 'purchases', icon: 'shopping_cart', label: lang === 'bn' ? '🏪 ক্রয়' : '🏪 Purchase', color: 'bg-orange-500 hover:bg-orange-600', textColor: 'text-white' },
+          { id: 'reports', icon: 'assessment', label: lang === 'bn' ? '📊 রিপোর্ট' : '📊 Reports', color: 'bg-indigo-500 hover:bg-indigo-600', textColor: 'text-white' },
+          { id: 'inventory', icon: 'layers', label: lang === 'bn' ? '📋 মজুদ' : '📋 Stock', color: 'bg-teal-500 hover:bg-teal-600', textColor: 'text-white' },
+        ].map(action => (
+          <button
+            key={action.id}
+            onClick={() => onNavigate(action.id)}
+            className={`${action.color} ${action.textColor} rounded-2xl p-4 sm:p-5 flex flex-col items-center justify-center gap-2 transition-all active:scale-95 shadow-lg min-h-[90px]`}
+          >
+            <span className="material-symbols-outlined text-3xl sm:text-4xl">{action.icon}</span>
+            <span className="text-xs sm:text-sm font-bold leading-tight text-center">{action.label}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Date header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3">
         <div>
-          <span className="text-xs text-pos-on-surface-variant uppercase tracking-widest block mb-2">{t('today')} — {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
-          <h2 className="text-3xl sm:text-5xl font-bold text-pos-on-surface leading-tight tracking-tighter">{t('businessOverview')}</h2>
-        </div>
-        <div className="flex flex-wrap gap-2 items-center">
-          <select onChange={e => { if (e.target.value) onNavigate(e.target.value); e.target.value = ''; }}
-            className="bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2 px-3 outline-none" defaultValue="">
-            <option value="" disabled>Quick Link</option>
-            <option value="products">Products</option>
-            <option value="purchase">Purchase</option>
-            <option value="sales">Sales</option>
-            <option value="customers">Customers</option>
-            <option value="suppliers">Suppliers</option>
-            <option value="reports">Reports</option>
-            <option value="transactions">Transactions</option>
-          </select>
-          <button onClick={() => onNavigate('sales')} className="px-4 py-2 bg-pos-error text-white rounded-lg font-medium text-sm flex items-center gap-1">
-            <span className="material-symbols-outlined text-sm">list</span>{t('recentTransactions')}
-          </button>
-          <button onClick={() => onNavigate('inventory')} className="px-4 py-2 bg-pos-secondary text-white rounded-lg font-medium text-sm flex items-center gap-1">
-            <span className="material-symbols-outlined text-sm">layers</span>{t('stock')}
-          </button>
-          <button onClick={() => onNavigate('new-sale')} className="px-4 py-2 bg-gradient-to-b from-pos-secondary to-pos-secondary-dim text-white rounded-lg font-medium text-sm flex items-center gap-1 shadow-lg">
-            <span className="material-symbols-outlined text-sm">add_shopping_cart</span>SALES
-          </button>
+          <span className="text-xs text-pos-on-surface-variant uppercase tracking-widest block mb-1">{t('today')} — {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+          <h2 className="text-2xl sm:text-3xl font-bold text-pos-on-surface leading-tight tracking-tighter">{t('businessOverview')}</h2>
         </div>
       </div>
 
