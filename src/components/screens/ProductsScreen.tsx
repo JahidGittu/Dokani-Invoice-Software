@@ -404,22 +404,27 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
           <div className="flex items-center gap-2 text-sm text-[hsl(var(--primary))] font-semibold mb-1">
             <span>Product Information</span>
             <span className="text-muted-foreground">›</span>
-            <span>{showAddForm ? 'Add Product' : 'Product List'}</span>
+            <span>{activeView === 'add' ? 'Add Product' : activeView === 'bulk' ? 'Bulk Add' : 'Product List'}</span>
           </div>
           <h2 className="text-2xl sm:text-3xl font-bold text-pos-on-surface leading-tight tracking-tighter">
             {t('products')} <span className="text-lg font-normal text-pos-on-surface-variant">({products.length})</span>
           </h2>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={() => setShowBulkModal(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-[hsl(25,95%,53%)] text-white rounded-lg font-semibold text-sm hover:opacity-90 transition-opacity shadow-sm">
-            <span className="material-symbols-outlined text-base">playlist_add</span>
-            বাল্ক ইম্পোর্ট
+          <button onClick={() => setActiveView('add')}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg font-semibold text-sm transition-all shadow-sm ${activeView === 'add' ? 'bg-[hsl(var(--primary))] text-primary-foreground' : 'bg-pos-surface-container text-pos-on-surface-variant hover:bg-pos-surface-high'}`}>
+            <span className="material-symbols-outlined text-base">add</span>
+            Add Product
           </button>
-          <button onClick={() => setShowAddForm(!showAddForm)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-[hsl(var(--primary))] text-primary-foreground rounded-lg font-semibold text-sm hover:opacity-90 transition-opacity shadow-sm">
-            <span className="material-symbols-outlined text-base">{showAddForm ? 'list' : 'add'}</span>
-            {showAddForm ? 'Product List' : 'Add Product'}
+          <button onClick={() => setActiveView('bulk')}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg font-semibold text-sm transition-all shadow-sm ${activeView === 'bulk' ? 'bg-[hsl(25,95%,53%)] text-white' : 'bg-pos-surface-container text-pos-on-surface-variant hover:bg-pos-surface-high'}`}>
+            <span className="material-symbols-outlined text-base">playlist_add</span>
+            Bulk Add
+          </button>
+          <button onClick={() => setActiveView('list')}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg font-semibold text-sm transition-all shadow-sm ${activeView === 'list' ? 'bg-[hsl(var(--primary))] text-primary-foreground' : 'bg-pos-surface-container text-pos-on-surface-variant hover:bg-pos-surface-high'}`}>
+            <span className="material-symbols-outlined text-base">list</span>
+            Product List
           </button>
         </div>
       </div>
