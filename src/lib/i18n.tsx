@@ -396,7 +396,7 @@ const I18nContext = createContext<I18nContextType>({
 
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [lang, setLang] = useState<Lang>(() => {
-    try { return (localStorage.getItem('tilepos_lang') as Lang) || 'en'; } catch { return 'en'; }
+    try { return (localStorage.getItem('dokani_lang') as Lang) || 'en'; } catch { return 'en'; }
   });
 
   useEffect(() => {
