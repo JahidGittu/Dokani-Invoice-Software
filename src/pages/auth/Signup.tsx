@@ -24,7 +24,8 @@ export default function Signup() {
     return () => clearInterval(timer);
   }, []);
 
-  if (!authLoading && user && !signupSuccess) return <Navigate to="/" replace />;
+  // Don't redirect if signup just succeeded (user briefly exists before sign-out)
+  if (!authLoading && user && !signupSuccess && !signupDone.current) return <Navigate to="/" replace />;
 
   if (signupSuccess) {
     return (
