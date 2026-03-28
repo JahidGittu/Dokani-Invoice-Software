@@ -670,13 +670,12 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
         </div>
       )}
 
-      {/* Bulk Import Modal */}
-      {showBulkModal && (
-        <BulkProductModal
+      {/* Bulk Add View */}
+      {activeView === 'bulk' && (
+        <BulkProductView
           products={products}
           onAddProduct={onAddProduct}
           onUpdateProduct={onUpdateProduct}
-          onClose={() => setShowBulkModal(false)}
         />
       )}
     </section>
