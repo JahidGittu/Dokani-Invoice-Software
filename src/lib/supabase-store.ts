@@ -35,6 +35,7 @@ export function useSupabaseProducts() {
       height: (p as any).height || '',
       width: (p as any).width || '',
       reorderLimit: Number((p as any).reorder_limit) || 0,
+      imageUrl: (p as any).image_url || '',
     })));
     setLoading(false);
   }, [user]);
