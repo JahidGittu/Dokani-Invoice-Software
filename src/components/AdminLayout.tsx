@@ -182,14 +182,22 @@ export default function AdminLayout() {
 /* ─── Overview Dashboard with Charts ─── */
 function AdminOverview({ stats, lang, onNavigate, licenses }: { stats: Stats; lang: string; onNavigate: (nav: AdminNav) => void; licenses: LicenseRaw[] }) {
   const [pendingSignups, setPendingSignups] = useState<{ id: string; subject: string; message: string; created_at: string; sender_id: string }[]>([]);
+  const [pendingProfiles, setPendingProfiles] = useState<{ user_id: string; email: string; shop_name: string }[]>([]);
 
   useEffect(() => {
     loadPendingSignups();
+    loadPendingProfiles();
 
     const channel = supabase
       .channel('admin-signups-live')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'admin_messages' }, () => {
         loadPendingSignups();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => {
+        loadPendingProfiles();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'licenses' }, () => {
+        loadPendingProfiles();
       })
       .subscribe();
 
@@ -204,6 +212,16 @@ function AdminOverview({ stats, lang, onNavigate, licenses }: { stats: Stats; la
       .order('created_at', { ascending: false })
       .limit(20);
     if (data) setPendingSignups(data as any);
+  };
+
+  const loadPendingProfiles = async () => {
+    const [{ data: profiles }, { data: activeLicenses }] = await Promise.all([
+      supabase.from('profiles').select('user_id, email, shop_name').eq('status', 'pending'),
+      supabase.from('licenses').select('user_id'),
+    ]);
+
+    const licensedUserIds = new Set((activeLicenses || []).map((license: { user_id: string }) => license.user_id));
+    setPendingProfiles((profiles || []).filter((profile: { user_id: string }) => !licensedUserIds.has(profile.user_id)) as any);
   };
 
   // Monthly revenue chart data
@@ -243,9 +261,15 @@ function AdminOverview({ stats, lang, onNavigate, licenses }: { stats: Stats; la
   })();
 
   // Check which signups already have licenses
-  const pendingWithoutLicense = pendingSignups.filter(
-    s => !licenses.some(l => l.user_id === s.sender_id)
-  );
+  const pendingWithoutLicense = pendingSignups.filter((signup) => {
+    const matchingProfile = pendingProfiles.find((profile) => {
+      const emailMatch = profile.email && signup.message.includes(profile.email);
+      const shopMatch = profile.shop_name && signup.subject.includes(profile.shop_name);
+      return emailMatch || shopMatch || profile.user_id === signup.sender_id;
+    });
+
+    return Boolean(matchingProfile);
+  });
 
   return (
     <div className="space-y-6">
