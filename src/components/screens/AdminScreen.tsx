@@ -232,6 +232,42 @@ export default function AdminScreen({ initialTab }: { initialTab?: string }) {
     } catch (err: any) { toast.error(err.message); }
   };
 
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+
+  const banUser = async (userId: string) => {
+    try {
+      // Block their license if exists
+      const { data: lic } = await supabase.from('licenses').select('id').eq('user_id', userId).maybeSingle();
+      if (lic) {
+        await supabase.from('licenses').update({
+          is_blocked: true, blocked_at: new Date().toISOString(),
+          blocked_reason: 'Banned by admin', status: 'blocked',
+        } as any).eq('id', lic.id);
+      }
+      // Update profile status
+      await supabase.from('profiles').update({ status: 'banned' } as any).eq('user_id', userId);
+      toast.success(lang === 'bn' ? 'ইউজার ব্যান করা হয়েছে' : 'User banned');
+      loadUsers(); loadLicenses();
+    } catch (err: any) { toast.error(err.message); }
+  };
+
+  const deleteUser = async (userId: string) => {
+    try {
+      // Delete license, messages, profile, role
+      await Promise.all([
+        supabase.from('licenses').delete().eq('user_id', userId),
+        supabase.from('admin_messages').delete().eq('recipient_id', userId),
+        supabase.from('admin_messages').delete().eq('sender_id', userId),
+        supabase.from('profiles').delete().eq('user_id', userId),
+        supabase.from('user_roles').delete().eq('user_id', userId),
+        supabase.from('company_settings').delete().eq('user_id', userId),
+      ]);
+      toast.success(lang === 'bn' ? 'ইউজার ডিলেট করা হয়েছে' : 'User deleted');
+      setConfirmDelete(null);
+      loadUsers(); loadLicenses();
+    } catch (err: any) { toast.error(err.message); }
+  };
+
   const sendExpiryWarning = async (license: License) => {
     try {
       const { error } = await supabase.from('admin_messages').insert({
