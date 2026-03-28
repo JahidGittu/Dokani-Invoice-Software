@@ -454,8 +454,8 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
                 <th className="px-3 py-3 text-left align-middle cursor-pointer select-none" onClick={() => toggleSort('category')}>
                   <span className="inline-flex items-center gap-1">{t('categoryLabel')} <span className="material-symbols-outlined text-[10px]">{sortIcon('category')}</span></span>
                 </th>
-                <th className="px-3 py-3 text-left align-middle cursor-pointer select-none" onClick={() => toggleSort('brand')}>
-                  <span className="inline-flex items-center gap-1">{t('brandLabel')} <span className="material-symbols-outlined text-[10px]">{sortIcon('brand')}</span></span>
+                <th className="px-3 py-3 text-center align-middle cursor-pointer select-none" onClick={() => toggleSort('brand')}>
+                  <span className="inline-flex items-center gap-1 justify-center">{t('brandLabel')} <span className="material-symbols-outlined text-[10px]">{sortIcon('brand')}</span></span>
                 </th>
                 <th className="px-3 py-3 text-center align-middle">{t('size')}</th>
                 <th className="px-3 py-3 text-center align-middle">{t('buyRateLabel')}</th>
@@ -479,7 +479,7 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
                     </div>
                   </td>
                   <td className="px-3 py-3 text-left align-middle text-xs">{p.category || '—'}</td>
-                  <td className="px-3 py-3 text-left align-middle text-xs">{p.brand || '—'}</td>
+                  <td className="px-3 py-3 text-center align-middle text-xs">{p.brand || '—'}</td>
                   <td className="px-3 py-3 text-center align-middle">
                     <span className="px-2 py-0.5 bg-pos-secondary-container text-pos-on-secondary-container rounded text-[10px] font-bold">{p.size || (p.height && p.width ? `${p.height}×${p.width}` : '—')}</span>
                   </td>
