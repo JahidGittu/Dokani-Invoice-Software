@@ -18,7 +18,7 @@ interface NavGroup {
 
 const topItems: NavItem[] = [
   { id: 'dashboard', icon: 'dashboard', labelKey: 'dashboard' },
-  { id: 'new-sale', icon: 'receipt_long', labelKey: 'newSaleEntry' },
+  { id: 'new-sale', icon: 'add_shopping_cart', labelKey: 'newSaleEntry' },
 ];
 
 const navGroups: NavGroup[] = [
