@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useCallback, useEffect } from "react";
-import BulkProductModal from "@/components/BulkProductModal";
+import BulkProductView from "@/components/BulkProductView";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useI18n } from "@/lib/i18n";
 import { type Product, formatCurrency } from "@/lib/store";
@@ -39,8 +39,7 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
   const [search, setSearch] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [page, setPage] = useState(0);
-  const [showAddForm, setShowAddForm] = useState(true);
-  const [showBulkModal, setShowBulkModal] = useState(false);
+  const [activeView, setActiveView] = useState<'add' | 'bulk' | 'list'>('add');
 
   // Edit modal
   const [editProduct, setEditProduct] = useState<Product | null>(null);
@@ -405,28 +404,33 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
           <div className="flex items-center gap-2 text-sm text-[hsl(var(--primary))] font-semibold mb-1">
             <span>Product Information</span>
             <span className="text-muted-foreground">›</span>
-            <span>{showAddForm ? 'Add Product' : 'Product List'}</span>
+            <span>{activeView === 'add' ? 'Add Product' : activeView === 'bulk' ? 'Bulk Add' : 'Product List'}</span>
           </div>
           <h2 className="text-2xl sm:text-3xl font-bold text-pos-on-surface leading-tight tracking-tighter">
             {t('products')} <span className="text-lg font-normal text-pos-on-surface-variant">({products.length})</span>
           </h2>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={() => setShowBulkModal(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-[hsl(25,95%,53%)] text-white rounded-lg font-semibold text-sm hover:opacity-90 transition-opacity shadow-sm">
-            <span className="material-symbols-outlined text-base">playlist_add</span>
-            বাল্ক ইম্পোর্ট
+          <button onClick={() => setActiveView('add')}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg font-semibold text-sm transition-all shadow-sm ${activeView === 'add' ? 'bg-[hsl(var(--primary))] text-primary-foreground' : 'bg-pos-surface-container text-pos-on-surface-variant hover:bg-pos-surface-high'}`}>
+            <span className="material-symbols-outlined text-base">add</span>
+            Add Product
           </button>
-          <button onClick={() => setShowAddForm(!showAddForm)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-[hsl(var(--primary))] text-primary-foreground rounded-lg font-semibold text-sm hover:opacity-90 transition-opacity shadow-sm">
-            <span className="material-symbols-outlined text-base">{showAddForm ? 'list' : 'add'}</span>
-            {showAddForm ? 'Product List' : 'Add Product'}
+          <button onClick={() => setActiveView('bulk')}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg font-semibold text-sm transition-all shadow-sm ${activeView === 'bulk' ? 'bg-[hsl(25,95%,53%)] text-white' : 'bg-pos-surface-container text-pos-on-surface-variant hover:bg-pos-surface-high'}`}>
+            <span className="material-symbols-outlined text-base">playlist_add</span>
+            Bulk Add
+          </button>
+          <button onClick={() => setActiveView('list')}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg font-semibold text-sm transition-all shadow-sm ${activeView === 'list' ? 'bg-[hsl(var(--primary))] text-primary-foreground' : 'bg-pos-surface-container text-pos-on-surface-variant hover:bg-pos-surface-high'}`}>
+            <span className="material-symbols-outlined text-base">list</span>
+            Product List
           </button>
         </div>
       </div>
 
       {/* ═══ ADD PRODUCT FORM ═══ */}
-      {showAddForm && (
+      {activeView === 'add' && (
         <div className="bg-pos-surface-lowest rounded-xl shadow-sm border border-pos-surface-container p-5 sm:p-6">
           {renderFormFields(form, updateForm, imagePreview, (f) => handleImageSelect(f, false), nameRef)}
           <div className="flex gap-3 mt-6">
@@ -442,6 +446,7 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
         </div>
       )}
 
+      {activeView !== 'bulk' && <>
       {/* Search bar */}
       <div className="relative w-full sm:w-auto">
         <input value={search} onChange={(e) => { setSearch(e.target.value); setPage(0); }} className="w-full sm:w-64 bg-pos-surface-high border-none rounded-lg text-xs py-2.5 pl-9 pr-4 focus:ring-2 focus:ring-pos-secondary outline-none" placeholder={t('searchProducts')} />
@@ -549,6 +554,7 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
           <span><kbd className="px-1 py-0.5 bg-pos-surface-container rounded text-[9px] font-mono">Double Click</kbd> রো তে ডাবল ক্লিক করে এডিট করুন</span>
         </div>
       </div>
+      </>}
 
       {/* ═══ EDIT MODAL ═══ */}
       {editProduct && (
@@ -671,13 +677,12 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
         </div>
       )}
 
-      {/* Bulk Import Modal */}
-      {showBulkModal && (
-        <BulkProductModal
+      {/* Bulk Add View */}
+      {activeView === 'bulk' && (
+        <BulkProductView
           products={products}
           onAddProduct={onAddProduct}
           onUpdateProduct={onUpdateProduct}
-          onClose={() => setShowBulkModal(false)}
         />
       )}
     </section>
