@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useLicenseStatus } from "@/hooks/useLicenseStatus";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
+import LicenseExpiredView from "@/components/LicenseExpiredView";
 import DashboardScreen from "@/components/screens/DashboardScreen";
 import ProductsScreen from "@/components/screens/ProductsScreen";
 import SalesScreen from "@/components/screens/SalesScreen";
@@ -22,7 +24,8 @@ import { useSupabaseProducts, useSupabaseCustomers, useSupabaseSales, useSupabas
 import { type SaleRecord, type Product } from "@/lib/store";
 
 export default function Index() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, signOut } = useAuth();
+  const { loading: licenseLoading, isBlocked, license, reason } = useLicenseStatus();
   const [activeScreen, setActiveScreen] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { products, addProduct, updateProduct, deleteProduct, deductStock, addStock, setProducts } = useSupabaseProducts();
@@ -77,8 +80,22 @@ export default function Index() {
     return () => window.removeEventListener('keydown', handleKey);
   }, []);
 
-  if (authLoading) return <div className="min-h-screen flex items-center justify-center"><span className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" /></div>;
+  if (authLoading || licenseLoading) return <div className="min-h-screen flex items-center justify-center"><span className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" /></div>;
   if (!user) return <Navigate to="/login" replace />;
+  if (isBlocked) {
+    return (
+      <LicenseExpiredView
+        shopName={license?.shop_name}
+        ownerName={license?.owner_name}
+        expiryDate={license?.license_expiry}
+        annualFee={license?.annual_fee}
+        supportPhone="01777615690"
+        supportEmail="admin@dokani.com.bd"
+        reason={reason}
+        onSignOut={signOut}
+      />
+    );
+  }
 
   const renderScreen = () => {
     switch (activeScreen) {
