@@ -458,9 +458,9 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
                   <span className="inline-flex items-center gap-1">{t('brandLabel')} <span className="material-symbols-outlined text-[10px]">{sortIcon('brand')}</span></span>
                 </th>
                 <th className="px-3 py-3 text-center align-middle">{t('size')}</th>
-                <th className="px-3 py-3 text-right align-middle">{t('buyRateLabel')}</th>
-                <th className="px-3 py-3 text-right align-middle cursor-pointer select-none" onClick={() => toggleSort('pricePerBox')}>
-                  <span className="inline-flex items-center gap-1 justify-end">{t('salesRateLabel')} <span className="material-symbols-outlined text-[10px]">{sortIcon('pricePerBox')}</span></span>
+                <th className="px-3 py-3 text-center align-middle">{t('buyRateLabel')}</th>
+                <th className="px-3 py-3 text-center align-middle cursor-pointer select-none" onClick={() => toggleSort('pricePerBox')}>
+                  <span className="inline-flex items-center gap-1 justify-center">{t('salesRateLabel')} <span className="material-symbols-outlined text-[10px]">{sortIcon('pricePerBox')}</span></span>
                 </th>
                 <th className="px-3 py-3 text-center align-middle w-36">{t('action')}</th>
               </tr>
@@ -483,8 +483,8 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
                   <td className="px-3 py-3 text-center align-middle">
                     <span className="px-2 py-0.5 bg-pos-secondary-container text-pos-on-secondary-container rounded text-[10px] font-bold">{p.size || (p.height && p.width ? `${p.height}×${p.width}` : '—')}</span>
                   </td>
-                  <td className="px-3 py-3 text-right align-middle text-xs font-medium tabular-nums">{formatCurrency(p.buyRate || 0)}</td>
-                  <td className="px-3 py-3 text-right align-middle text-sm font-bold text-pos-secondary tabular-nums">{formatCurrency(p.pricePerBox)}</td>
+                  <td className="px-3 py-3 text-center align-middle text-xs font-medium tabular-nums">{formatCurrency(p.buyRate || 0)}</td>
+                  <td className="px-3 py-3 text-center align-middle text-sm font-bold text-pos-secondary tabular-nums">{formatCurrency(p.pricePerBox)}</td>
                   <td className="px-3 py-3 text-center align-middle" onClick={e => e.stopPropagation()}>
                     <div className="flex items-center gap-2 justify-center">
                       {/* On/Off Toggle */}
