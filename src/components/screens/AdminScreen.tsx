@@ -259,9 +259,10 @@ export default function AdminScreen({ initialTab }: { initialTab?: string }) {
     return { text: lang === 'bn' ? 'সক্রিয়' : 'Active', color: 'bg-green-500/20 text-green-400' };
   };
 
-  const filteredUsers = users.filter(u =>
-    (u.email || '').toLowerCase().includes(search.toLowerCase()) || u.id.includes(search)
-  );
+  const filteredUsers = users.filter(u => {
+    const s = search.toLowerCase();
+    return (u.email || '').toLowerCase().includes(s) || (u.shop_name || '').toLowerCase().includes(s) || u.id.includes(search);
+  });
   const filteredLicenses = licenses.filter(l => l.shop_name.toLowerCase().includes(search.toLowerCase()) || l.owner_name.toLowerCase().includes(search.toLowerCase()));
 
   if (loading) return <div className="flex items-center justify-center h-64"><span className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" /></div>;
