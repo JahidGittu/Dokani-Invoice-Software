@@ -16,6 +16,8 @@ export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  if (!authLoading && user) return <Navigate to="/" replace />;
+
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) return;
