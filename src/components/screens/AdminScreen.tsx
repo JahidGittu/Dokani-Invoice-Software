@@ -607,7 +607,7 @@ export default function AdminScreen({ initialTab }: { initialTab?: string }) {
                             setShowLicenseForm(true);
                             setEditingLicenseId(null);
                             setLicenseForm({
-                              user_id: u.id, shop_name: u.shop_name || '', owner_name: '', owner_phone: u.phone || '',
+                              user_id: u.id, shop_name: u.shop_name || '', owner_name: u.full_name || '', owner_phone: u.phone || '',
                               owner_email: u.email || '', setup_fee: 10000, annual_fee: 3000,
                               license_start: new Date().toISOString().slice(0, 10),
                               license_expiry: new Date(Date.now() + 365 * 86400000).toISOString().slice(0, 10), notes: '',
