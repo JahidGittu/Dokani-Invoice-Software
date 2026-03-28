@@ -241,7 +241,7 @@ export default function Login() {
 
         {/* Footer */}
         <div className="absolute bottom-6 left-6 sm:left-12 lg:left-20 right-6 sm:right-12 lg:right-20 flex items-center justify-between text-xs text-gray-400">
-          <span>© 2026 TilePOS. All rights reserved.</span>
+          <span>© 2026 Dokani. All rights reserved.</span>
           <span>Privacy Policy</span>
         </div>
       </div>
