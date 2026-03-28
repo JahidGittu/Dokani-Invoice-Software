@@ -79,24 +79,18 @@ export function useSupabaseProducts() {
   const deductStock = useCallback(async (items: { productId: string; qty: number }[]) => {
     if (!user) return;
     for (const item of items) {
-      const prod = products.find(p => p.id === item.productId);
-      if (prod) {
-        await supabase.from('products').update({ stock: Math.max(0, prod.stock - item.qty) }).eq('id', item.productId);
-      }
+      await supabase.rpc('deduct_stock', { p_product_id: item.productId, p_qty: item.qty });
     }
     fetchProducts();
-  }, [user, products, fetchProducts]);
+  }, [user, fetchProducts]);
 
   const addStock = useCallback(async (items: { productId: string; qty: number }[]) => {
     if (!user) return;
     for (const item of items) {
-      const prod = products.find(p => p.id === item.productId);
-      if (prod) {
-        await supabase.from('products').update({ stock: prod.stock + item.qty }).eq('id', item.productId);
-      }
+      await supabase.rpc('add_stock', { p_product_id: item.productId, p_qty: item.qty });
     }
     fetchProducts();
-  }, [user, products, fetchProducts]);
+  }, [user, fetchProducts]);
 
   return { products, setProducts: fetchProducts as unknown as React.Dispatch<React.SetStateAction<Product[]>>, addProduct, updateProduct, deleteProduct, deductStock, addStock, loading };
 }
