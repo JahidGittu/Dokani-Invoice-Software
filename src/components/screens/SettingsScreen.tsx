@@ -3,7 +3,6 @@ import { useI18n } from "@/lib/i18n";
 import { type CompanySettings, exportAllData, importAllData } from "@/lib/store";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
 import { toast } from "sonner";
 
 interface SettingsScreenProps {
