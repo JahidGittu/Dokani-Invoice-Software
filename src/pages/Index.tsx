@@ -1,8 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserRole } from "@/hooks/useUserRole";
 import { useLicenseStatus } from "@/hooks/useLicenseStatus";
 import Sidebar from "@/components/Sidebar";
+import Header from "@/components/Header";
+import LicenseExpiredView from "@/components/LicenseExpiredView";
+import AdminLayout from "@/components/AdminLayout";
 import Header from "@/components/Header";
 import LicenseExpiredView from "@/components/LicenseExpiredView";
 import DashboardScreen from "@/components/screens/DashboardScreen";
