@@ -8,13 +8,13 @@ export interface TilePackaging {
 }
 
 export const TILE_PACKAGING: TilePackaging[] = [
-  { height: '12', width: '12', label: '12×12 (30×30cm)', piecesPerBox: 10, sqftPerBox: 9.69 },
-  { height: '16', width: '16', label: '16×16 (40×40cm)', piecesPerBox: 6, sqftPerBox: 10.33 },
-  { height: '12', width: '24', label: '12×24 (30×60cm)', piecesPerBox: 8, sqftPerBox: 15.50 },
-  { height: '24', width: '24', label: '24×24 (60×60cm)', piecesPerBox: 4, sqftPerBox: 15.50 },
-  { height: '32', width: '32', label: '32×32 (80×80cm)', piecesPerBox: 3, sqftPerBox: 20.66 },
-  { height: '24', width: '48', label: '24×48 (60×120cm)', piecesPerBox: 2, sqftPerBox: 15.50 },
-  { height: '40', width: '40', label: '40×40 (100×100cm)', piecesPerBox: 2, sqftPerBox: 21.52 },
+  { height: '30', width: '30', label: '30×30 সে.মি.', piecesPerBox: 10, sqftPerBox: 9.69 },
+  { height: '40', width: '40', label: '40×40 সে.মি.', piecesPerBox: 6, sqftPerBox: 10.33 },
+  { height: '30', width: '60', label: '30×60 সে.মি.', piecesPerBox: 8, sqftPerBox: 15.50 },
+  { height: '60', width: '60', label: '60×60 সে.মি.', piecesPerBox: 4, sqftPerBox: 15.50 },
+  { height: '80', width: '80', label: '80×80 সে.মি.', piecesPerBox: 3, sqftPerBox: 20.66 },
+  { height: '60', width: '120', label: '60×120 সে.মি.', piecesPerBox: 2, sqftPerBox: 15.50 },
+  { height: '100', width: '100', label: '100×100 সে.মি.', piecesPerBox: 2, sqftPerBox: 21.52 },
 ];
 
 export const TILE_BRANDS = [
