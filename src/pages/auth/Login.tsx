@@ -246,61 +246,46 @@ export default function Login() {
         </div>
       </div>
 
-      {/* Right Side - Blue Hero Panel */}
+      {/* Right Side - Blue Hero Panel with Slider */}
       <div className="hidden lg:flex flex-1 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 relative overflow-hidden items-center justify-center p-12">
         {/* Decorative circles */}
         <div className="absolute top-[-100px] right-[-100px] w-[400px] h-[400px] rounded-full bg-white/5" />
         <div className="absolute bottom-[-150px] left-[-100px] w-[500px] h-[500px] rounded-full bg-white/5" />
         <div className="absolute top-1/2 left-1/4 w-[200px] h-[200px] rounded-full bg-white/5" />
 
-        <div className="relative z-10 text-center max-w-md">
-          {/* Dashboard mockup card */}
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 mb-8 border border-white/20 shadow-2xl">
-            <div className="bg-white rounded-xl p-4 mb-3">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <span className="material-symbols-outlined text-blue-600 text-sm">trending_up</span>
+        <div className="relative z-10 text-center max-w-md w-full">
+          {/* Slide content with transition */}
+          <div className="relative h-[380px]">
+            {slides.map((s, i) => (
+              <div
+                key={i}
+                className="absolute inset-0 transition-all duration-700 ease-in-out"
+                style={{
+                  opacity: slide === i ? 1 : 0,
+                  transform: slide === i ? 'translateX(0) scale(1)' : 'translateX(40px) scale(0.95)',
+                  pointerEvents: slide === i ? 'auto' : 'none',
+                }}
+              >
+                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 mb-6 border border-white/20 shadow-2xl">
+                  {s.mockup}
                 </div>
-                <div>
-                  <p className="text-[10px] text-gray-400">Total Sales</p>
-                  <p className="text-lg font-black text-gray-900">৳1,89,374</p>
-                </div>
+                <h2 className="text-2xl font-black text-white mb-3">{s.title}</h2>
+                <p className="text-blue-100 text-sm leading-relaxed">{s.desc}</p>
               </div>
-              <div className="flex gap-2">
-                <div className="flex-1 bg-blue-50 rounded-lg p-2">
-                  <p className="text-[9px] text-gray-400">Products</p>
-                  <p className="text-sm font-bold text-gray-900">1,248</p>
-                </div>
-                <div className="flex-1 bg-green-50 rounded-lg p-2">
-                  <p className="text-[9px] text-gray-400">Customers</p>
-                  <p className="text-sm font-bold text-gray-900">356</p>
-                </div>
-                <div className="flex-1 bg-purple-50 rounded-lg p-2">
-                  <p className="text-[9px] text-gray-400">Orders</p>
-                  <p className="text-sm font-bold text-gray-900">6,248</p>
-                </div>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <div className="flex-1 bg-white/20 rounded-lg h-16" />
-              <div className="flex-1 bg-white/20 rounded-lg h-16" />
-            </div>
+            ))}
           </div>
 
-          <h2 className="text-2xl sm:text-3xl font-black text-white mb-3">
-            {lang === 'bn' ? 'আপনার ব্যবসা ম্যানেজ করুন সহজে' : 'Effortlessly manage your business'}
-          </h2>
-          <p className="text-blue-100 text-sm leading-relaxed">
-            {lang === 'bn'
-              ? 'TilePOS দিয়ে আপনার টাইলস শোরুমের বিক্রয়, স্টক, কাস্টমার সব এক জায়গায় ম্যানেজ করুন।'
-              : 'Log in to access your POS dashboard and manage your tiles showroom sales, stock & customers.'}
-          </p>
-
-          {/* Dot indicators */}
-          <div className="flex justify-center gap-2 mt-6">
-            <div className="w-2 h-2 rounded-full bg-white" />
-            <div className="w-2 h-2 rounded-full bg-white/40" />
-            <div className="w-2 h-2 rounded-full bg-white/40" />
+          {/* Dot indicators - clickable */}
+          <div className="flex justify-center gap-2 mt-4">
+            {slides.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setSlide(i)}
+                className={`rounded-full transition-all duration-300 ${
+                  slide === i ? 'w-6 h-2 bg-white' : 'w-2 h-2 bg-white/40 hover:bg-white/60'
+                }`}
+              />
+            ))}
           </div>
         </div>
       </div>
