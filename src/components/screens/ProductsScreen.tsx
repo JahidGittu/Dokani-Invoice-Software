@@ -317,7 +317,7 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
       {/* ═══ PRODUCT TABLE ═══ */}
       <div className="bg-pos-surface-lowest rounded-xl shadow-sm overflow-hidden border border-pos-surface-container">
         <div className="overflow-auto max-h-[calc(100vh-260px)]">
-          <table className="w-full min-w-[1100px] relative">
+          <table className="w-full min-w-[700px] relative">
             <thead className="sticky top-0 z-10">
               <tr className="text-[9px] font-bold text-pos-on-surface-variant uppercase tracking-wider bg-pos-surface-low border-b border-pos-surface-container">
                 <th className="px-2 py-2.5 w-8 text-center">#</th>
@@ -331,18 +331,11 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
                   <span className="inline-flex items-center gap-0.5">{t('brandLabel')} <span className="material-symbols-outlined text-[10px]">{sortIcon('brand')}</span></span>
                 </th>
                 <th className="px-2 py-2.5">{t('size')}</th>
-                <th className="px-2 py-2.5">Finish</th>
                 <th className="px-2 py-2.5 text-right">{t('buyRateLabel')}</th>
                 <th className="px-2 py-2.5 text-right cursor-pointer select-none" onClick={() => toggleSort('pricePerBox')}>
                   <span className="inline-flex items-center gap-0.5 justify-end">{t('salesRateLabel')} <span className="material-symbols-outlined text-[10px]">{sortIcon('pricePerBox')}</span></span>
                 </th>
-                <th className="px-2 py-2.5 text-center">Sqft</th>
-                <th className="px-2 py-2.5 text-center">Pcs</th>
-                <th className="px-2 py-2.5 text-center cursor-pointer select-none" onClick={() => toggleSort('stock')}>
-                  <span className="inline-flex items-center gap-0.5">{t('stock')} <span className="material-symbols-outlined text-[10px]">{sortIcon('stock')}</span></span>
-                </th>
-                <th className="px-2 py-2.5">Bar/Code</th>
-                <th className="px-2 py-2.5 text-center w-12">{t('action')}</th>
+                <th className="px-2 py-2.5 text-center w-28">{t('action')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-pos-surface-container">
@@ -353,31 +346,32 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
                   {renderCell(p, 'category', <span className="text-xs">{p.category || '—'}</span>)}
                   {renderCell(p, 'brand', <span className="text-xs">{p.brand || '—'}</span>)}
                   {renderCell(p, 'size', <span className="px-1.5 py-0.5 bg-pos-secondary-container text-pos-on-secondary-container rounded text-[10px] font-bold">{p.size || '—'}</span>)}
-                  {renderCell(p, 'finish', <span className="text-xs">{p.finish}</span>)}
                   {renderCell(p, 'buyRate', <span className="text-xs">{formatCurrency(p.buyRate || 0)}</span>, 'text-right')}
                   {renderCell(p, 'pricePerBox', <span className="font-bold text-pos-secondary text-sm">{formatCurrency(p.pricePerBox)}</span>, 'text-right')}
-                  {renderCell(p, 'sqftPerBox', <span className="text-xs">{p.sqftPerBox || '—'}</span>, 'text-center')}
-                  {renderCell(p, 'piecesPerBox', <span className="text-xs">{p.piecesPerBox || 4}</span>, 'text-center')}
-                  {renderCell(p, 'stock', (
-                    <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${p.stock <= 0 ? 'bg-pos-error text-white' : p.stock <= (p.reorderLimit || 20) ? 'bg-pos-error-container text-pos-on-error-container' : 'bg-pos-tertiary-container text-pos-on-tertiary-container'}`}>
-                      {p.stock}
-                    </span>
-                  ), 'text-center')}
-                  {renderCell(p, 'batch', <span className="text-[10px] font-mono text-muted-foreground">{p.barcode || p.batch || '—'}</span>)}
                   <td className="px-2 py-2.5 text-center">
-                    <div className="flex items-center gap-1 justify-center">
+                    <div className="flex items-center gap-2 justify-center">
+                      {/* On/Off Toggle */}
+                      <button
+                        onClick={() => onUpdateProduct(p.id, { stock: p.stock > 0 ? 0 : 1 })}
+                        className={`w-9 h-5 rounded-full relative transition-colors ${p.stock > 0 ? 'bg-[hsl(125,60%,40%)]' : 'bg-muted'}`}
+                        title={p.stock > 0 ? 'Active' : 'Inactive'}
+                      >
+                        <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${p.stock > 0 ? 'left-[18px]' : 'left-0.5'}`} />
+                      </button>
+                      {/* Barcode */}
                       <button onClick={() => {
                         const w = window.open('', '_blank', 'width=400,height=300');
                         if (!w) return;
                         w.document.write(`<!DOCTYPE html><html><head><title>Barcode</title><style>body{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;font-family:monospace;text-align:center}h2{margin:0;font-size:18px}p{font-size:24px;letter-spacing:4px;font-weight:900;margin:8px 0}@media print{body{margin:0}}</style></head><body><h2>${p.name}</h2><p>${p.barcode || p.batch || p.id.slice(0,8)}</p><div style="font-size:12px">${p.size} · ${p.category || ''}</div></body></html>`);
                         w.document.close(); w.focus(); setTimeout(() => w.print(), 300);
                       }}
-                        className="w-5 h-5 rounded bg-[hsl(25,95%,53%)] text-white flex items-center justify-center opacity-60 group-hover:opacity-100 transition-opacity" title="Barcode Print">
-                        <span className="material-symbols-outlined text-xs">barcode</span>
+                        className="w-6 h-6 rounded bg-[hsl(25,95%,53%)] text-white flex items-center justify-center opacity-70 group-hover:opacity-100 transition-opacity" title="Barcode Print">
+                        <span className="material-symbols-outlined text-sm">barcode</span>
                       </button>
+                      {/* Delete */}
                       {onDeleteProduct && (
-                        <button onClick={() => setShowDeleteConfirm(p.id)} className="w-5 h-5 rounded bg-pos-error text-white flex items-center justify-center opacity-60 group-hover:opacity-100 transition-opacity" title={t('delete')}>
-                          <span className="material-symbols-outlined text-xs">delete</span>
+                        <button onClick={() => setShowDeleteConfirm(p.id)} className="w-6 h-6 rounded bg-pos-error text-white flex items-center justify-center opacity-70 group-hover:opacity-100 transition-opacity" title={t('delete')}>
+                          <span className="material-symbols-outlined text-sm">delete</span>
                         </button>
                       )}
                     </div>
@@ -385,7 +379,7 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
                 </tr>
               ))}
               {paginatedProducts.length === 0 && !search && (
-                <tr><td colSpan={13} className="px-8 py-6 text-center text-xs text-pos-on-surface-variant">{t('noProducts')}</td></tr>
+                <tr><td colSpan={8} className="px-8 py-6 text-center text-xs text-pos-on-surface-variant">{t('noProducts')}</td></tr>
               )}
             </tbody>
           </table>
