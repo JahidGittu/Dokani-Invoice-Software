@@ -29,6 +29,7 @@ import { type SaleRecord, type Product } from "@/lib/store";
 
 export default function Index() {
   const { user, loading: authLoading, signOut } = useAuth();
+  const { role, isRoleLoading, isAdmin } = useUserRole();
   const { loading: licenseLoading, isBlocked, license, reason } = useLicenseStatus();
   const [activeScreen, setActiveScreen] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
