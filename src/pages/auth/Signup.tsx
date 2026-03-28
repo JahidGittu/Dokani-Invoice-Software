@@ -10,6 +10,7 @@ export default function Signup() {
   const { user, loading: authLoading } = useAuth();
   const { t, lang, setLang } = useI18n();
   const [shopName, setShopName] = useState('');
+  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
@@ -169,6 +170,7 @@ export default function Signup() {
           data: {
             shop_name: shopName,
             phone: phone,
+            full_name: fullName,
           }
         }
       });
@@ -252,6 +254,15 @@ export default function Signup() {
           </div>
 
           <form onSubmit={handleSignup} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">{lang === 'bn' ? 'আপনার নাম' : 'Full Name'}</label>
+              <div className="relative">
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xl">person</span>
+                <input type="text" value={fullName} onChange={e => setFullName(e.target.value)} required
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pl-10 pr-4 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                  placeholder={lang === 'bn' ? 'যেমন: মোহাম্মদ রহমান' : 'e.g. Mohammad Rahman'} />
+              </div>
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">{lang === 'bn' ? 'দোকানের নাম' : 'Shop Name'}</label>
               <div className="relative">
