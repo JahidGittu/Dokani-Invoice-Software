@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 
 export default function Signup() {
   const { user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
   const { t, lang, setLang } = useI18n();
   const [shopName, setShopName] = useState('');
   const [fullName, setFullName] = useState('');
