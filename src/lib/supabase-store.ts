@@ -35,6 +35,7 @@ export function useSupabaseProducts() {
       height: (p as any).height || '',
       width: (p as any).width || '',
       reorderLimit: Number((p as any).reorder_limit) || 0,
+      imageUrl: (p as any).image_url || '',
     })));
     setLoading(false);
   }, [user]);
@@ -50,7 +51,7 @@ export function useSupabaseProducts() {
       category: p.category || '', brand: p.brand || '',
       buy_rate: p.buyRate || 0, pieces_per_box: p.piecesPerBox || 4,
       unit: p.unit || 'SQFT', height: p.height || '', width: p.width || '',
-      reorder_limit: p.reorderLimit || 0,
+      reorder_limit: p.reorderLimit || 0, image_url: p.imageUrl || '',
     });
     if (error) { toast.error('Failed to add product'); return; }
     fetchProducts();
@@ -75,6 +76,7 @@ export function useSupabaseProducts() {
     if (updates.height !== undefined) dbUpdates.height = updates.height;
     if (updates.width !== undefined) dbUpdates.width = updates.width;
     if (updates.reorderLimit !== undefined) dbUpdates.reorder_limit = updates.reorderLimit;
+    if (updates.imageUrl !== undefined) dbUpdates.image_url = updates.imageUrl;
     const { error } = await supabase.from('products').update(dbUpdates).eq('id', id);
     if (error) { toast.error('Failed to update product'); return; }
     fetchProducts();
