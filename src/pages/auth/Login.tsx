@@ -154,7 +154,7 @@ export default function Login() {
           <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
             <span className="material-symbols-outlined text-white text-xl">store</span>
           </div>
-          <span className="text-xl font-black text-gray-900 tracking-tight">TilePOS</span>
+          <span className="text-xl font-black text-gray-900 tracking-tight">Dokani</span>
         </div>
 
         {/* Language Toggle - top right */}
