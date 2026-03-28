@@ -155,7 +155,6 @@ export default function Signup() {
     },
   ];
 
-  const [signupSuccess, setSignupSuccess] = useState(false);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
