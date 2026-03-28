@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_messages: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string
+          message_type: string
+          recipient_id: string
+          sender_id: string
+          subject: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          message_type?: string
+          recipient_id: string
+          sender_id: string
+          subject?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          message_type?: string
+          recipient_id?: string
+          sender_id?: string
+          subject?: string
+        }
+        Relationships: []
+      }
       company_settings: {
         Row: {
           address: string
@@ -145,6 +178,69 @@ export type Database = {
           payment_method?: string
           reference_id?: string
           reference_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      licenses: {
+        Row: {
+          annual_fee: number
+          blocked_at: string | null
+          blocked_reason: string
+          created_at: string
+          id: string
+          is_blocked: boolean
+          license_expiry: string
+          license_start: string
+          notes: string
+          owner_email: string
+          owner_name: string
+          owner_phone: string
+          payment_history: Json
+          setup_fee: number
+          shop_name: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          annual_fee?: number
+          blocked_at?: string | null
+          blocked_reason?: string
+          created_at?: string
+          id?: string
+          is_blocked?: boolean
+          license_expiry?: string
+          license_start?: string
+          notes?: string
+          owner_email?: string
+          owner_name?: string
+          owner_phone?: string
+          payment_history?: Json
+          setup_fee?: number
+          shop_name?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          annual_fee?: number
+          blocked_at?: string | null
+          blocked_reason?: string
+          created_at?: string
+          id?: string
+          is_blocked?: boolean
+          license_expiry?: string
+          license_start?: string
+          notes?: string
+          owner_email?: string
+          owner_name?: string
+          owner_phone?: string
+          payment_history?: Json
+          setup_fee?: number
+          shop_name?: string
+          status?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
