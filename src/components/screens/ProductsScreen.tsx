@@ -446,6 +446,7 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
         </div>
       )}
 
+      {activeView !== 'bulk' && <>
       {/* Search bar */}
       <div className="relative w-full sm:w-auto">
         <input value={search} onChange={(e) => { setSearch(e.target.value); setPage(0); }} className="w-full sm:w-64 bg-pos-surface-high border-none rounded-lg text-xs py-2.5 pl-9 pr-4 focus:ring-2 focus:ring-pos-secondary outline-none" placeholder={t('searchProducts')} />
