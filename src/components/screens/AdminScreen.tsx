@@ -45,7 +45,7 @@ interface AdminMessage {
 
 type AdminTab = 'users' | 'licenses' | 'messages';
 
-export default function AdminScreen() {
+export default function AdminScreen({ initialTab }: { initialTab?: string }) {
   const { lang } = useI18n();
   const { user } = useAuth();
   const [users, setUsers] = useState<UserWithRole[]>([]);
