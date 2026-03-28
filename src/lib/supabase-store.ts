@@ -51,7 +51,7 @@ export function useSupabaseProducts() {
       category: p.category || '', brand: p.brand || '',
       buy_rate: p.buyRate || 0, pieces_per_box: p.piecesPerBox || 4,
       unit: p.unit || 'SQFT', height: p.height || '', width: p.width || '',
-      reorder_limit: p.reorderLimit || 0,
+      reorder_limit: p.reorderLimit || 0, image_url: p.imageUrl || '',
     });
     if (error) { toast.error('Failed to add product'); return; }
     fetchProducts();
