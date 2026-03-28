@@ -180,6 +180,20 @@ export default function AdminLayout() {
 
 /* ─── Overview Dashboard with Charts ─── */
 function AdminOverview({ stats, lang, onNavigate, licenses }: { stats: Stats; lang: string; onNavigate: (nav: AdminNav) => void; licenses: LicenseRaw[] }) {
+  const [pendingSignups, setPendingSignups] = useState<{ id: string; subject: string; message: string; created_at: string; sender_id: string }[]>([]);
+
+  useEffect(() => {
+    loadPendingSignups();
+  }, []);
+
+  const loadPendingSignups = async () => {
+    const { data } = await supabase.from('admin_messages').select('*')
+      .eq('message_type', 'new_signup')
+      .order('created_at', { ascending: false })
+      .limit(20);
+    if (data) setPendingSignups(data as any);
+  };
+
   // Monthly revenue chart data
   const monthlyData = (() => {
     const months: Record<string, number> = {};
@@ -215,6 +229,11 @@ function AdminOverview({ stats, lang, onNavigate, licenses }: { stats: Stats; la
       .filter(l => l.daysLeft >= -5 && l.daysLeft <= 30)
       .sort((a, b) => a.daysLeft - b.daysLeft);
   })();
+
+  // Check which signups already have licenses
+  const pendingWithoutLicense = pendingSignups.filter(
+    s => !licenses.some(l => l.user_id === s.sender_id)
+  );
 
   return (
     <div className="space-y-6">
