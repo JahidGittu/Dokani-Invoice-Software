@@ -260,58 +260,21 @@ export default function AdminScreen({ initialTab }: { initialTab?: string }) {
 
   const deleteUser = async (userId: string) => {
     try {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('email, shop_name, phone')
-        .eq('user_id', userId)
-        .maybeSingle<ProfileRecord>();
+      const { data, error } = await supabase.functions.invoke('admin-delete-user', {
+        body: { userId },
+      });
 
-      const signupCleanupQueries = [
-        profile?.email
-          ? supabase.from('admin_messages').delete().eq('message_type', 'new_signup').ilike('message', `%${profile.email}%`)
-          : null,
-        profile?.shop_name
-          ? supabase.from('admin_messages').delete().eq('message_type', 'new_signup').eq('subject', `🆕 নতুন সাইনআপ: ${profile.shop_name}`)
-          : null,
-        profile?.shop_name
-          ? supabase.from('admin_messages').delete().eq('message_type', 'new_signup').ilike('message', `%${profile.shop_name}%`)
-          : null,
-      ].filter(Boolean);
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
 
-      // First delete child records (sale_items, purchase_items depend on parent)
-      const { data: userSales } = await supabase.from('sales').select('id').eq('user_id', userId);
-      const { data: userPurchases } = await supabase.from('purchases').select('id').eq('user_id', userId);
-      
-      if (userSales?.length) {
-        await supabase.from('sale_items').delete().in('sale_id', userSales.map(s => s.id));
-      }
-      if (userPurchases?.length) {
-        await supabase.from('purchase_items').delete().in('purchase_id', userPurchases.map(p => p.id));
-      }
-
-      // Delete all user data from every table
-      await Promise.all([
-        supabase.from('sales').delete().eq('user_id', userId),
-        supabase.from('purchases').delete().eq('user_id', userId),
-        supabase.from('products').delete().eq('user_id', userId),
-        supabase.from('customers').delete().eq('user_id', userId),
-        supabase.from('suppliers').delete().eq('user_id', userId),
-        supabase.from('staffs').delete().eq('user_id', userId),
-        supabase.from('inventory_logs').delete().eq('user_id', userId),
-        supabase.from('due_payments').delete().eq('user_id', userId),
-        supabase.from('product_options').delete().eq('user_id', userId),
-        supabase.from('licenses').delete().eq('user_id', userId),
-        supabase.from('admin_messages').delete().eq('recipient_id', userId),
-        supabase.from('admin_messages').delete().eq('sender_id', userId),
-        supabase.from('profiles').delete().eq('user_id', userId),
-        supabase.from('user_roles').delete().eq('user_id', userId),
-        supabase.from('company_settings').delete().eq('user_id', userId),
-        ...signupCleanupQueries,
-      ]);
-      toast.success(lang === 'bn' ? 'ইউজার ডিলেট করা হয়েছে' : 'User deleted');
+      toast.success(lang === 'bn' ? 'ইউজার পুরোপুরি ডিলেট করা হয়েছে' : 'User deleted permanently');
       setConfirmDelete(null);
-      loadUsers(); loadLicenses(); loadMessages();
-    } catch (err: any) { toast.error(err.message); }
+      loadUsers();
+      loadLicenses();
+      loadMessages();
+    } catch (err: any) {
+      toast.error(err.message || (lang === 'bn' ? 'ইউজার ডিলেট করা যায়নি' : 'Failed to delete user'));
+    }
   };
 
   const sendExpiryWarning = async (license: License) => {
