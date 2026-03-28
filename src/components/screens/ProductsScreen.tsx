@@ -458,9 +458,9 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
                   <span className="inline-flex items-center gap-1">{t('brandLabel')} <span className="material-symbols-outlined text-[10px]">{sortIcon('brand')}</span></span>
                 </th>
                 <th className="px-3 py-3 text-center align-middle">{t('size')}</th>
-                <th className="px-3 py-3 text-right align-middle">{t('buyRateLabel')}</th>
-                <th className="px-3 py-3 text-right align-middle cursor-pointer select-none" onClick={() => toggleSort('pricePerBox')}>
-                  <span className="inline-flex items-center gap-1 justify-end">{t('salesRateLabel')} <span className="material-symbols-outlined text-[10px]">{sortIcon('pricePerBox')}</span></span>
+                <th className="px-3 py-3 text-center align-middle">{t('buyRateLabel')}</th>
+                <th className="px-3 py-3 text-center align-middle cursor-pointer select-none" onClick={() => toggleSort('pricePerBox')}>
+                  <span className="inline-flex items-center gap-1 justify-center">{t('salesRateLabel')} <span className="material-symbols-outlined text-[10px]">{sortIcon('pricePerBox')}</span></span>
                 </th>
                 <th className="px-3 py-3 text-center align-middle w-36">{t('action')}</th>
               </tr>
