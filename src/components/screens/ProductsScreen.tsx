@@ -446,46 +446,46 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
         <div className="overflow-auto max-h-[calc(100vh-260px)]">
           <table className="w-full min-w-[700px] relative">
             <thead className="sticky top-0 z-10">
-              <tr className="text-[9px] font-bold text-pos-on-surface-variant uppercase tracking-wider bg-pos-surface-low border-b border-pos-surface-container">
-                <th className="px-2 py-2.5 w-8 text-center">#</th>
-                <th className="px-2 py-2.5 cursor-pointer select-none" onClick={() => toggleSort('name')}>
-                  <span className="inline-flex items-center gap-0.5">{t('productName')} <span className="material-symbols-outlined text-[10px]">{sortIcon('name')}</span></span>
+              <tr className="text-[10px] font-bold text-pos-on-surface-variant uppercase tracking-wider bg-pos-surface-low border-b border-pos-surface-container">
+                <th className="px-3 py-3 w-10 text-center align-middle">#</th>
+                <th className="px-3 py-3 text-left align-middle cursor-pointer select-none" onClick={() => toggleSort('name')}>
+                  <span className="inline-flex items-center gap-1">{t('productName')} <span className="material-symbols-outlined text-[10px]">{sortIcon('name')}</span></span>
                 </th>
-                <th className="px-2 py-2.5 cursor-pointer select-none" onClick={() => toggleSort('category')}>
-                  <span className="inline-flex items-center gap-0.5">{t('categoryLabel')} <span className="material-symbols-outlined text-[10px]">{sortIcon('category')}</span></span>
+                <th className="px-3 py-3 text-left align-middle cursor-pointer select-none" onClick={() => toggleSort('category')}>
+                  <span className="inline-flex items-center gap-1">{t('categoryLabel')} <span className="material-symbols-outlined text-[10px]">{sortIcon('category')}</span></span>
                 </th>
-                <th className="px-2 py-2.5 cursor-pointer select-none" onClick={() => toggleSort('brand')}>
-                  <span className="inline-flex items-center gap-0.5">{t('brandLabel')} <span className="material-symbols-outlined text-[10px]">{sortIcon('brand')}</span></span>
+                <th className="px-3 py-3 text-left align-middle cursor-pointer select-none" onClick={() => toggleSort('brand')}>
+                  <span className="inline-flex items-center gap-1">{t('brandLabel')} <span className="material-symbols-outlined text-[10px]">{sortIcon('brand')}</span></span>
                 </th>
-                <th className="px-2 py-2.5">{t('size')}</th>
-                <th className="px-2 py-2.5 text-right">{t('buyRateLabel')}</th>
-                <th className="px-2 py-2.5 text-right cursor-pointer select-none" onClick={() => toggleSort('pricePerBox')}>
-                  <span className="inline-flex items-center gap-0.5 justify-end">{t('salesRateLabel')} <span className="material-symbols-outlined text-[10px]">{sortIcon('pricePerBox')}</span></span>
+                <th className="px-3 py-3 text-center align-middle">{t('size')}</th>
+                <th className="px-3 py-3 text-right align-middle">{t('buyRateLabel')}</th>
+                <th className="px-3 py-3 text-right align-middle cursor-pointer select-none" onClick={() => toggleSort('pricePerBox')}>
+                  <span className="inline-flex items-center gap-1 justify-end">{t('salesRateLabel')} <span className="material-symbols-outlined text-[10px]">{sortIcon('pricePerBox')}</span></span>
                 </th>
-                <th className="px-2 py-2.5 text-center w-32">{t('action')}</th>
+                <th className="px-3 py-3 text-center align-middle w-36">{t('action')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-pos-surface-container">
               {paginatedProducts.map((p, idx) => (
                 <tr key={p.id} className="hover:bg-pos-surface-low transition-colors group cursor-pointer"
                   onDoubleClick={() => openEditModal(p)} title="ডাবল ক্লিক করে এডিট করুন">
-                  <td className="px-2 py-2.5 text-center text-[10px] text-muted-foreground font-mono">{page * PAGE_SIZE + idx + 1}</td>
-                  <td className="px-2 py-2.5">
+                  <td className="px-3 py-3 text-center align-middle text-[11px] text-muted-foreground font-mono">{page * PAGE_SIZE + idx + 1}</td>
+                  <td className="px-3 py-3 text-left align-middle">
                     <div className="flex items-center gap-2">
                       {p.imageUrl && (
-                        <img src={p.imageUrl} alt="" className="w-7 h-7 rounded object-cover border border-border" />
+                        <img src={p.imageUrl} alt="" className="w-7 h-7 rounded object-cover border border-border flex-shrink-0" />
                       )}
                       <span className="font-semibold text-sm">{p.name}</span>
                     </div>
                   </td>
-                  <td className="px-2 py-2.5 text-xs">{p.category || '—'}</td>
-                  <td className="px-2 py-2.5 text-xs">{p.brand || '—'}</td>
-                  <td className="px-2 py-2.5">
-                    <span className="px-1.5 py-0.5 bg-pos-secondary-container text-pos-on-secondary-container rounded text-[10px] font-bold">{p.size || (p.height && p.width ? `${p.height}×${p.width}` : '—')}</span>
+                  <td className="px-3 py-3 text-left align-middle text-xs">{p.category || '—'}</td>
+                  <td className="px-3 py-3 text-left align-middle text-xs">{p.brand || '—'}</td>
+                  <td className="px-3 py-3 text-center align-middle">
+                    <span className="px-2 py-0.5 bg-pos-secondary-container text-pos-on-secondary-container rounded text-[10px] font-bold">{p.size || (p.height && p.width ? `${p.height}×${p.width}` : '—')}</span>
                   </td>
-                  <td className="px-2 py-2.5 text-right text-xs">{formatCurrency(p.buyRate || 0)}</td>
-                  <td className="px-2 py-2.5 text-right"><span className="font-bold text-pos-secondary text-sm">{formatCurrency(p.pricePerBox)}</span></td>
-                  <td className="px-2 py-2.5 text-center" onClick={e => e.stopPropagation()}>
+                  <td className="px-3 py-3 text-right align-middle text-xs font-medium">{formatCurrency(p.buyRate || 0)}</td>
+                  <td className="px-3 py-3 text-right align-middle"><span className="font-bold text-pos-secondary text-sm">{formatCurrency(p.pricePerBox)}</span></td>
+                  <td className="px-3 py-3 text-center align-middle" onClick={e => e.stopPropagation()}>
                     <div className="flex items-center gap-2 justify-center">
                       {/* On/Off Toggle */}
                       <button
