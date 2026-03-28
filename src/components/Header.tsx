@@ -25,19 +25,34 @@ interface HeaderProps {
   shopName?: string;
 }
 
-type DropdownId = 'info' | 'settings' | 'lang' | 'profile' | null;
+type DropdownId = 'info' | 'settings' | 'lang' | 'profile' | 'messages' | null;
 
 export default function Header({ activeScreen, onToggleSidebar, onNavigate, onSearch, products, sales = [], customers = [], userName = 'AR', shopName = 'Dokani' }: HeaderProps) {
   const { t, lang, setLang } = useI18n();
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [showResults, setShowResults] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<DropdownId>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const lowStock = useMemo(() => getLowStockProducts(products), [products]);
   const initials = (userName || 'U').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+  const [messages, setMessages] = useState<AdminMsg[]>([]);
+  const unreadCount = messages.filter(m => !m.is_read).length;
 
   const debouncedQuery = useDebounce(searchQuery, 250);
+
+  // Load admin messages for current user
+  useEffect(() => {
+    if (!user) return;
+    const loadMessages = async () => {
+      const { data } = await supabase.from('admin_messages').select('*')
+        .eq('recipient_id', user.id).order('created_at', { ascending: false }).limit(20);
+      if (data) setMessages(data as any);
+    };
+    loadMessages();
+    const interval = setInterval(loadMessages, 30000); // poll every 30s
+    return () => clearInterval(interval);
+  }, [user]);
 
   // Close dropdown on outside click
   useEffect(() => {
