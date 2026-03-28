@@ -74,18 +74,30 @@ export default function CustomersScreen({ customers, sales = [], onAddCustomer, 
     setShowDeleteConfirm(null);
   };
 
-  const handleCollectDue = () => {
-    if (!showCollectDue || !collectAmount) return;
+  const handleCollectDue = async () => {
+    if (!showCollectDue || !collectAmount || !user) return;
     const amount = Number(collectAmount);
     if (amount <= 0 || amount > (showCollectDue.totalDue || 0)) {
       toast.error('Invalid amount');
       return;
     }
+    // Log payment to due_payments table
+    await supabase.from('due_payments').insert({
+      user_id: user.id,
+      reference_type: 'sale',
+      reference_id: showCollectDue.id,
+      customer_or_supplier: showCollectDue.name,
+      amount,
+      payment_method: collectMethod,
+      note: collectNote || `Due collected from ${showCollectDue.name}`,
+    } as any);
     const newDue = (showCollectDue.totalDue || 0) - amount;
     onUpdateCustomerDue?.(showCollectDue.id, newDue);
     toast.success(`৳${amount} collected from ${showCollectDue.name}`);
     setShowCollectDue(null);
     setCollectAmount('');
+    setCollectMethod('Cash');
+    setCollectNote('');
   };
 
   // Get customer's sales history
