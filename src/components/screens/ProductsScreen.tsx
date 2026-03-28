@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useCallback, useEffect } from "react";
-import BulkProductModal from "@/components/BulkProductModal";
+import BulkProductView from "@/components/BulkProductView";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useI18n } from "@/lib/i18n";
 import { type Product, formatCurrency } from "@/lib/store";
