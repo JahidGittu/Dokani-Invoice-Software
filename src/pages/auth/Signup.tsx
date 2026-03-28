@@ -174,19 +174,14 @@ export default function Signup() {
       });
       if (error) throw error;
 
-      // Send notification to all admins about new signup
+      // Notify admins via SECURITY DEFINER function (bypasses RLS)
       try {
-        const { data: admins } = await supabase.from('user_roles').select('user_id').eq('role', 'admin');
-        if (admins && admins.length > 0 && signUpData.user) {
-          const notifications = admins.map(admin => ({
-            sender_id: signUpData.user!.id,
-            recipient_id: admin.user_id,
-            subject: `🆕 নতুন সাইনআপ: ${shopName || email}`,
-            message: `নতুন ইউজার সাইনআপ করেছে:\n📧 ${email}\n🏪 ${shopName || 'N/A'}\n📱 ${phone || 'N/A'}\n\nঅনুগ্রহ করে লাইসেন্স তৈরি করে অ্যাক্টিভেট করুন।`,
-            message_type: 'new_signup',
-          }));
-          await supabase.from('admin_messages').insert(notifications as any);
-        }
+        await supabase.rpc('notify_admins_new_signup', {
+          p_user_id: signUpData.user!.id,
+          p_email: email,
+          p_shop_name: shopName || '',
+          p_phone: phone || '',
+        });
       } catch (notifErr) {
         console.error('Failed to notify admin:', notifErr);
       }

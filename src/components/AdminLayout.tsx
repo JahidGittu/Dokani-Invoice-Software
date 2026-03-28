@@ -19,6 +19,7 @@ interface Stats {
 
 interface LicenseRaw {
   id: string;
+  user_id: string;
   setup_fee: number;
   annual_fee: number;
   is_blocked: boolean;
@@ -180,6 +181,20 @@ export default function AdminLayout() {
 
 /* ─── Overview Dashboard with Charts ─── */
 function AdminOverview({ stats, lang, onNavigate, licenses }: { stats: Stats; lang: string; onNavigate: (nav: AdminNav) => void; licenses: LicenseRaw[] }) {
+  const [pendingSignups, setPendingSignups] = useState<{ id: string; subject: string; message: string; created_at: string; sender_id: string }[]>([]);
+
+  useEffect(() => {
+    loadPendingSignups();
+  }, []);
+
+  const loadPendingSignups = async () => {
+    const { data } = await supabase.from('admin_messages').select('*')
+      .eq('message_type', 'new_signup')
+      .order('created_at', { ascending: false })
+      .limit(20);
+    if (data) setPendingSignups(data as any);
+  };
+
   // Monthly revenue chart data
   const monthlyData = (() => {
     const months: Record<string, number> = {};
@@ -216,6 +231,11 @@ function AdminOverview({ stats, lang, onNavigate, licenses }: { stats: Stats; la
       .sort((a, b) => a.daysLeft - b.daysLeft);
   })();
 
+  // Check which signups already have licenses
+  const pendingWithoutLicense = pendingSignups.filter(
+    s => !licenses.some(l => l.user_id === s.sender_id)
+  );
+
   return (
     <div className="space-y-6">
       {/* Welcome */}
@@ -227,6 +247,38 @@ function AdminOverview({ stats, lang, onNavigate, licenses }: { stats: Stats; la
           {lang === 'bn' ? 'সমস্ত ক্লায়েন্ট, লাইসেন্স এবং সিস্টেম একটি জায়গা থেকে পরিচালনা করুন' : 'Manage all clients, licenses and system from one place'}
         </p>
       </div>
+
+      {/* Pending Signups Alert */}
+      {pendingWithoutLicense.length > 0 && (
+        <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-5">
+          <h3 className="text-sm font-bold text-amber-400 mb-3 flex items-center gap-2">
+            <span className="material-symbols-outlined text-lg">notification_important</span>
+            {lang === 'bn' ? `🆕 ${pendingWithoutLicense.length}টি নতুন সাইনআপ — অ্যাক্টিভেশন প্রয়োজন` : `🆕 ${pendingWithoutLicense.length} New Signup(s) — Activation Required`}
+          </h3>
+          <div className="space-y-2">
+            {pendingWithoutLicense.map(s => (
+              <div key={s.id} className="flex items-center justify-between bg-gray-900 rounded-xl px-4 py-3 border border-gray-800">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 bg-amber-500/20 rounded-full flex items-center justify-center">
+                    <span className="material-symbols-outlined text-amber-400 text-lg">person_add</span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-white">{s.subject.replace('🆕 নতুন সাইনআপ: ', '')}</p>
+                    <p className="text-[10px] text-gray-500">
+                      {(() => { try { return new Date(s.created_at).toLocaleString('bn-BD'); } catch { return s.created_at; } })()}
+                    </p>
+                  </div>
+                </div>
+                <button onClick={() => onNavigate('licenses')}
+                  className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 transition-colors flex items-center gap-1">
+                  <span className="material-symbols-outlined text-sm">add_circle</span>
+                  {lang === 'bn' ? 'লাইসেন্স দিন' : 'Create License'}
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
