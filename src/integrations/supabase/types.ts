@@ -182,6 +182,45 @@ export type Database = {
         }
         Relationships: []
       }
+      inventory_logs: {
+        Row: {
+          created_at: string
+          id: string
+          log_type: string
+          note: string
+          product_id: string
+          product_name: string
+          qty: number
+          reference_id: string
+          total_after: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          log_type?: string
+          note?: string
+          product_id: string
+          product_name?: string
+          qty?: number
+          reference_id?: string
+          total_after?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          log_type?: string
+          note?: string
+          product_id?: string
+          product_name?: string
+          qty?: number
+          reference_id?: string
+          total_after?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       licenses: {
         Row: {
           annual_fee: number
@@ -562,6 +601,45 @@ export type Database = {
           status?: string
           subtotal?: number
           total?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      staffs: {
+        Row: {
+          created_at: string
+          id: string
+          join_date: string
+          name: string
+          phone: string
+          role: string
+          salary: number
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          join_date?: string
+          name: string
+          phone?: string
+          role?: string
+          salary?: number
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          join_date?: string
+          name?: string
+          phone?: string
+          role?: string
+          salary?: number
+          status?: string
           updated_at?: string
           user_id?: string
         }
