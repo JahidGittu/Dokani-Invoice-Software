@@ -23,7 +23,7 @@ export default function Signup() {
     return () => clearInterval(timer);
   }, []);
 
-  if (!authLoading && user) return <Navigate to="/" replace />;
+  if (!authLoading && user && !signupSuccess) return <Navigate to="/" replace />;
 
   const slides = [
     {
