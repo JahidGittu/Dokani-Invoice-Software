@@ -149,7 +149,7 @@ const defaultSettings: CompanySettings = {
   phone: '01700-000000',
   email: 'info@dokani.com.bd',
   userName: 'Arif Rahman',
-  userRole: 'Administrator',
+  userRole: 'System Admin',
   lowStockThreshold: 20,
   invPrefix: 'INV',
   darkMode: false,
