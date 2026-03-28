@@ -126,7 +126,7 @@ export default function AdminScreen({ initialTab }: { initialTab?: string }) {
 
   const loadUsers = async () => {
     const [{ data: profiles }, { data: allRoles }, { data: allLicenses }] = await Promise.all([
-      supabase.from('profiles').select('user_id, email, shop_name, phone, status, created_at'),
+      supabase.from('profiles').select('user_id, email, shop_name, phone, full_name, status, created_at'),
       supabase.from('user_roles').select('user_id, role'),
       supabase.from('licenses').select('user_id'),
     ]);
