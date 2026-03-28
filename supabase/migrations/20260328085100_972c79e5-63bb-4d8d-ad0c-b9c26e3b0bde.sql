@@ -1,0 +1,1 @@
+ALTER TABLE public.company_settings ALTER COLUMN name SET DEFAULT 'Dokani';

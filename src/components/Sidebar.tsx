@@ -67,7 +67,7 @@ interface SidebarProps {
   userRole?: string;
 }
 
-export default function Sidebar({ activeScreen, onNavigate, isOpen, onClose, products, userName = 'Arif Rahman', userRole = 'System Admin' }: SidebarProps) {
+export default function Sidebar({ activeScreen, onNavigate, isOpen, onClose, products, userName = '', userRole = '' }: SidebarProps) {
   const { t } = useI18n();
   const lowStock = useMemo(() => getLowStockProducts(products), [products]);
   const initials = (userName || 'U').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);

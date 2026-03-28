@@ -307,7 +307,6 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
     setDiscount(''); setReceived(''); setPayment('cash'); setStatus('paid');
     setDelivery(''); setLabour(''); setPaidAmount(''); setReturnAmt(''); setLessAmt('');
     setRows([{ id: Date.now(), productId: '', qty: 1, rate: 0, searchQuery: '', showDropdown: false, carton: 0, piece: 0, sqftInput: '' }]);
-    setRows([{ id: Date.now(), productId: '', qty: 1, rate: 0, searchQuery: '', showDropdown: false, carton: 0, piece: 0, sqftInput: '' }]);
   };
 
   const handleSaveAndPrint = () => {
