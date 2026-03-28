@@ -12,7 +12,7 @@ interface DashboardScreenProps {
 }
 
 export default function DashboardScreen({ onNavigate, products, customers, sales, suppliers = [], purchases = [] }: DashboardScreenProps) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const todayStr = new Date().toDateString();
 
   const { todayTotal, todayCount, todayCashSales, todayDueSales, todayCashReceive, todayCashPayment } = useMemo(() => {
