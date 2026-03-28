@@ -122,6 +122,7 @@ export default function Index() {
           sales={sales}
           customers={customers}
           userName={settings.userName}
+          shopName={settings.name}
         />
         {renderScreen()}
       </main>
