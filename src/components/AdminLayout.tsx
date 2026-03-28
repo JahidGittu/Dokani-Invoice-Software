@@ -216,7 +216,7 @@ function AdminOverview({ stats, lang, onNavigate, licenses }: { stats: Stats; la
 
   const loadPendingProfiles = async () => {
     const [{ data: profiles }, { data: activeLicenses }] = await Promise.all([
-      supabase.from('profiles').select('user_id, email, shop_name').in('status', ['pending', 'banned']),
+      supabase.from('profiles').select('user_id, email, shop_name').eq('status', 'pending'),
       supabase.from('licenses').select('user_id'),
     ]);
 
