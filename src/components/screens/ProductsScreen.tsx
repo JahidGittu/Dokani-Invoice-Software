@@ -126,7 +126,24 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
 
   // ── Add form helpers ──
   const updateForm = (field: keyof AddFormData, value: string) => {
-    setForm(prev => ({ ...prev, [field]: value }));
+    setForm(prev => {
+      const next = { ...prev, [field]: value };
+      // Auto-suggest piecesPerBox when height or width changes
+      if ((field === 'height' || field === 'width') && next.unit === 'SQFT') {
+        const pkg = getAutoPackaging(
+          field === 'height' ? value : next.height,
+          field === 'width' ? value : next.width
+        );
+        if (pkg) next.piecesPerBox = String(pkg.piecesPerBox);
+      }
+      return next;
+    });
+  };
+
+  const applyTileSize = (sizeOpt: typeof TILE_SIZE_OPTIONS[0], update: (f: keyof AddFormData, v: string) => void) => {
+    update('height', sizeOpt.height);
+    update('width', sizeOpt.width);
+    update('piecesPerBox', String(sizeOpt.piecesPerBox));
   };
 
   const isSqft = (unit: string) => unit === 'SQFT';
