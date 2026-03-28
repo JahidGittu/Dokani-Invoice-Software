@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserRole } from "@/hooks/useUserRole";
 import { useLicenseStatus } from "@/hooks/useLicenseStatus";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import LicenseExpiredView from "@/components/LicenseExpiredView";
+import AdminLayout from "@/components/AdminLayout";
 import DashboardScreen from "@/components/screens/DashboardScreen";
 import ProductsScreen from "@/components/screens/ProductsScreen";
 import SalesScreen from "@/components/screens/SalesScreen";
@@ -25,6 +27,7 @@ import { type SaleRecord, type Product } from "@/lib/store";
 
 export default function Index() {
   const { user, loading: authLoading, signOut } = useAuth();
+  const { role, isRoleLoading, isAdmin } = useUserRole();
   const { loading: licenseLoading, isBlocked, license, reason } = useLicenseStatus();
   const [activeScreen, setActiveScreen] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -80,8 +83,12 @@ export default function Index() {
     return () => window.removeEventListener('keydown', handleKey);
   }, []);
 
-  if (authLoading || licenseLoading) return <div className="min-h-screen flex items-center justify-center"><span className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" /></div>;
+  if (authLoading || licenseLoading || isRoleLoading) return <div className="min-h-screen flex items-center justify-center"><span className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" /></div>;
   if (!user) return <Navigate to="/login" replace />;
+  
+  // Admin gets completely separate control panel
+  if (isAdmin) return <AdminLayout />;
+
   if (isBlocked) {
     return (
       <LicenseExpiredView

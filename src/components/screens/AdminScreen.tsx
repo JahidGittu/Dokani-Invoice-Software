@@ -45,7 +45,7 @@ interface AdminMessage {
 
 type AdminTab = 'users' | 'licenses' | 'messages';
 
-export default function AdminScreen() {
+export default function AdminScreen({ initialTab }: { initialTab?: string }) {
   const { lang } = useI18n();
   const { user } = useAuth();
   const [users, setUsers] = useState<UserWithRole[]>([]);
@@ -53,7 +53,7 @@ export default function AdminScreen() {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [search, setSearch] = useState('');
-  const [activeTab, setActiveTab] = useState<AdminTab>('licenses');
+  const [activeTab, setActiveTab] = useState<AdminTab>((initialTab as AdminTab) || 'licenses');
 
   // License form
   const [showLicenseForm, setShowLicenseForm] = useState(false);
