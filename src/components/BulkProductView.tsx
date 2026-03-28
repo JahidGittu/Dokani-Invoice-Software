@@ -301,6 +301,7 @@ export default function BulkProductView({ products, onAddProduct, onUpdateProduc
                   <th className="px-2 py-2.5">Name *</th>
                   <th className="px-2 py-2.5">Brand</th>
                   <th className="px-2 py-2.5">Unit</th>
+                  <th className="px-2 py-2.5">সাইজ</th>
                   <th className="px-2 py-2.5">Height</th>
                   <th className="px-2 py-2.5">Width</th>
                   <th className="px-2 py-2.5">Per Carton</th>
@@ -331,13 +332,31 @@ export default function BulkProductView({ products, onAddProduct, onUpdateProduc
                           {UNIT_OPTIONS.map(u => <option key={u} value={u}>{u}</option>)}
                         </select>
                       </td>
+                      {isSqft && (
+                        <td className="px-1 py-1">
+                          <select
+                            value={row.height && row.width ? `${row.height}×${row.width}` : ''}
+                            onChange={e => {
+                              const opt = TILE_SIZE_OPTIONS.find(o => o.value === e.target.value);
+                              if (opt) {
+                                setRows(prev => prev.map((r, i) => i === idx ? { ...r, height: opt.height, width: opt.width, piecesPerBox: String(opt.piecesPerBox) } : r));
+                              }
+                            }}
+                            className={`${inputCls} min-w-[90px]`}
+                          >
+                            <option value="">কাস্টম</option>
+                            {TILE_SIZE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                          </select>
+                        </td>
+                      )}
+                      {!isSqft && <td className="px-1 py-1 text-center text-[10px] text-muted-foreground">—</td>}
                       <td className="px-1 py-1">
                         <input type="number" value={row.height} onChange={e => updateRow(idx, 'height', e.target.value)}
-                          className={`${inputCls} min-w-[55px] ${isSqft && !row.height.trim() ? 'ring-1 ring-destructive/50' : ''}`} placeholder={isSqft ? 'Required' : '—'} />
+                          className={`${inputCls} min-w-[55px] ${isSqft && !row.height.trim() ? 'ring-1 ring-destructive/50' : ''}`} placeholder={isSqft ? 'সে.মি.' : '—'} />
                       </td>
                       <td className="px-1 py-1">
                         <input type="number" value={row.width} onChange={e => updateRow(idx, 'width', e.target.value)}
-                          className={`${inputCls} min-w-[55px] ${isSqft && !row.width.trim() ? 'ring-1 ring-destructive/50' : ''}`} placeholder={isSqft ? 'Required' : '—'} />
+                          className={`${inputCls} min-w-[55px] ${isSqft && !row.width.trim() ? 'ring-1 ring-destructive/50' : ''}`} placeholder={isSqft ? 'সে.মি.' : '—'} />
                       </td>
                       <td className="px-1 py-1">
                         <input type="number" value={row.piecesPerBox} onChange={e => updateRow(idx, 'piecesPerBox', e.target.value)}
