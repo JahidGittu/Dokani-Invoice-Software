@@ -76,6 +76,7 @@ export function useSupabaseProducts() {
     if (updates.height !== undefined) dbUpdates.height = updates.height;
     if (updates.width !== undefined) dbUpdates.width = updates.width;
     if (updates.reorderLimit !== undefined) dbUpdates.reorder_limit = updates.reorderLimit;
+    if (updates.imageUrl !== undefined) dbUpdates.image_url = updates.imageUrl;
     const { error } = await supabase.from('products').update(dbUpdates).eq('id', id);
     if (error) { toast.error('Failed to update product'); return; }
     fetchProducts();

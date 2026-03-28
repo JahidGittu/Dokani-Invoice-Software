@@ -19,6 +19,7 @@ export interface Product {
   height?: string;
   width?: string;
   reorderLimit?: number;
+  imageUrl?: string;
 }
 
 export interface CartItem {
