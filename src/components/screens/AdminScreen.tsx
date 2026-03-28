@@ -69,6 +69,31 @@ export default function AdminScreen({ initialTab }: { initialTab?: string }) {
 
   useEffect(() => { checkAdminAndLoad(); }, [user]);
   useEffect(() => { if (initialTab) setActiveTab(initialTab as AdminTab); }, [initialTab]);
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('admin-screen-live')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'admin_messages' }, () => {
+        loadUsers();
+        loadMessages();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'licenses' }, () => {
+        loadUsers();
+        loadLicenses();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'company_settings' }, () => {
+        loadUsers();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_roles' }, () => {
+        loadUsers();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
 
   const checkAdminAndLoad = async () => {
     if (!user) return;
