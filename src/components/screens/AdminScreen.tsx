@@ -142,6 +142,7 @@ export default function AdminScreen({ initialTab }: { initialTab?: string }) {
       email: p.email || '',
       shop_name: p.shop_name || '',
       phone: p.phone || '',
+      full_name: p.full_name || '',
       created_at: p.created_at,
       role: roleMap.get(p.user_id) || 'user',
       blocked: false,
