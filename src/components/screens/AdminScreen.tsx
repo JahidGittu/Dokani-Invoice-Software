@@ -85,15 +85,48 @@ export default function AdminScreen({ initialTab }: { initialTab?: string }) {
   };
 
   const loadUsers = async () => {
-    const { data: allRoles } = await supabase.from('user_roles').select('*');
-    const { data: allSettings } = await supabase.from('company_settings').select('user_id, user_name, email');
+    const [{ data: allRoles }, { data: allSettings }, { data: signupMessages }] = await Promise.all([
+      supabase.from('user_roles').select('*'),
+      supabase.from('company_settings').select('user_id, user_name, email'),
+      supabase.from('admin_messages').select('sender_id, message, created_at').eq('message_type', 'new_signup').order('created_at', { ascending: false }),
+    ]);
+
     const userMap = new Map<string, UserWithRole>();
-    allSettings?.forEach(s => userMap.set(s.user_id, { id: s.user_id, email: s.email || '', created_at: '', role: 'user', blocked: false }));
+
+    allSettings?.forEach(s => {
+      userMap.set(s.user_id, {
+        id: s.user_id,
+        email: s.email || '',
+        created_at: '',
+        role: 'user',
+        blocked: false,
+      });
+    });
+
     allRoles?.forEach(r => {
       const existing = userMap.get(r.user_id);
       if (existing) existing.role = r.role;
-      else userMap.set(r.user_id, { id: r.user_id, email: '', created_at: r.created_at, role: r.role, blocked: false });
+      else userMap.set(r.user_id, {
+        id: r.user_id,
+        email: '',
+        created_at: r.created_at,
+        role: r.role,
+        blocked: false,
+      });
     });
+
+    signupMessages?.forEach((msg: any) => {
+      if (userMap.has(msg.sender_id)) return;
+      const emailMatch = msg.message?.match(/📧\s*([^\n]+)/);
+      userMap.set(msg.sender_id, {
+        id: msg.sender_id,
+        email: emailMatch?.[1]?.trim() || '',
+        created_at: msg.created_at,
+        role: 'user',
+        blocked: false,
+      });
+    });
+
     setUsers(Array.from(userMap.values()));
   };
 

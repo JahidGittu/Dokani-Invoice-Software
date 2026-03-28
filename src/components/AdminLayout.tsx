@@ -185,6 +185,17 @@ function AdminOverview({ stats, lang, onNavigate, licenses }: { stats: Stats; la
 
   useEffect(() => {
     loadPendingSignups();
+
+    const channel = supabase
+      .channel('admin-signups-live')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'admin_messages' }, () => {
+        loadPendingSignups();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const loadPendingSignups = async () => {
