@@ -571,6 +571,35 @@ export default function AdminScreen({ initialTab }: { initialTab?: string }) {
                           className="p-1.5 rounded-lg hover:bg-blue-500/10 text-blue-400 transition-colors" title="Send message">
                           <span className="material-symbols-outlined text-lg">send</span>
                         </button>
+                        {u.id !== user?.id && u.role !== 'admin' && (
+                          <>
+                            <button onClick={() => banUser(u.id)}
+                              className="px-2.5 py-1.5 rounded-lg bg-orange-500/10 text-orange-400 text-[10px] font-bold hover:bg-orange-500/20 transition-colors flex items-center gap-1"
+                              title={lang === 'bn' ? 'ব্যান করুন' : 'Ban user'}>
+                              <span className="material-symbols-outlined text-sm">block</span>
+                              {lang === 'bn' ? 'ব্যান' : 'Ban'}
+                            </button>
+                            {confirmDelete === u.id ? (
+                              <div className="flex items-center gap-1">
+                                <button onClick={() => deleteUser(u.id)}
+                                  className="px-2.5 py-1.5 rounded-lg bg-red-600 text-white text-[10px] font-bold hover:bg-red-700 transition-colors">
+                                  {lang === 'bn' ? 'নিশ্চিত?' : 'Sure?'}
+                                </button>
+                                <button onClick={() => setConfirmDelete(null)}
+                                  className="px-2 py-1.5 rounded-lg bg-gray-700 text-gray-300 text-[10px] font-bold hover:bg-gray-600 transition-colors">
+                                  ✕
+                                </button>
+                              </div>
+                            ) : (
+                              <button onClick={() => setConfirmDelete(u.id)}
+                                className="px-2.5 py-1.5 rounded-lg bg-red-500/10 text-red-400 text-[10px] font-bold hover:bg-red-500/20 transition-colors flex items-center gap-1"
+                                title={lang === 'bn' ? 'ডিলেট করুন' : 'Delete user'}>
+                                <span className="material-symbols-outlined text-sm">delete</span>
+                                {lang === 'bn' ? 'ডিলেট' : 'Delete'}
+                              </button>
+                            )}
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>
