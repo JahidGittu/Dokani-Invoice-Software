@@ -4,6 +4,7 @@ import { useI18n } from '@/lib/i18n';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import AdminScreen from '@/components/screens/AdminScreen';
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 type AdminNav = 'overview' | 'licenses' | 'users' | 'messages' | 'system';
 
@@ -16,24 +17,34 @@ interface Stats {
   totalRevenue: number;
 }
 
+interface LicenseRaw {
+  id: string;
+  setup_fee: number;
+  annual_fee: number;
+  is_blocked: boolean;
+  license_expiry: string;
+  created_at: string;
+  shop_name: string;
+}
+
 export default function AdminLayout() {
   const { user, signOut } = useAuth();
   const { lang, setLang } = useI18n();
   const [activeNav, setActiveNav] = useState<AdminNav>('overview');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [stats, setStats] = useState<Stats>({ totalUsers: 0, totalLicenses: 0, activeCount: 0, blockedCount: 0, expiringCount: 0, totalRevenue: 0 });
+  const [licenses, setLicenses] = useState<LicenseRaw[]>([]);
 
-  useEffect(() => {
-    loadStats();
-  }, []);
+  useEffect(() => { loadStats(); }, []);
 
   const loadStats = async () => {
-    const [{ data: licenses }, { data: roles }] = await Promise.all([
+    const [{ data: licData }, { data: roles }] = await Promise.all([
       supabase.from('licenses').select('*'),
       supabase.from('user_roles').select('*'),
     ]);
     const now = Date.now();
-    const lics = licenses || [];
+    const lics = (licData || []) as LicenseRaw[];
+    setLicenses(lics);
     const active = lics.filter(l => !l.is_blocked && new Date(l.license_expiry).getTime() >= now);
     const expiring = lics.filter(l => {
       const days = (new Date(l.license_expiry).getTime() - now) / 86400000;
@@ -60,14 +71,13 @@ export default function AdminLayout() {
   ];
 
   const renderContent = () => {
-    if (activeNav === 'overview') return <AdminOverview stats={stats} lang={lang} onNavigate={setActiveNav} />;
-    // For licenses, users, messages — use the existing AdminScreen with correct tab
-    return <AdminScreen initialTab={activeNav === 'system' ? 'users' : activeNav} />;
+    if (activeNav === 'overview') return <AdminOverview stats={stats} lang={lang} onNavigate={setActiveNav} licenses={licenses} />;
+    if (activeNav === 'system') return <SystemSettings lang={lang} />;
+    return <AdminScreen initialTab={activeNav} />;
   };
 
   return (
     <div className="min-h-screen bg-gray-950 text-white flex">
-      {/* Overlay */}
       {sidebarOpen && <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />}
 
       {/* Sidebar */}
@@ -75,7 +85,6 @@ export default function AdminLayout() {
         "fixed left-0 top-0 h-full w-60 bg-gray-900 border-r border-gray-800 z-50 flex flex-col transition-transform lg:translate-x-0",
         sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
       )}>
-        {/* Brand */}
         <div className="px-5 py-5 flex items-center gap-3 border-b border-gray-800">
           <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center">
             <span className="material-symbols-outlined text-white text-lg">shield_person</span>
@@ -89,22 +98,18 @@ export default function AdminLayout() {
           </button>
         </div>
 
-        {/* Nav */}
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
           <p className="px-3 text-[10px] font-bold uppercase tracking-widest text-gray-600 mb-2">
             {lang === 'bn' ? 'নেভিগেশন' : 'Navigation'}
           </p>
           {navItems.map(item => (
-            <button
-              key={item.id}
-              onClick={() => { setActiveNav(item.id); setSidebarOpen(false); }}
+            <button key={item.id} onClick={() => { setActiveNav(item.id); setSidebarOpen(false); }}
               className={cn(
                 "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all",
                 activeNav === item.id
                   ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20"
                   : "text-gray-400 hover:text-white hover:bg-gray-800"
-              )}
-            >
+              )}>
               <span className="material-symbols-outlined text-xl">{item.icon}</span>
               <span>{lang === 'bn' ? item.labelBn : item.label}</span>
               {item.badge && item.badge > 0 && (
@@ -114,7 +119,6 @@ export default function AdminLayout() {
           ))}
         </nav>
 
-        {/* Footer */}
         <div className="px-3 pb-4 space-y-2 border-t border-gray-800 pt-3">
           <button onClick={() => setLang(lang === 'bn' ? 'en' : 'bn')}
             className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-gray-400 hover:text-white hover:bg-gray-800 transition-all">
@@ -140,7 +144,6 @@ export default function AdminLayout() {
 
       {/* Main */}
       <main className="lg:ml-60 flex-1 min-h-screen">
-        {/* Top bar */}
         <header className="h-14 bg-gray-900/80 backdrop-blur border-b border-gray-800 flex items-center px-4 lg:px-6 sticky top-0 z-30">
           <button className="lg:hidden mr-3 text-gray-400 hover:text-white" onClick={() => setSidebarOpen(true)}>
             <span className="material-symbols-outlined">menu</span>
@@ -175,8 +178,44 @@ export default function AdminLayout() {
   );
 }
 
-/* ─── Overview Dashboard ─── */
-function AdminOverview({ stats, lang, onNavigate }: { stats: Stats; lang: string; onNavigate: (nav: AdminNav) => void }) {
+/* ─── Overview Dashboard with Charts ─── */
+function AdminOverview({ stats, lang, onNavigate, licenses }: { stats: Stats; lang: string; onNavigate: (nav: AdminNav) => void; licenses: LicenseRaw[] }) {
+  // Monthly revenue chart data
+  const monthlyData = (() => {
+    const months: Record<string, number> = {};
+    const now = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      months[key] = 0;
+    }
+    licenses.forEach(l => {
+      const key = l.created_at.slice(0, 7);
+      if (key in months) months[key] += (l.setup_fee || 0) + (l.annual_fee || 0);
+    });
+    return Object.entries(months).map(([month, revenue]) => ({
+      month: month.slice(5),
+      revenue,
+    }));
+  })();
+
+  // Pie chart for license status
+  const pieData = [
+    { name: lang === 'bn' ? 'সক্রিয়' : 'Active', value: stats.activeCount, color: '#22c55e' },
+    { name: lang === 'bn' ? 'মেয়াদ শেষ হচ্ছে' : 'Expiring', value: stats.expiringCount, color: '#f97316' },
+    { name: lang === 'bn' ? 'ব্লক' : 'Blocked', value: stats.blockedCount, color: '#ef4444' },
+  ].filter(d => d.value > 0);
+
+  // Expiry timeline - next 30 days
+  const expiryTimeline = (() => {
+    const now = Date.now();
+    return licenses
+      .filter(l => !l.is_blocked)
+      .map(l => ({ ...l, daysLeft: Math.ceil((new Date(l.license_expiry).getTime() - now) / 86400000) }))
+      .filter(l => l.daysLeft >= -5 && l.daysLeft <= 30)
+      .sort((a, b) => a.daysLeft - b.daysLeft);
+  })();
+
   return (
     <div className="space-y-6">
       {/* Welcome */}
@@ -209,6 +248,104 @@ function AdminOverview({ stats, lang, onNavigate }: { stats: Stats; lang: string
         ))}
       </div>
 
+      {/* Charts Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Monthly Revenue Chart */}
+        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+          <h3 className="text-sm font-bold text-gray-300 mb-4 flex items-center gap-2">
+            <span className="material-symbols-outlined text-blue-400 text-lg">bar_chart</span>
+            {lang === 'bn' ? 'মাসিক রেভিনিউ' : 'Monthly Revenue'}
+          </h3>
+          <div className="h-52">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={monthlyData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
+                <XAxis dataKey="month" tick={{ fill: '#9ca3af', fontSize: 12 }} axisLine={{ stroke: '#374151' }} />
+                <YAxis tick={{ fill: '#9ca3af', fontSize: 12 }} axisLine={{ stroke: '#374151' }} />
+                <Tooltip
+                  contentStyle={{ backgroundColor: '#111827', border: '1px solid #374151', borderRadius: '12px', color: '#fff', fontSize: 12 }}
+                  formatter={(value: number) => [`৳${value.toLocaleString()}`, lang === 'bn' ? 'আয়' : 'Revenue']}
+                />
+                <Bar dataKey="revenue" fill="#3b82f6" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* License Status Pie */}
+        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+          <h3 className="text-sm font-bold text-gray-300 mb-4 flex items-center gap-2">
+            <span className="material-symbols-outlined text-green-400 text-lg">donut_large</span>
+            {lang === 'bn' ? 'লাইসেন্স স্ট্যাটাস' : 'License Status'}
+          </h3>
+          <div className="h-52 flex items-center">
+            {pieData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} dataKey="value" label={({ name, value }) => `${name}: ${value}`}>
+                    {pieData.map((entry, index) => (
+                      <Cell key={index} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip contentStyle={{ backgroundColor: '#111827', border: '1px solid #374151', borderRadius: '12px', color: '#fff', fontSize: 12 }} />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <p className="text-gray-500 text-sm text-center w-full">{lang === 'bn' ? 'কোনো ডাটা নেই' : 'No data'}</p>
+            )}
+          </div>
+          {/* Legend */}
+          <div className="flex justify-center gap-4 mt-2">
+            {pieData.map((d, i) => (
+              <div key={i} className="flex items-center gap-1.5">
+                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: d.color }} />
+                <span className="text-xs text-gray-400">{d.name} ({d.value})</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Expiry Timeline */}
+      {expiryTimeline.length > 0 && (
+        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+          <h3 className="text-sm font-bold text-gray-300 mb-4 flex items-center gap-2">
+            <span className="material-symbols-outlined text-orange-400 text-lg">timeline</span>
+            {lang === 'bn' ? 'লাইসেন্স এক্সপায়ারি টাইমলাইন (আগামী ৩০ দিন)' : 'License Expiry Timeline (Next 30 Days)'}
+          </h3>
+          <div className="space-y-2">
+            {expiryTimeline.map(l => (
+              <div key={l.id} className={cn(
+                "flex items-center justify-between px-4 py-3 rounded-xl",
+                l.daysLeft < 0 ? "bg-red-500/10 border border-red-500/20" :
+                l.daysLeft <= 3 ? "bg-orange-500/10 border border-orange-500/20" :
+                "bg-gray-800/50 border border-gray-700/30"
+              )}>
+                <div className="flex items-center gap-3">
+                  <span className={cn("material-symbols-outlined text-xl",
+                    l.daysLeft < 0 ? "text-red-400" : l.daysLeft <= 3 ? "text-orange-400" : "text-gray-400"
+                  )}>storefront</span>
+                  <div>
+                    <p className="text-sm font-bold text-white">{l.shop_name}</p>
+                    <p className="text-[10px] text-gray-500">{lang === 'bn' ? 'মেয়াদ:' : 'Expires:'} {l.license_expiry}</p>
+                  </div>
+                </div>
+                <span className={cn(
+                  "text-xs font-bold px-3 py-1 rounded-full",
+                  l.daysLeft < 0 ? "bg-red-500/20 text-red-400" :
+                  l.daysLeft <= 3 ? "bg-orange-500/20 text-orange-400" :
+                  "bg-gray-700 text-gray-300"
+                )}>
+                  {l.daysLeft < 0
+                    ? `${Math.abs(l.daysLeft)} ${lang === 'bn' ? 'দিন আগে শেষ' : 'days ago'}`
+                    : `${l.daysLeft} ${lang === 'bn' ? 'দিন বাকি' : 'days left'}`}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Quick Actions */}
       <div>
         <h3 className="text-sm font-bold text-gray-400 mb-3">
@@ -226,6 +363,82 @@ function AdminOverview({ stats, lang, onNavigate }: { stats: Stats; lang: string
               <span className="material-symbols-outlined text-2xl mb-2 block">{a.icon}</span>
               <p className="text-sm font-bold">{a.label}</p>
             </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── System Settings ─── */
+function SystemSettings({ lang }: { lang: string }) {
+  return (
+    <div className="space-y-6">
+      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+        <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+          <span className="material-symbols-outlined text-blue-400">settings</span>
+          {lang === 'bn' ? 'সিস্টেম সেটিংস' : 'System Settings'}
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Software Info */}
+          <div className="space-y-3">
+            <h4 className="text-sm font-bold text-gray-400">{lang === 'bn' ? 'সফটওয়্যার তথ্য' : 'Software Info'}</h4>
+            <div className="space-y-2">
+              {[
+                { label: lang === 'bn' ? 'সফটওয়্যার নাম' : 'Software Name', value: 'Dokani' },
+                { label: lang === 'bn' ? 'ভার্সন' : 'Version', value: '1.0.0' },
+                { label: lang === 'bn' ? 'ক্যাটাগরি' : 'Category', value: lang === 'bn' ? 'টাইলস শপ' : 'Tiles Shop' },
+                { label: lang === 'bn' ? 'সাপোর্ট ফোন' : 'Support Phone', value: '01777615690' },
+                { label: lang === 'bn' ? 'সাপোর্ট ইমেইল' : 'Support Email', value: 'admin@dokani.com.bd' },
+              ].map((item, i) => (
+                <div key={i} className="flex justify-between items-center bg-gray-800/50 rounded-xl px-4 py-3">
+                  <span className="text-sm text-gray-400">{item.label}</span>
+                  <span className="text-sm font-bold text-white">{item.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Pricing Info */}
+          <div className="space-y-3">
+            <h4 className="text-sm font-bold text-gray-400">{lang === 'bn' ? 'প্রাইসিং মডেল' : 'Pricing Model'}</h4>
+            <div className="space-y-2">
+              {[
+                { label: lang === 'bn' ? 'সেটআপ ফি' : 'Setup Fee', value: '৳10,000' },
+                { label: lang === 'bn' ? 'বাৎসরিক রিনিউয়াল' : 'Annual Renewal', value: '৳3,000 – ৳4,000' },
+                { label: lang === 'bn' ? 'অটো-ব্লক' : 'Auto-Block', value: lang === 'bn' ? 'মেয়াদ শেষের ২ দিন পর' : '2 days after expiry' },
+                { label: lang === 'bn' ? 'সতর্কবার্তা' : 'Warning', value: lang === 'bn' ? 'মেয়াদ শেষের ৭ দিন আগে' : '7 days before expiry' },
+              ].map((item, i) => (
+                <div key={i} className="flex justify-between items-center bg-gray-800/50 rounded-xl px-4 py-3">
+                  <span className="text-sm text-gray-400">{item.label}</span>
+                  <span className="text-sm font-bold text-white">{item.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Future Plans */}
+      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+        <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+          <span className="material-symbols-outlined text-purple-400">rocket_launch</span>
+          {lang === 'bn' ? 'ভবিষ্যৎ পরিকল্পনা' : 'Future Plans'}
+        </h3>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          {[
+            { icon: 'phone_android', label: lang === 'bn' ? 'মোবাইল রিপেয়ার' : 'Mobile Repair', status: 'planned' },
+            { icon: 'local_pharmacy', label: lang === 'bn' ? 'ফার্মেসি' : 'Pharmacy', status: 'planned' },
+            { icon: 'shopping_cart', label: lang === 'bn' ? 'মুদি দোকান' : 'Grocery', status: 'planned' },
+            { icon: 'devices', label: lang === 'bn' ? 'ইলেকট্রনিক্স' : 'Electronics', status: 'planned' },
+            { icon: 'checkroom', label: lang === 'bn' ? 'পোশাক' : 'Clothing', status: 'planned' },
+            { icon: 'storefront', label: lang === 'bn' ? 'সব ধরনের দোকান' : 'All Shops', status: 'planned' },
+          ].map((item, i) => (
+            <div key={i} className="bg-gray-800/50 border border-gray-700/30 rounded-xl p-4 text-center">
+              <span className="material-symbols-outlined text-2xl text-gray-500 mb-2 block">{item.icon}</span>
+              <p className="text-xs font-bold text-gray-400">{item.label}</p>
+              <span className="text-[10px] text-gray-600 mt-1 block">Coming Soon</span>
+            </div>
           ))}
         </div>
       </div>

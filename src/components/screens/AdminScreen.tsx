@@ -55,7 +55,6 @@ export default function AdminScreen({ initialTab }: { initialTab?: string }) {
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState<AdminTab>((initialTab as AdminTab) || 'licenses');
 
-  // License form
   const [showLicenseForm, setShowLicenseForm] = useState(false);
   const [licenseForm, setLicenseForm] = useState({
     user_id: '', shop_name: '', owner_name: '', owner_phone: '', owner_email: '',
@@ -64,12 +63,12 @@ export default function AdminScreen({ initialTab }: { initialTab?: string }) {
   });
   const [editingLicenseId, setEditingLicenseId] = useState<string | null>(null);
 
-  // Message form
   const [showMsgForm, setShowMsgForm] = useState(false);
   const [msgForm, setMsgForm] = useState({ recipient_id: '', subject: '', message: '', message_type: 'general' });
   const [sentMessages, setSentMessages] = useState<AdminMessage[]>([]);
 
   useEffect(() => { checkAdminAndLoad(); }, [user]);
+  useEffect(() => { if (initialTab) setActiveTab(initialTab as AdminTab); }, [initialTab]);
 
   const checkAdminAndLoad = async () => {
     if (!user) return;
@@ -77,7 +76,6 @@ export default function AdminScreen({ initialTab }: { initialTab?: string }) {
     try {
       const { data: roleData } = await supabase.from('user_roles').select('role')
         .eq('user_id', user.id).eq('role', 'admin').maybeSingle();
-
       if (roleData) {
         setIsAdmin(true);
         await Promise.all([loadUsers(), loadLicenses(), loadMessages()]);
@@ -116,16 +114,6 @@ export default function AdminScreen({ initialTab }: { initialTab?: string }) {
       if (error) throw error;
       toast.success(lang === 'bn' ? 'রোল আপডেট হয়েছে' : 'Role updated');
       loadUsers();
-    } catch (err: any) { toast.error(err.message); }
-  };
-
-  const makeFirstAdmin = async () => {
-    if (!user) return;
-    try {
-      const { error } = await supabase.from('user_roles').insert({ user_id: user.id, role: 'admin' as any });
-      if (error) throw error;
-      toast.success('You are now System Admin!');
-      checkAdminAndLoad();
     } catch (err: any) { toast.error(err.message); }
   };
 
@@ -186,11 +174,8 @@ export default function AdminScreen({ initialTab }: { initialTab?: string }) {
     }
     try {
       const { error } = await supabase.from('admin_messages').insert({
-        sender_id: user!.id,
-        recipient_id: msgForm.recipient_id,
-        subject: msgForm.subject,
-        message: msgForm.message,
-        message_type: msgForm.message_type,
+        sender_id: user!.id, recipient_id: msgForm.recipient_id,
+        subject: msgForm.subject, message: msgForm.message, message_type: msgForm.message_type,
       } as any);
       if (error) throw error;
       toast.success(lang === 'bn' ? 'মেসেজ পাঠানো হয়েছে' : 'Message sent');
@@ -203,12 +188,11 @@ export default function AdminScreen({ initialTab }: { initialTab?: string }) {
   const sendExpiryWarning = async (license: License) => {
     try {
       const { error } = await supabase.from('admin_messages').insert({
-        sender_id: user!.id,
-        recipient_id: license.user_id,
+        sender_id: user!.id, recipient_id: license.user_id,
         subject: lang === 'bn' ? '⚠️ লাইসেন্স মেয়াদ শেষ হচ্ছে' : '⚠️ License Expiring Soon',
         message: lang === 'bn'
-          ? `প্রিয় ${license.owner_name}, আপনার "${license.shop_name}" দোকানের Dokani সফটওয়্যার লাইসেন্সের মেয়াদ ${license.license_expiry} তারিখে শেষ হবে। দয়া করে রিনিউ করুন। মেয়াদ শেষের ২ দিন পর সফটওয়্যার অটো-ব্লক হয়ে যাবে। রিনিউয়াল ফি: ৳${license.annual_fee}।`
-          : `Dear ${license.owner_name}, your Dokani license for "${license.shop_name}" expires on ${license.license_expiry}. Please renew. The software will auto-block 2 days after expiry. Renewal fee: ৳${license.annual_fee}.`,
+          ? `প্রিয় ${license.owner_name}, আপনার "${license.shop_name}" দোকানের Dokani সফটওয়্যার লাইসেন্সের মেয়াদ ${license.license_expiry} তারিখে শেষ হবে। রিনিউয়াল ফি: ৳${license.annual_fee}।`
+          : `Dear ${license.owner_name}, your Dokani license for "${license.shop_name}" expires on ${license.license_expiry}. Renewal fee: ৳${license.annual_fee}.`,
         message_type: 'license_warning',
       } as any);
       if (error) throw error;
@@ -217,18 +201,15 @@ export default function AdminScreen({ initialTab }: { initialTab?: string }) {
     } catch (err: any) { toast.error(err.message); }
   };
 
-  const getDaysUntilExpiry = (expiryDate: string) => {
-    const diff = new Date(expiryDate).getTime() - Date.now();
-    return Math.ceil(diff / 86400000);
-  };
+  const getDaysUntilExpiry = (expiryDate: string) => Math.ceil((new Date(expiryDate).getTime() - Date.now()) / 86400000);
 
   const getExpiryBadge = (expiryDate: string, isBlocked: boolean) => {
-    if (isBlocked) return { text: lang === 'bn' ? 'ব্লক' : 'Blocked', color: 'bg-red-100 text-red-700' };
+    if (isBlocked) return { text: lang === 'bn' ? 'ব্লক' : 'Blocked', color: 'bg-red-500/20 text-red-400' };
     const days = getDaysUntilExpiry(expiryDate);
-    if (days < 0) return { text: lang === 'bn' ? 'মেয়াদ শেষ' : 'Expired', color: 'bg-red-100 text-red-700' };
-    if (days <= 7) return { text: `${days}${lang === 'bn' ? ' দিন বাকি' : 'd left'}`, color: 'bg-orange-100 text-orange-700' };
-    if (days <= 30) return { text: `${days}${lang === 'bn' ? ' দিন বাকি' : 'd left'}`, color: 'bg-yellow-100 text-yellow-700' };
-    return { text: lang === 'bn' ? 'সক্রিয়' : 'Active', color: 'bg-green-100 text-green-700' };
+    if (days < 0) return { text: lang === 'bn' ? 'মেয়াদ শেষ' : 'Expired', color: 'bg-red-500/20 text-red-400' };
+    if (days <= 7) return { text: `${days}${lang === 'bn' ? ' দিন বাকি' : 'd left'}`, color: 'bg-orange-500/20 text-orange-400' };
+    if (days <= 30) return { text: `${days}${lang === 'bn' ? ' দিন বাকি' : 'd left'}`, color: 'bg-yellow-500/20 text-yellow-400' };
+    return { text: lang === 'bn' ? 'সক্রিয়' : 'Active', color: 'bg-green-500/20 text-green-400' };
   };
 
   const filteredUsers = users.filter(u => u.email.toLowerCase().includes(search.toLowerCase()) || u.id.includes(search));
@@ -239,17 +220,20 @@ export default function AdminScreen({ initialTab }: { initialTab?: string }) {
   if (!isAdmin) {
     return (
       <div className="p-6">
-        <div className="bg-card rounded-2xl border p-8 text-center max-w-md mx-auto">
+        <div className="bg-gray-900 rounded-2xl border border-gray-800 p-8 text-center max-w-md mx-auto">
           <span className="material-symbols-outlined text-6xl text-red-400 mb-4">admin_panel_settings</span>
-          <h2 className="text-xl font-bold mb-2">{lang === 'bn' ? 'সিস্টেম অ্যাডমিন অ্যাক্সেস প্রয়োজন' : 'System Admin Access Required'}</h2>
-          <p className="text-muted-foreground text-sm mb-6">{lang === 'bn' ? 'এই পেজে অ্যাক্সেস করতে অ্যাডমিন রোল দরকার।' : 'You need admin role to access this page.'}</p>
-          <button onClick={makeFirstAdmin} className="px-6 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-colors">
-            {lang === 'bn' ? 'প্রথম সিস্টেম অ্যাডমিন হিসেবে সেটআপ' : 'Setup as First System Admin'}
-          </button>
+          <h2 className="text-xl font-bold text-white mb-2">{lang === 'bn' ? 'সিস্টেম অ্যাডমিন অ্যাক্সেস প্রয়োজন' : 'System Admin Access Required'}</h2>
+          <p className="text-gray-400 text-sm">{lang === 'bn' ? 'এই পেজে অ্যাক্সেস করতে অ্যাডমিন রোল দরকার।' : 'You need admin role to access this page.'}</p>
         </div>
       </div>
     );
   }
+
+  const expiringCount = licenses.filter(l => !l.is_blocked && getDaysUntilExpiry(l.license_expiry) <= 7 && getDaysUntilExpiry(l.license_expiry) >= 0).length;
+
+  // Dark-themed input class
+  const inputCls = "w-full mt-1 border border-gray-700 rounded-lg px-3 py-2 text-sm bg-gray-800 text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500 outline-none";
+  const selectCls = inputCls;
 
   const tabs: { id: AdminTab; icon: string; label: string }[] = [
     { id: 'licenses', icon: 'license', label: lang === 'bn' ? 'লাইসেন্স' : 'Licenses' },
@@ -257,48 +241,14 @@ export default function AdminScreen({ initialTab }: { initialTab?: string }) {
     { id: 'messages', icon: 'mail', label: lang === 'bn' ? 'মেসেজ' : 'Messages' },
   ];
 
-  const expiringCount = licenses.filter(l => !l.is_blocked && getDaysUntilExpiry(l.license_expiry) <= 7 && getDaysUntilExpiry(l.license_expiry) >= 0).length;
-  const expiredCount = licenses.filter(l => getDaysUntilExpiry(l.license_expiry) < 0).length;
-  const blockedCount = licenses.filter(l => l.is_blocked).length;
-
   return (
-    <div className="p-4 sm:p-6 space-y-5">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-black text-foreground flex items-center gap-2">
-            <span className="material-symbols-outlined text-blue-600">admin_panel_settings</span>
-            {lang === 'bn' ? 'সিস্টেম অ্যাডমিন প্যানেল' : 'System Admin Panel'}
-          </h1>
-          <p className="text-sm text-muted-foreground">{lang === 'bn' ? 'লাইসেন্স, ইউজার ও মেসেজ ম্যানেজ করুন' : 'Manage licenses, users & messages'}</p>
-        </div>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-        {[
-          { icon: 'license', label: lang === 'bn' ? 'মোট লাইসেন্স' : 'Total Licenses', value: licenses.length, color: 'bg-blue-100 text-blue-600' },
-          { icon: 'check_circle', label: lang === 'bn' ? 'সক্রিয়' : 'Active', value: licenses.filter(l => !l.is_blocked && getDaysUntilExpiry(l.license_expiry) >= 0).length, color: 'bg-green-100 text-green-600' },
-          { icon: 'schedule', label: lang === 'bn' ? 'শেষ হচ্ছে' : 'Expiring', value: expiringCount, color: 'bg-orange-100 text-orange-600' },
-          { icon: 'error', label: lang === 'bn' ? 'মেয়াদ শেষ' : 'Expired', value: expiredCount, color: 'bg-red-100 text-red-600' },
-          { icon: 'block', label: lang === 'bn' ? 'ব্লক' : 'Blocked', value: blockedCount, color: 'bg-gray-200 text-gray-600' },
-        ].map((s, i) => (
-          <div key={i} className="bg-card rounded-xl border p-3">
-            <div className={`w-9 h-9 ${s.color} rounded-lg flex items-center justify-center mb-1.5`}>
-              <span className="material-symbols-outlined text-lg">{s.icon}</span>
-            </div>
-            <p className="text-xl font-black text-foreground">{s.value}</p>
-            <p className="text-[10px] text-muted-foreground">{s.label}</p>
-          </div>
-        ))}
-      </div>
-
+    <div className="space-y-5">
       {/* Tabs */}
-      <div className="flex gap-1 bg-muted/50 rounded-xl p-1">
+      <div className="flex gap-1 bg-gray-800/50 rounded-xl p-1">
         {tabs.map(tab => (
           <button key={tab.id} onClick={() => setActiveTab(tab.id)}
             className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold transition-all ${
-              activeTab === tab.id ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
+              activeTab === tab.id ? 'bg-gray-700 shadow-sm text-white' : 'text-gray-500 hover:text-gray-300'
             }`}>
             <span className="material-symbols-outlined text-lg">{tab.icon}</span>
             {tab.label}
@@ -311,10 +261,10 @@ export default function AdminScreen({ initialTab }: { initialTab?: string }) {
 
       {/* Search */}
       <div className="relative max-w-md">
-        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
+        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">search</span>
         <input value={search} onChange={e => setSearch(e.target.value)}
           placeholder={lang === 'bn' ? 'খুঁজুন...' : 'Search...'}
-          className="w-full pl-10 pr-4 py-2.5 rounded-xl border bg-card text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-700 bg-gray-800 text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none placeholder-gray-500" />
       </div>
 
       {/* ===== LICENSES TAB ===== */}
@@ -328,16 +278,15 @@ export default function AdminScreen({ initialTab }: { initialTab?: string }) {
             </button>
           </div>
 
-          {/* License Form Modal */}
+          {/* License Form */}
           {showLicenseForm && (
-            <div className="bg-card rounded-xl border p-5 space-y-4">
-              <h3 className="font-bold text-foreground">{editingLicenseId ? (lang === 'bn' ? 'লাইসেন্স সম্পাদনা' : 'Edit License') : (lang === 'bn' ? 'নতুন লাইসেন্স' : 'New License')}</h3>
+            <div className="bg-gray-900 rounded-xl border border-gray-800 p-5 space-y-4">
+              <h3 className="font-bold text-white">{editingLicenseId ? (lang === 'bn' ? 'লাইসেন্স সম্পাদনা' : 'Edit License') : (lang === 'bn' ? 'নতুন লাইসেন্স' : 'New License')}</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {!editingLicenseId && (
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground">{lang === 'bn' ? 'ইউজার সিলেক্ট' : 'Select User'}</label>
-                    <select value={licenseForm.user_id} onChange={e => setLicenseForm({ ...licenseForm, user_id: e.target.value })}
-                      className="w-full mt-1 border rounded-lg px-3 py-2 text-sm bg-card">
+                    <label className="text-xs font-medium text-gray-400">{lang === 'bn' ? 'ইউজার সিলেক্ট' : 'Select User'}</label>
+                    <select value={licenseForm.user_id} onChange={e => setLicenseForm({ ...licenseForm, user_id: e.target.value })} className={selectCls}>
                       <option value="">{lang === 'bn' ? 'ইউজার বাছুন' : 'Select user'}</option>
                       {users.filter(u => !licenses.find(l => l.user_id === u.id)).map(u => (
                         <option key={u.id} value={u.id}>{u.email || u.id.slice(0, 8)}</option>
@@ -345,161 +294,147 @@ export default function AdminScreen({ initialTab }: { initialTab?: string }) {
                     </select>
                   </div>
                 )}
+                {[
+                  { key: 'shop_name', label: lang === 'bn' ? 'দোকানের নাম *' : 'Shop Name *' },
+                  { key: 'owner_name', label: lang === 'bn' ? 'মালিকের নাম *' : 'Owner Name *' },
+                  { key: 'owner_phone', label: lang === 'bn' ? 'মোবাইল' : 'Phone' },
+                  { key: 'owner_email', label: lang === 'bn' ? 'ইমেইল' : 'Email' },
+                ].map(f => (
+                  <div key={f.key}>
+                    <label className="text-xs font-medium text-gray-400">{f.label}</label>
+                    <input value={(licenseForm as any)[f.key]} onChange={e => setLicenseForm({ ...licenseForm, [f.key]: e.target.value })} className={inputCls} />
+                  </div>
+                ))}
                 <div>
-                  <label className="text-xs font-medium text-muted-foreground">{lang === 'bn' ? 'দোকানের নাম *' : 'Shop Name *'}</label>
-                  <input value={licenseForm.shop_name} onChange={e => setLicenseForm({ ...licenseForm, shop_name: e.target.value })}
-                    className="w-full mt-1 border rounded-lg px-3 py-2 text-sm bg-card" />
+                  <label className="text-xs font-medium text-gray-400">{lang === 'bn' ? 'সেটআপ ফি (৳)' : 'Setup Fee (৳)'}</label>
+                  <input type="number" value={licenseForm.setup_fee} onChange={e => setLicenseForm({ ...licenseForm, setup_fee: +e.target.value })} className={inputCls} />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-muted-foreground">{lang === 'bn' ? 'মালিকের নাম *' : 'Owner Name *'}</label>
-                  <input value={licenseForm.owner_name} onChange={e => setLicenseForm({ ...licenseForm, owner_name: e.target.value })}
-                    className="w-full mt-1 border rounded-lg px-3 py-2 text-sm bg-card" />
+                  <label className="text-xs font-medium text-gray-400">{lang === 'bn' ? 'বাৎসরিক ফি (৳)' : 'Annual Fee (৳)'}</label>
+                  <input type="number" value={licenseForm.annual_fee} onChange={e => setLicenseForm({ ...licenseForm, annual_fee: +e.target.value })} className={inputCls} />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-muted-foreground">{lang === 'bn' ? 'মোবাইল' : 'Phone'}</label>
-                  <input value={licenseForm.owner_phone} onChange={e => setLicenseForm({ ...licenseForm, owner_phone: e.target.value })}
-                    className="w-full mt-1 border rounded-lg px-3 py-2 text-sm bg-card" />
+                  <label className="text-xs font-medium text-gray-400">{lang === 'bn' ? 'শুরু তারিখ' : 'Start Date'}</label>
+                  <input type="date" value={licenseForm.license_start} onChange={e => setLicenseForm({ ...licenseForm, license_start: e.target.value })} className={inputCls} />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-muted-foreground">{lang === 'bn' ? 'ইমেইল' : 'Email'}</label>
-                  <input value={licenseForm.owner_email} onChange={e => setLicenseForm({ ...licenseForm, owner_email: e.target.value })}
-                    className="w-full mt-1 border rounded-lg px-3 py-2 text-sm bg-card" />
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground">{lang === 'bn' ? 'সেটআপ ফি (৳)' : 'Setup Fee (৳)'}</label>
-                  <input type="number" value={licenseForm.setup_fee} onChange={e => setLicenseForm({ ...licenseForm, setup_fee: +e.target.value })}
-                    className="w-full mt-1 border rounded-lg px-3 py-2 text-sm bg-card" />
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground">{lang === 'bn' ? 'বাৎসরিক ফি (৳)' : 'Annual Fee (৳)'}</label>
-                  <input type="number" value={licenseForm.annual_fee} onChange={e => setLicenseForm({ ...licenseForm, annual_fee: +e.target.value })}
-                    className="w-full mt-1 border rounded-lg px-3 py-2 text-sm bg-card" />
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground">{lang === 'bn' ? 'শুরু তারিখ' : 'Start Date'}</label>
-                  <input type="date" value={licenseForm.license_start} onChange={e => setLicenseForm({ ...licenseForm, license_start: e.target.value })}
-                    className="w-full mt-1 border rounded-lg px-3 py-2 text-sm bg-card" />
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground">{lang === 'bn' ? 'মেয়াদ শেষ' : 'Expiry Date'}</label>
-                  <input type="date" value={licenseForm.license_expiry} onChange={e => setLicenseForm({ ...licenseForm, license_expiry: e.target.value })}
-                    className="w-full mt-1 border rounded-lg px-3 py-2 text-sm bg-card" />
+                  <label className="text-xs font-medium text-gray-400">{lang === 'bn' ? 'মেয়াদ শেষ' : 'Expiry Date'}</label>
+                  <input type="date" value={licenseForm.license_expiry} onChange={e => setLicenseForm({ ...licenseForm, license_expiry: e.target.value })} className={inputCls} />
                 </div>
                 <div className="sm:col-span-2 lg:col-span-3">
-                  <label className="text-xs font-medium text-muted-foreground">{lang === 'bn' ? 'নোট' : 'Notes'}</label>
-                  <textarea value={licenseForm.notes} onChange={e => setLicenseForm({ ...licenseForm, notes: e.target.value })}
-                    className="w-full mt-1 border rounded-lg px-3 py-2 text-sm bg-card" rows={2} />
+                  <label className="text-xs font-medium text-gray-400">{lang === 'bn' ? 'নোট' : 'Notes'}</label>
+                  <textarea value={licenseForm.notes} onChange={e => setLicenseForm({ ...licenseForm, notes: e.target.value })} className={inputCls} rows={2} />
                 </div>
               </div>
               <div className="flex gap-2 justify-end">
-                <button onClick={() => setShowLicenseForm(false)} className="px-4 py-2 border rounded-lg text-sm">{lang === 'bn' ? 'বাতিল' : 'Cancel'}</button>
-                <button onClick={saveLicense} className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-bold">{lang === 'bn' ? 'সেভ করুন' : 'Save'}</button>
+                <button onClick={() => setShowLicenseForm(false)} className="px-4 py-2 border border-gray-700 text-gray-400 rounded-lg text-sm hover:bg-gray-800">{lang === 'bn' ? 'বাতিল' : 'Cancel'}</button>
+                <button onClick={saveLicense} className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-bold hover:bg-blue-700">{lang === 'bn' ? 'সেভ করুন' : 'Save'}</button>
               </div>
             </div>
           )}
 
-          {/* Licenses Table */}
-          <div className="bg-card rounded-xl border overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="bg-muted/50 border-b">
-                    <th className="text-left px-4 py-3 text-xs font-bold text-muted-foreground">{lang === 'bn' ? 'দোকান' : 'Shop'}</th>
-                    <th className="text-left px-4 py-3 text-xs font-bold text-muted-foreground">{lang === 'bn' ? 'মালিক' : 'Owner'}</th>
-                    <th className="text-left px-4 py-3 text-xs font-bold text-muted-foreground">{lang === 'bn' ? 'ফি' : 'Fee'}</th>
-                    <th className="text-left px-4 py-3 text-xs font-bold text-muted-foreground">{lang === 'bn' ? 'মেয়াদ' : 'Expiry'}</th>
-                    <th className="text-left px-4 py-3 text-xs font-bold text-muted-foreground">{lang === 'bn' ? 'স্ট্যাটাস' : 'Status'}</th>
-                    <th className="text-left px-4 py-3 text-xs font-bold text-muted-foreground">{lang === 'bn' ? 'অ্যাকশন' : 'Actions'}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredLicenses.map(l => {
-                    const badge = getExpiryBadge(l.license_expiry, l.is_blocked);
-                    const daysLeft = getDaysUntilExpiry(l.license_expiry);
-                    return (
-                      <tr key={l.id} className="border-b last:border-0 hover:bg-muted/30">
-                        <td className="px-4 py-3">
-                          <p className="text-sm font-bold text-foreground">{l.shop_name}</p>
-                          <p className="text-[10px] text-muted-foreground">{l.owner_phone}</p>
-                        </td>
-                        <td className="px-4 py-3">
-                          <p className="text-sm text-foreground">{l.owner_name}</p>
-                          <p className="text-[10px] text-muted-foreground">{l.owner_email}</p>
-                        </td>
-                        <td className="px-4 py-3">
-                          <p className="text-xs text-foreground">৳{l.setup_fee.toLocaleString()}</p>
-                          <p className="text-[10px] text-muted-foreground">+৳{l.annual_fee}/yr</p>
-                        </td>
-                        <td className="px-4 py-3 text-xs text-foreground">{l.license_expiry}</td>
-                        <td className="px-4 py-3">
-                          <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${badge.color}`}>{badge.text}</span>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex gap-1">
-                            {/* Edit */}
-                            <button onClick={() => {
-                              setEditingLicenseId(l.id);
-                              setLicenseForm({ user_id: l.user_id, shop_name: l.shop_name, owner_name: l.owner_name, owner_phone: l.owner_phone, owner_email: l.owner_email, setup_fee: l.setup_fee, annual_fee: l.annual_fee, license_start: l.license_start, license_expiry: l.license_expiry, notes: l.notes });
-                              setShowLicenseForm(true);
-                            }} className="p-1.5 rounded-lg hover:bg-blue-100 text-blue-600 transition-colors" title="Edit">
-                              <span className="material-symbols-outlined text-lg">edit</span>
-                            </button>
-                            {/* Send warning */}
-                            {daysLeft <= 7 && daysLeft >= -2 && !l.is_blocked && (
-                              <button onClick={() => sendExpiryWarning(l)} className="p-1.5 rounded-lg hover:bg-orange-100 text-orange-600 transition-colors" title={lang === 'bn' ? 'সতর্কবার্তা পাঠান' : 'Send warning'}>
-                                <span className="material-symbols-outlined text-lg">notification_important</span>
-                              </button>
-                            )}
-                            {/* Block/Unblock */}
-                            <button onClick={() => toggleBlock(l)}
-                              className={`p-1.5 rounded-lg transition-colors ${l.is_blocked ? 'hover:bg-green-100 text-green-600' : 'hover:bg-red-100 text-red-500'}`}
-                              title={l.is_blocked ? 'Unblock' : 'Block'}>
-                              <span className="material-symbols-outlined text-lg">{l.is_blocked ? 'lock_open' : 'block'}</span>
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                  {filteredLicenses.length === 0 && (
-                    <tr><td colSpan={6} className="text-center py-8 text-muted-foreground text-sm">{lang === 'bn' ? 'কোনো লাইসেন্স নেই' : 'No licenses found'}</td></tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+          {/* License Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {filteredLicenses.map(l => {
+              const badge = getExpiryBadge(l.license_expiry, l.is_blocked);
+              const daysLeft = getDaysUntilExpiry(l.license_expiry);
+              return (
+                <div key={l.id} className="bg-gray-900 border border-gray-800 rounded-2xl p-5 hover:border-gray-700 transition-all">
+                  {/* Header */}
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center">
+                        <span className="material-symbols-outlined text-blue-400">storefront</span>
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-white">{l.shop_name}</p>
+                        <p className="text-[10px] text-gray-500">{l.owner_name}</p>
+                      </div>
+                    </div>
+                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${badge.color}`}>{badge.text}</span>
+                  </div>
+
+                  {/* Info */}
+                  <div className="space-y-2 mb-4">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-gray-500">{lang === 'bn' ? 'ফোন' : 'Phone'}</span>
+                      <span className="text-gray-300">{l.owner_phone || '—'}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-gray-500">{lang === 'bn' ? 'ইমেইল' : 'Email'}</span>
+                      <span className="text-gray-300">{l.owner_email || '—'}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-gray-500">{lang === 'bn' ? 'সেটআপ + বাৎসরিক' : 'Setup + Annual'}</span>
+                      <span className="text-gray-300 font-bold">৳{l.setup_fee.toLocaleString()} + ৳{l.annual_fee.toLocaleString()}/yr</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-gray-500">{lang === 'bn' ? 'মেয়াদ' : 'Period'}</span>
+                      <span className="text-gray-300">{l.license_start} → {l.license_expiry}</span>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex gap-2 pt-3 border-t border-gray-800">
+                    <button onClick={() => {
+                      setEditingLicenseId(l.id);
+                      setLicenseForm({ user_id: l.user_id, shop_name: l.shop_name, owner_name: l.owner_name, owner_phone: l.owner_phone, owner_email: l.owner_email, setup_fee: l.setup_fee, annual_fee: l.annual_fee, license_start: l.license_start, license_expiry: l.license_expiry, notes: l.notes });
+                      setShowLicenseForm(true);
+                    }} className="flex-1 py-2 rounded-lg bg-blue-500/10 text-blue-400 text-xs font-bold hover:bg-blue-500/20 transition-colors flex items-center justify-center gap-1">
+                      <span className="material-symbols-outlined text-sm">edit</span> {lang === 'bn' ? 'সম্পাদনা' : 'Edit'}
+                    </button>
+                    {daysLeft <= 7 && daysLeft >= -2 && !l.is_blocked && (
+                      <button onClick={() => sendExpiryWarning(l)} className="flex-1 py-2 rounded-lg bg-orange-500/10 text-orange-400 text-xs font-bold hover:bg-orange-500/20 transition-colors flex items-center justify-center gap-1">
+                        <span className="material-symbols-outlined text-sm">warning</span> {lang === 'bn' ? 'সতর্ক' : 'Warn'}
+                      </button>
+                    )}
+                    <button onClick={() => toggleBlock(l)}
+                      className={`flex-1 py-2 rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-1 ${
+                        l.is_blocked ? 'bg-green-500/10 text-green-400 hover:bg-green-500/20' : 'bg-red-500/10 text-red-400 hover:bg-red-500/20'
+                      }`}>
+                      <span className="material-symbols-outlined text-sm">{l.is_blocked ? 'lock_open' : 'block'}</span>
+                      {l.is_blocked ? (lang === 'bn' ? 'আনব্লক' : 'Unblock') : (lang === 'bn' ? 'ব্লক' : 'Block')}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
           </div>
+          {filteredLicenses.length === 0 && (
+            <div className="text-center py-12 text-gray-500 text-sm">{lang === 'bn' ? 'কোনো লাইসেন্স নেই' : 'No licenses found'}</div>
+          )}
         </div>
       )}
 
       {/* ===== USERS TAB ===== */}
       {activeTab === 'users' && (
-        <div className="bg-card rounded-xl border overflow-hidden">
+        <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="bg-muted/50 border-b">
-                  <th className="text-left px-4 py-3 text-xs font-bold text-muted-foreground">{lang === 'bn' ? 'ইউজার' : 'User'}</th>
-                  <th className="text-left px-4 py-3 text-xs font-bold text-muted-foreground">ID</th>
-                  <th className="text-left px-4 py-3 text-xs font-bold text-muted-foreground">{lang === 'bn' ? 'রোল' : 'Role'}</th>
-                  <th className="text-left px-4 py-3 text-xs font-bold text-muted-foreground">{lang === 'bn' ? 'অ্যাকশন' : 'Actions'}</th>
+                <tr className="bg-gray-800/50 border-b border-gray-800">
+                  <th className="text-left px-4 py-3 text-xs font-bold text-gray-500">{lang === 'bn' ? 'ইউজার' : 'User'}</th>
+                  <th className="text-left px-4 py-3 text-xs font-bold text-gray-500">ID</th>
+                  <th className="text-left px-4 py-3 text-xs font-bold text-gray-500">{lang === 'bn' ? 'রোল' : 'Role'}</th>
+                  <th className="text-left px-4 py-3 text-xs font-bold text-gray-500">{lang === 'bn' ? 'অ্যাকশন' : 'Actions'}</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredUsers.map(u => (
-                  <tr key={u.id} className="border-b last:border-0 hover:bg-muted/30">
+                  <tr key={u.id} className="border-b border-gray-800 last:border-0 hover:bg-gray-800/30">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center">
-                          <span className="text-xs font-bold text-blue-600">{(u.email || 'U').substring(0, 2).toUpperCase()}</span>
+                        <div className="w-9 h-9 rounded-full bg-blue-500/10 flex items-center justify-center">
+                          <span className="text-xs font-bold text-blue-400">{(u.email || 'U').substring(0, 2).toUpperCase()}</span>
                         </div>
-                        <p className="text-sm font-semibold text-foreground">{u.email || 'No email'}</p>
+                        <p className="text-sm font-semibold text-white">{u.email || 'No email'}</p>
                       </div>
                     </td>
-                    <td className="px-4 py-3"><span className="text-xs text-muted-foreground font-mono">{u.id.slice(0, 8)}...</span></td>
+                    <td className="px-4 py-3"><span className="text-xs text-gray-500 font-mono">{u.id.slice(0, 8)}...</span></td>
                     <td className="px-4 py-3">
                       <select value={u.role} onChange={e => handleRoleChange(u.id, e.target.value)} disabled={u.id === user?.id}
                         className={`text-xs font-bold px-3 py-1.5 rounded-lg border-0 outline-none cursor-pointer ${
-                          u.role === 'admin' ? 'bg-red-100 text-red-700' : u.role === 'moderator' ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'
+                          u.role === 'admin' ? 'bg-red-500/20 text-red-400' : u.role === 'moderator' ? 'bg-orange-500/20 text-orange-400' : 'bg-green-500/20 text-green-400'
                         }`}>
                         <option value="user">{lang === 'bn' ? 'ইউজার' : 'User'}</option>
                         <option value="moderator">{lang === 'bn' ? 'মডারেটর' : 'Moderator'}</option>
@@ -507,8 +442,8 @@ export default function AdminScreen({ initialTab }: { initialTab?: string }) {
                       </select>
                     </td>
                     <td className="px-4 py-3">
-                      <button onClick={() => { setMsgForm({ ...msgForm, recipient_id: u.id }); setShowMsgForm(true); }}
-                        className="p-1.5 rounded-lg hover:bg-blue-100 text-blue-600 transition-colors" title="Send message">
+                      <button onClick={() => { setMsgForm({ ...msgForm, recipient_id: u.id }); setShowMsgForm(true); setActiveTab('messages'); }}
+                        className="p-1.5 rounded-lg hover:bg-blue-500/10 text-blue-400 transition-colors" title="Send message">
                         <span className="material-symbols-outlined text-lg">send</span>
                       </button>
                     </td>
@@ -531,23 +466,20 @@ export default function AdminScreen({ initialTab }: { initialTab?: string }) {
             </button>
           </div>
 
-          {/* Message Form */}
           {showMsgForm && (
-            <div className="bg-card rounded-xl border p-5 space-y-4">
-              <h3 className="font-bold text-foreground">{lang === 'bn' ? 'মেসেজ পাঠান' : 'Send Message'}</h3>
+            <div className="bg-gray-900 rounded-xl border border-gray-800 p-5 space-y-4">
+              <h3 className="font-bold text-white">{lang === 'bn' ? 'মেসেজ পাঠান' : 'Send Message'}</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-medium text-muted-foreground">{lang === 'bn' ? 'প্রাপক' : 'Recipient'}</label>
-                  <select value={msgForm.recipient_id} onChange={e => setMsgForm({ ...msgForm, recipient_id: e.target.value })}
-                    className="w-full mt-1 border rounded-lg px-3 py-2 text-sm bg-card">
+                  <label className="text-xs font-medium text-gray-400">{lang === 'bn' ? 'প্রাপক' : 'Recipient'}</label>
+                  <select value={msgForm.recipient_id} onChange={e => setMsgForm({ ...msgForm, recipient_id: e.target.value })} className={selectCls}>
                     <option value="">{lang === 'bn' ? 'ইউজার বাছুন' : 'Select user'}</option>
                     {licenses.map(l => <option key={l.user_id} value={l.user_id}>{l.shop_name} ({l.owner_name})</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-muted-foreground">{lang === 'bn' ? 'ধরন' : 'Type'}</label>
-                  <select value={msgForm.message_type} onChange={e => setMsgForm({ ...msgForm, message_type: e.target.value })}
-                    className="w-full mt-1 border rounded-lg px-3 py-2 text-sm bg-card">
+                  <label className="text-xs font-medium text-gray-400">{lang === 'bn' ? 'ধরন' : 'Type'}</label>
+                  <select value={msgForm.message_type} onChange={e => setMsgForm({ ...msgForm, message_type: e.target.value })} className={selectCls}>
                     <option value="general">{lang === 'bn' ? 'সাধারণ' : 'General'}</option>
                     <option value="license_warning">{lang === 'bn' ? 'লাইসেন্স সতর্কতা' : 'License Warning'}</option>
                     <option value="payment_reminder">{lang === 'bn' ? 'পেমেন্ট রিমাইন্ডার' : 'Payment Reminder'}</option>
@@ -555,53 +487,51 @@ export default function AdminScreen({ initialTab }: { initialTab?: string }) {
                   </select>
                 </div>
                 <div className="sm:col-span-2">
-                  <label className="text-xs font-medium text-muted-foreground">{lang === 'bn' ? 'বিষয়' : 'Subject'}</label>
-                  <input value={msgForm.subject} onChange={e => setMsgForm({ ...msgForm, subject: e.target.value })}
-                    className="w-full mt-1 border rounded-lg px-3 py-2 text-sm bg-card" />
+                  <label className="text-xs font-medium text-gray-400">{lang === 'bn' ? 'বিষয়' : 'Subject'}</label>
+                  <input value={msgForm.subject} onChange={e => setMsgForm({ ...msgForm, subject: e.target.value })} className={inputCls} />
                 </div>
                 <div className="sm:col-span-2">
-                  <label className="text-xs font-medium text-muted-foreground">{lang === 'bn' ? 'মেসেজ' : 'Message'}</label>
-                  <textarea value={msgForm.message} onChange={e => setMsgForm({ ...msgForm, message: e.target.value })}
-                    className="w-full mt-1 border rounded-lg px-3 py-2 text-sm bg-card" rows={3} />
+                  <label className="text-xs font-medium text-gray-400">{lang === 'bn' ? 'মেসেজ' : 'Message'}</label>
+                  <textarea value={msgForm.message} onChange={e => setMsgForm({ ...msgForm, message: e.target.value })} className={inputCls} rows={3} />
                 </div>
               </div>
               <div className="flex gap-2 justify-end">
-                <button onClick={() => setShowMsgForm(false)} className="px-4 py-2 border rounded-lg text-sm">{lang === 'bn' ? 'বাতিল' : 'Cancel'}</button>
-                <button onClick={sendMessage} className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-bold">{lang === 'bn' ? 'পাঠান' : 'Send'}</button>
+                <button onClick={() => setShowMsgForm(false)} className="px-4 py-2 border border-gray-700 text-gray-400 rounded-lg text-sm hover:bg-gray-800">{lang === 'bn' ? 'বাতিল' : 'Cancel'}</button>
+                <button onClick={sendMessage} className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-bold hover:bg-blue-700">{lang === 'bn' ? 'পাঠান' : 'Send'}</button>
               </div>
             </div>
           )}
 
           {/* Sent Messages */}
-          <div className="bg-card rounded-xl border overflow-hidden">
-            <div className="px-4 py-3 border-b bg-muted/30">
-              <p className="text-sm font-bold text-foreground">{lang === 'bn' ? 'পাঠানো মেসেজ' : 'Sent Messages'} ({sentMessages.length})</p>
+          <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
+            <div className="px-4 py-3 border-b border-gray-800">
+              <p className="text-sm font-bold text-white">{lang === 'bn' ? 'পাঠানো মেসেজ' : 'Sent Messages'} ({sentMessages.length})</p>
             </div>
-            <div className="divide-y max-h-[400px] overflow-y-auto">
+            <div className="divide-y divide-gray-800 max-h-[400px] overflow-y-auto">
               {sentMessages.map(m => {
                 const recipient = licenses.find(l => l.user_id === m.recipient_id);
                 return (
-                  <div key={m.id} className="px-4 py-3 hover:bg-muted/20">
+                  <div key={m.id} className="px-4 py-3 hover:bg-gray-800/30">
                     <div className="flex items-center justify-between mb-1">
-                      <p className="text-sm font-semibold text-foreground">{m.subject || '(No subject)'}</p>
+                      <p className="text-sm font-semibold text-white">{m.subject || '(No subject)'}</p>
                       <div className="flex items-center gap-2">
                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                          m.message_type === 'license_warning' ? 'bg-orange-100 text-orange-700' :
-                          m.message_type === 'payment_reminder' ? 'bg-red-100 text-red-700' :
-                          'bg-blue-100 text-blue-700'
+                          m.message_type === 'license_warning' ? 'bg-orange-500/20 text-orange-400' :
+                          m.message_type === 'payment_reminder' ? 'bg-red-500/20 text-red-400' :
+                          'bg-blue-500/20 text-blue-400'
                         }`}>{m.message_type}</span>
-                        {m.is_read && <span className="material-symbols-outlined text-green-500 text-sm">done_all</span>}
+                        {m.is_read && <span className="material-symbols-outlined text-green-400 text-sm">done_all</span>}
                       </div>
                     </div>
-                    <p className="text-xs text-muted-foreground mb-1">
+                    <p className="text-xs text-gray-500 mb-1">
                       {lang === 'bn' ? 'প্রাপক:' : 'To:'} {recipient?.shop_name || m.recipient_id.slice(0, 8)} · {new Date(m.created_at).toLocaleDateString()}
                     </p>
-                    <p className="text-xs text-foreground/70 line-clamp-2">{m.message}</p>
+                    <p className="text-xs text-gray-400 line-clamp-2">{m.message}</p>
                   </div>
                 );
               })}
               {sentMessages.length === 0 && (
-                <div className="text-center py-8 text-muted-foreground text-sm">{lang === 'bn' ? 'কোনো মেসেজ নেই' : 'No messages yet'}</div>
+                <div className="text-center py-8 text-gray-500 text-sm">{lang === 'bn' ? 'কোনো মেসেজ নেই' : 'No messages yet'}</div>
               )}
             </div>
           </div>
