@@ -9,6 +9,7 @@ interface UserWithRole {
   email: string;
   shop_name: string;
   phone: string;
+  full_name: string;
   created_at: string;
   role: string;
   blocked: boolean;
