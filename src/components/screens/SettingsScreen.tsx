@@ -89,58 +89,6 @@ export default function SettingsScreen({ settings, onUpdateSettings }: SettingsS
     setTimeout(() => window.location.reload(), 500);
   };
 
-  // ─── Auth handlers for cloud backup ───
-  const handleEmailAuth = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!authEmail || !authPassword) return;
-    setAuthLoading(true);
-    try {
-      if (authMode === 'signup') {
-        const { error } = await supabase.auth.signUp({
-          email: authEmail, password: authPassword,
-          options: { emailRedirectTo: window.location.origin }
-        });
-        if (error) throw error;
-        toast.success(lang === 'bn' ? 'অ্যাকাউন্ট তৈরি হয়েছে!' : 'Account created! Check email.');
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({ email: authEmail, password: authPassword });
-        if (error) throw error;
-        toast.success(lang === 'bn' ? 'লগইন সফল!' : 'Logged in!');
-        setShowAuthModal(false);
-      }
-    } catch (err: any) {
-      toast.error(err.message || 'Auth failed');
-    } finally {
-      setAuthLoading(false);
-    }
-  };
-
-  const handleGoogleAuth = async () => {
-    setAuthLoading(true);
-    try {
-      const { error } = await lovable.auth.signInWithOAuth('google', {
-        redirect_uri: window.location.origin,
-      });
-      if (error) throw error;
-    } catch (err: any) {
-      toast.error(err.message || 'Google login failed');
-      setAuthLoading(false);
-    }
-  };
-
-  const handleCloudBackupClick = () => {
-    if (!user) {
-      setShowAuthModal(true);
-    } else {
-      toast.info(lang === 'bn' ? 'ক্লাউড ব্যাকআপ শীঘ্রই আসছে!' : 'Cloud backup coming soon!');
-    }
-  };
-
-  const handleSignOut = async () => {
-    await signOut();
-    toast.success(lang === 'bn' ? 'লগআউট হয়েছে' : 'Logged out');
-  };
-
   const initials = (form.userName || 'U').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
 
   const clearOptions: { key: ClearOption; icon: string; labelKey: Parameters<typeof t>[0]; }[] = [
