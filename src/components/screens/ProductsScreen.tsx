@@ -454,8 +454,8 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
                 <th className="px-3 py-3 text-left align-middle cursor-pointer select-none" onClick={() => toggleSort('category')}>
                   <span className="inline-flex items-center gap-1">{t('categoryLabel')} <span className="material-symbols-outlined text-[10px]">{sortIcon('category')}</span></span>
                 </th>
-                <th className="px-3 py-3 text-left align-middle cursor-pointer select-none" onClick={() => toggleSort('brand')}>
-                  <span className="inline-flex items-center gap-1">{t('brandLabel')} <span className="material-symbols-outlined text-[10px]">{sortIcon('brand')}</span></span>
+                <th className="px-3 py-3 text-center align-middle cursor-pointer select-none" onClick={() => toggleSort('brand')}>
+                  <span className="inline-flex items-center gap-1 justify-center">{t('brandLabel')} <span className="material-symbols-outlined text-[10px]">{sortIcon('brand')}</span></span>
                 </th>
                 <th className="px-3 py-3 text-center align-middle">{t('size')}</th>
                 <th className="px-3 py-3 text-center align-middle">{t('buyRateLabel')}</th>
