@@ -31,6 +31,10 @@ export function useSupabaseProducts() {
       category: p.category || '',
       brand: p.brand || '',
       buyRate: Number(p.buy_rate) || 0,
+      unit: (p as any).unit || 'SQFT',
+      height: (p as any).height || '',
+      width: (p as any).width || '',
+      reorderLimit: Number((p as any).reorder_limit) || 0,
     })));
     setLoading(false);
   }, [user]);
