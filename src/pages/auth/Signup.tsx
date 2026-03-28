@@ -170,6 +170,7 @@ export default function Signup() {
           data: {
             shop_name: shopName,
             phone: phone,
+            full_name: fullName,
           }
         }
       });
