@@ -22,7 +22,7 @@ const UNIT_OPTIONS = ['SQFT', 'Piece', 'Set', 'KG', 'Litre', 'Yard', 'Feet', 'Ro
 
 const emptyRow = (): BulkRow => ({
   barcode: '', category: '', name: '', brand: '',
-  unit: 'Piece', height: '', width: '', piecesPerBox: '4',
+  unit: 'SQFT', height: '', width: '', piecesPerBox: '4',
   buyRate: '', pricePerBox: '', stock: '', reorderLimit: '',
   action: 'add',
 });
@@ -30,7 +30,7 @@ const emptyRow = (): BulkRow => ({
 export default function BulkProductView({ products, onAddProduct, onUpdateProduct }: BulkProductViewProps) {
   const { getOptions, addOption } = useProductOptions();
   const [tab, setTab] = useState<'csv' | 'grid'>('grid');
-  const [rows, setRows] = useState<BulkRow[]>(() => Array.from({ length: 5 }, emptyRow));
+  const [rows, setRows] = useState<BulkRow[]>(() => Array.from({ length: 3 }, emptyRow));
   const [processing, setProcessing] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -73,7 +73,7 @@ export default function BulkProductView({ products, onAddProduct, onUpdateProduc
     setRows(prev => prev.map((r, i) => i === idx ? { ...r, [field]: value } : r));
   };
 
-  const addMoreRows = () => setRows(prev => [...prev, ...Array.from({ length: 5 }, emptyRow)]);
+  const addOneRow = () => setRows(prev => [...prev, emptyRow()]);
   const removeRow = (idx: number) => setRows(prev => prev.filter((_, i) => i !== idx));
 
   // CSV
@@ -169,7 +169,7 @@ export default function BulkProductView({ products, onAddProduct, onUpdateProduc
 
     setProcessing(false);
     toast.success(`✓ ${addCount} প্রডাক্ট যোগ হয়েছে, ${updateCount} আপডেট হয়েছে`);
-    setRows(Array.from({ length: 5 }, emptyRow));
+    setRows(Array.from({ length: 3 }, emptyRow));
   };
 
   const downloadTemplate = () => {
@@ -277,8 +277,8 @@ export default function BulkProductView({ products, onAddProduct, onUpdateProduc
         </div>
       ) : (
         /* Spreadsheet Grid */
-        <div className="bg-pos-surface-lowest rounded-xl shadow-sm border border-pos-surface-container overflow-hidden">
-          <div className="overflow-auto max-h-[calc(100vh-340px)]">
+        <div className="bg-pos-surface-lowest rounded-xl shadow-sm border border-pos-surface-container">
+          <div className="overflow-x-auto overflow-y-visible">
             <table className="w-full">
               <thead className="sticky top-0 z-10">
                 <tr className="text-[10px] font-bold text-pos-on-surface-variant uppercase tracking-wider bg-pos-surface-container">
@@ -360,9 +360,9 @@ export default function BulkProductView({ products, onAddProduct, onUpdateProduc
           {/* Grid footer */}
           <div className="px-4 py-3 bg-pos-surface-low border-t border-pos-surface-container flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <button onClick={addMoreRows}
+              <button onClick={addOneRow}
                 className="px-3 py-2 bg-pos-surface-container text-pos-on-surface-variant rounded-lg text-xs font-semibold flex items-center gap-1.5 hover:bg-pos-surface-high transition-colors">
-                <span className="material-symbols-outlined text-sm">add</span>আরও ৫টি রো
+                <span className="material-symbols-outlined text-sm">add</span>+ ১ রো
               </button>
               <div className="flex items-center gap-3 text-xs">
                 <span className="inline-flex items-center gap-1.5">
