@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef, useCallback, useEffect } from "react";
+import BulkProductModal from "@/components/BulkProductModal";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useI18n } from "@/lib/i18n";
 import { type Product, formatCurrency } from "@/lib/store";
@@ -39,6 +40,7 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [page, setPage] = useState(0);
   const [showAddForm, setShowAddForm] = useState(true);
+  const [showBulkModal, setShowBulkModal] = useState(false);
 
   // Edit modal
   const [editProduct, setEditProduct] = useState<Product | null>(null);
@@ -409,13 +411,18 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
             {t('products')} <span className="text-lg font-normal text-pos-on-surface-variant">({products.length})</span>
           </h2>
         </div>
-        <button
-          onClick={() => setShowAddForm(!showAddForm)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-[hsl(var(--primary))] text-primary-foreground rounded-lg font-semibold text-sm hover:opacity-90 transition-opacity shadow-sm"
-        >
-          <span className="material-symbols-outlined text-base">{showAddForm ? 'list' : 'add'}</span>
-          {showAddForm ? 'Product List' : 'Add Product'}
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setShowBulkModal(true)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-[hsl(25,95%,53%)] text-white rounded-lg font-semibold text-sm hover:opacity-90 transition-opacity shadow-sm">
+            <span className="material-symbols-outlined text-base">playlist_add</span>
+            বাল্ক ইম্পোর্ট
+          </button>
+          <button onClick={() => setShowAddForm(!showAddForm)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-[hsl(var(--primary))] text-primary-foreground rounded-lg font-semibold text-sm hover:opacity-90 transition-opacity shadow-sm">
+            <span className="material-symbols-outlined text-base">{showAddForm ? 'list' : 'add'}</span>
+            {showAddForm ? 'Product List' : 'Add Product'}
+          </button>
+        </div>
       </div>
 
       {/* ═══ ADD PRODUCT FORM ═══ */}
@@ -662,6 +669,16 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
             </div>
           </div>
         </div>
+      )}
+
+      {/* Bulk Import Modal */}
+      {showBulkModal && (
+        <BulkProductModal
+          products={products}
+          onAddProduct={onAddProduct}
+          onUpdateProduct={onUpdateProduct}
+          onClose={() => setShowBulkModal(false)}
+        />
       )}
     </section>
   );
