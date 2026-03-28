@@ -554,6 +554,7 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
           <span><kbd className="px-1 py-0.5 bg-pos-surface-container rounded text-[9px] font-mono">Double Click</kbd> রো তে ডাবল ক্লিক করে এডিট করুন</span>
         </div>
       </div>
+      </>}
 
       {/* ═══ EDIT MODAL ═══ */}
       {editProduct && (
