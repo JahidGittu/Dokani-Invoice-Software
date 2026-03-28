@@ -96,6 +96,7 @@ export default function Index() {
       case 'transactions': return <TransactionsScreen sales={sales} purchases={purchases} />;
       case 'staffs': return <StaffsScreen />;
       case 'sms-email': return <SmsEmailScreen customers={customers} suppliers={suppliers} />;
+      case 'admin': return <AdminScreen />;
       default: return <DashboardScreen onNavigate={setActiveScreen} products={products} customers={customers} sales={sales} />;
     }
   };
