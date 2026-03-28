@@ -248,7 +248,6 @@ export default function Header({ activeScreen, onToggleSidebar, onNavigate, onSe
           <DropdownItem icon="settings" label={lang === 'bn' ? 'সাধারণ সেটিংস' : 'General Settings'} onClick={() => onNavigate('settings')} />
           <DropdownItem icon="receipt_long" label={lang === 'bn' ? 'ইনভয়েস সেটিংস' : 'Invoice Settings'} onClick={() => onNavigate('settings')} />
           <DropdownItem icon="backup" label={lang === 'bn' ? 'ব্যাকআপ' : 'Backup'} onClick={() => onNavigate('settings')} />
-          <DropdownItem icon="admin_panel_settings" label={lang === 'bn' ? 'সিস্টেম অ্যাডমিন' : 'System Admin'} onClick={() => onNavigate('admin')} />
         </DropdownButton>
 
         {/* Language Dropdown */}
