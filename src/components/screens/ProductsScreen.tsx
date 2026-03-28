@@ -8,6 +8,7 @@ import ComboInput from "@/components/ComboInput";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import JsBarcode from "jsbarcode";
+import { TILE_SIZE_OPTIONS, getAutoPackaging } from "@/lib/tile-packaging";
 
 interface ProductsScreenProps {
   products: Product[];
@@ -125,7 +126,24 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
 
   // ── Add form helpers ──
   const updateForm = (field: keyof AddFormData, value: string) => {
-    setForm(prev => ({ ...prev, [field]: value }));
+    setForm(prev => {
+      const next = { ...prev, [field]: value };
+      // Auto-suggest piecesPerBox when height or width changes
+      if ((field === 'height' || field === 'width') && next.unit === 'SQFT') {
+        const pkg = getAutoPackaging(
+          field === 'height' ? value : next.height,
+          field === 'width' ? value : next.width
+        );
+        if (pkg) next.piecesPerBox = String(pkg.piecesPerBox);
+      }
+      return next;
+    });
+  };
+
+  const applyTileSize = (sizeOpt: typeof TILE_SIZE_OPTIONS[0], update: (f: keyof AddFormData, v: string) => void) => {
+    update('height', sizeOpt.height);
+    update('width', sizeOpt.width);
+    update('piecesPerBox', String(sizeOpt.piecesPerBox));
   };
 
   const isSqft = (unit: string) => unit === 'SQFT';
@@ -328,18 +346,36 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
           </div>
         </div>
         {/* Row 2 */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-4 mb-5">
           <div>
             <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">Unit <span className="text-destructive">*</span></label>
             <select value={f.unit} onChange={e => update('unit', e.target.value)} className={formInputCls}>
               {UNIT_OPTIONS.map(u => <option key={u} value={u}>{u}</option>)}
             </select>
           </div>
+          {sqftRequired && (
+            <div>
+              <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">
+                সাইজ সিলেক্ট <span className="text-muted-foreground font-normal text-[10px]">(দ্রুত)</span>
+              </label>
+              <select
+                value={f.height && f.width ? `${f.height}×${f.width}` : ''}
+                onChange={e => {
+                  const opt = TILE_SIZE_OPTIONS.find(o => o.value === e.target.value);
+                  if (opt) { update('height', opt.height); update('width', opt.width); update('piecesPerBox', String(opt.piecesPerBox)); }
+                }}
+                className={formInputCls}
+              >
+                <option value="">কাস্টম সাইজ</option>
+                {TILE_SIZE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select>
+            </div>
+          )}
           <div>
             <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">
               Height {sqftRequired && <span className="text-destructive">*</span>}
             </label>
-            <input type="number" value={f.height} onChange={e => update('height', e.target.value)} className={`${formInputCls} ${sqftRequired && !f.height.trim() ? 'ring-2 ring-destructive/50' : ''}`} placeholder="Height" />
+            <input type="number" value={f.height} onChange={e => update('height', e.target.value)} className={`${formInputCls} ${sqftRequired && !f.height.trim() ? 'ring-2 ring-destructive/50' : ''}`} placeholder='ইঞ্চি' />
           </div>
           <div>
             <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">
