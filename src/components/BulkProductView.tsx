@@ -360,9 +360,9 @@ export default function BulkProductView({ products, onAddProduct, onUpdateProduc
           {/* Grid footer */}
           <div className="px-4 py-3 bg-pos-surface-low border-t border-pos-surface-container flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <button onClick={addMoreRows}
+              <button onClick={addOneRow}
                 className="px-3 py-2 bg-pos-surface-container text-pos-on-surface-variant rounded-lg text-xs font-semibold flex items-center gap-1.5 hover:bg-pos-surface-high transition-colors">
-                <span className="material-symbols-outlined text-sm">add</span>আরও ৫টি রো
+                <span className="material-symbols-outlined text-sm">add</span>+ ১ রো
               </button>
               <div className="flex items-center gap-3 text-xs">
                 <span className="inline-flex items-center gap-1.5">
