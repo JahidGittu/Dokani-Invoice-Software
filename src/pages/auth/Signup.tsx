@@ -10,6 +10,7 @@ export default function Signup() {
   const { user, loading: authLoading } = useAuth();
   const { t, lang, setLang } = useI18n();
   const [shopName, setShopName] = useState('');
+  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
