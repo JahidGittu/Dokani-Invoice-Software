@@ -17,14 +17,12 @@ import NotFound from "./pages/NotFound";
 import DashboardPage from "./pages/shop/Dashboard";
 import ProductsPage from "./pages/shop/Products";
 import SalesPage from "./pages/shop/Sales";
-import NewSalePage from "./pages/shop/NewSale";
 import InventoryPage from "./pages/shop/Inventory";
 import CustomersPage from "./pages/shop/Customers";
 import ReportsPage from "./pages/shop/Reports";
 import PurchasesPage from "./pages/shop/Purchases";
 import SuppliersPage from "./pages/shop/Suppliers";
 import SettingsPage from "./pages/shop/Settings";
-import ExcelImportPage from "./pages/shop/ExcelImport";
 import TransactionsPage from "./pages/shop/Transactions";
 import StaffsPage from "./pages/shop/Staffs";
 import SmsEmailPage from "./pages/shop/SmsEmail";
@@ -56,7 +54,7 @@ const App = () => (
               <Route element={<ProtectedRoute><ShopLayout /></ProtectedRoute>}>
                 <Route index element={<DashboardPage />} />
                 <Route path="dashboard" element={<DashboardPage />} />
-                <Route path="new-sale" element={<NewSalePage />} />
+                <Route path="new-sale" element={<SalesPage />} />
                 <Route path="products" element={<ProductsPage />} />
                 <Route path="purchases" element={<PurchasesPage />} />
                 <Route path="sales" element={<SalesPage />} />
@@ -67,7 +65,6 @@ const App = () => (
                 <Route path="transactions" element={<TransactionsPage />} />
                 <Route path="reports" element={<ReportsPage />} />
                 <Route path="sms-email" element={<SmsEmailPage />} />
-                <Route path="excel" element={<ExcelImportPage />} />
                 <Route path="settings" element={<SettingsPage />} />
               </Route>
 
