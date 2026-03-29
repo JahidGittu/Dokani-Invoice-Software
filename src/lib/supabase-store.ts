@@ -275,7 +275,7 @@ export function useSupabaseSuppliers() {
     const { data, error } = await supabase.from('suppliers').select('*').order('created_at', { ascending: false });
     if (error) { console.error('Fetch suppliers error:', error); return; }
     setSuppliers((data || []).map((s: any) => ({
-      id: s.id, name: s.name, phone: s.phone, address: s.address,
+      id: s.id, name: s.name, contactPerson: s.contact_person || '', phone: s.phone, address: s.address,
       totalDue: Number(s.total_due) || 0,
     })));
   }, [user]);
