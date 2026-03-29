@@ -252,11 +252,13 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
       const p = products.find(x => x.id === r.productId);
       const ctn = r.carton;
       const sqftQty = p ? (isSqftUnit(p.unit) ? calcSqftQty(p, ctn, r.piece) : ctn) : ctn;
-      return { productId: r.productId, name: p?.name || 'Custom Item', detail: p ? `${p.size} · ${p.finish}` : '', qty: ctn, price: r.rate, stock: p?.stock ?? 999, carton: ctn, piece: r.piece, sqftQty, category: p?.category || '', itemType: 'Sale' as const };
+      const piecesPerBox = p?.piecesPerBox || 4;
+      const totalPiecesNeeded = cartonPieceToTotalPieces(ctn, r.piece, piecesPerBox);
+      return { productId: r.productId, name: p?.name || 'Custom Item', detail: p ? `${p.size} · ${p.finish}` : '', qty: ctn, price: r.rate, stock: p?.stock ?? 999, carton: ctn, piece: r.piece, sqftQty, category: p?.category || '', itemType: 'Sale' as const, totalPiecesNeeded };
     });
     if (!items.length) { toast.error(t('addAtLeastOneItem')); return null; }
-    const overStock = items.find(i => i.qty > i.stock);
-    if (overStock) { toast.error(`${overStock.name}: ${t('qty')} ${overStock.qty} > ${t('stock')} ${overStock.stock}`); return null; }
+    const overStock = items.find(i => i.totalPiecesNeeded > i.stock);
+    if (overStock) { toast.error(`${overStock.name}: প্রয়োজন ${overStock.totalPiecesNeeded} Pcs > স্টক ${overStock.stock} Pcs`); return null; }
     
     // Validate required fields
     if (!paidAmount && status !== 'credit') {
