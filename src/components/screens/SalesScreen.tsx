@@ -723,6 +723,7 @@ tbody tr:nth-child(even){background:#fafafa}
                   <div className="flex items-center border-2 border-pos-surface-container rounded-lg overflow-hidden">
                     <span className="text-xs font-bold text-pos-on-surface-variant uppercase bg-pos-surface-high px-4 py-3.5 shrink-0 tracking-wide">Piece</span>
                     <input type="number" min={0} value={manualPiece} onChange={e => handleManualPieceChange(parseInt(e.target.value) || 0)}
+                      onBlur={handlePieceBlur}
                       className="w-20 bg-pos-surface-lowest text-base text-center outline-none py-3.5 px-2 font-semibold" />
                   </div>
                   <div className="flex items-center border-2 border-pos-surface-container rounded-lg overflow-hidden flex-1 min-w-[160px]">
