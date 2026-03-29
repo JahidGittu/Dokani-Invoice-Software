@@ -207,9 +207,12 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
   // ── Edit modal helpers ──
   const openEditModal = (p: Product) => {
     setEditProduct(p);
+    const ppb = p.piecesPerBox || 4;
+    const { carton: stockCartons } = totalPiecesToCartonPiece(p.stock, ppb);
+    const stockPieces = p.stock % ppb;
     setEditForm({
       barcode: p.barcode || '', category: p.category || '', name: p.name, brand: p.brand || '',
-      unit: p.unit || 'SQFT', height: p.height || '', width: p.width || '', piecesPerBox: String(p.piecesPerBox || 4),
+      unit: p.unit || 'SQFT', height: p.height || '', width: p.width || '', piecesPerBox: String(ppb),
       buyRate: String(p.buyRate || ''), pricePerBox: String(p.pricePerBox || ''),
       stock: String(p.stock || ''), reorderLimit: String(p.reorderLimit || 0),
       size: p.size || '', finish: p.finish || '', sqftPerBox: String(p.sqftPerBox || ''), batch: p.batch || '',
