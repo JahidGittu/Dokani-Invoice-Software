@@ -911,11 +911,11 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
                         setScanResult(found);
                         const existingRow = rows.find(r => r.productId === found.id);
                         if (existingRow) {
-                          updateRow(existingRow.id, 'qty', existingRow.qty + 1);
+                          updateRow(existingRow.id, 'carton', existingRow.carton + 1);
                         } else {
                           const emptyRow = rows.find(r => !r.productId);
                           if (emptyRow) {
-                            setRows(prev => prev.map(r => r.id === emptyRow.id ? { ...r, productId: found.id, rate: found.pricePerBox, qty: 1, searchQuery: '' } : r));
+                            setRows(prev => prev.map(r => r.id === emptyRow.id ? { ...r, productId: found.id, rate: found.pricePerBox, qty: 1, carton: 1, piece: 0, sqftInput: '', searchQuery: '' } : r));
                          } else {
                             setRows(prev => [...prev, { id: Date.now(), productId: found.id, qty: 1, rate: found.pricePerBox, searchQuery: '', showDropdown: false, carton: 1, piece: 0, sqftInput: '' }]);
                           }
