@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import { formatCurrency, numberToWords, type SaleRecord } from "@/lib/store";
+import { calcItemTotal } from "@/lib/calc-utils";
 import { useI18n } from "@/lib/i18n";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
@@ -164,7 +165,7 @@ tbody tr:nth-child(even){background:#fafafa}
     const carton = item.carton ?? item.qty;
     const piece = item.piece ?? 0;
     const sqftQty = item.sqftQty ?? item.qty;
-    const subTotal = (item.sqftQty ?? item.qty) * item.price;
+    const subTotal = calcItemTotal(item.sqftQty, item.qty, item.price);
     return `<tr>
       <td>${idx + 1}</td>
       <td>Sale</td>
@@ -233,10 +234,11 @@ ${companyPhone ? `<div style="font-size:9px">${companyPhone}</div>` : ''}
 <div style="font-size:10px">Customer: ${sale.customer}</div>
 ${sale.phone ? `<div style="font-size:10px">Phone: ${sale.phone}</div>` : ''}
 <div class="line"></div>
-${sale.items.map(item => `
-<div class="bold">${item.name}</div>
-<div class="row"><span>${Number(item.sqftQty ?? item.qty).toFixed(2)} sqft x ${formatCurrency(item.price)}</span><span>${formatCurrency((item.sqftQty ?? item.qty) * item.price)}</span></div>
-`).join('')}
+${sale.items.map(item => {
+const lineTotal = calcItemTotal(item.sqftQty, item.qty, item.price);
+return `<div class="bold">${item.name}</div>
+<div class="row"><span>${Number(item.sqftQty ?? item.qty).toFixed(2)} x ${formatCurrency(item.price)}</span><span>${formatCurrency(lineTotal)}</span></div>`;
+}).join('')}
 <div class="line"></div>
 <div class="row"><span>Subtotal</span><span>${formatCurrency(sale.subtotal)}</span></div>
 ${sale.discount > 0 ? `<div class="row"><span>Discount</span><span>-${formatCurrency(sale.discount)}</span></div>` : ''}
@@ -335,7 +337,7 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
       `${item.name}${item.detail ? ` (${item.detail})` : ''}`,
       String(Number(item.sqftQty ?? item.qty).toFixed(2)),
       String(item.price),
-      String(Math.round((item.sqftQty ?? item.qty) * item.price)),
+      String(Math.round(calcItemTotal(item.sqftQty, item.qty, item.price))),
     ]);
 
     doc.autoTable({

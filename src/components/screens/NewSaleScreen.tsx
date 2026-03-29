@@ -2,6 +2,7 @@ import { useState, useCallback, useRef, useMemo, useEffect } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useI18n } from "@/lib/i18n";
 import { formatCurrency, getNextInvoiceNumber, calcDiscount, numberToWords, type Product, type SaleRecord, type Customer, type CompanySettings } from "@/lib/store";
+import { calcSqftQty, calcCartonPieceFromSqft, calcSubTotal, isSqftUnit } from "@/lib/calc-utils";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
@@ -173,35 +174,22 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
       if (r.id !== id) return r;
       const updated = { ...r, [field]: value };
       const product = products.find(p => p.id === updated.productId);
-      const piecesPerBox = product?.piecesPerBox || 4;
-      const sqftPerBox = product?.sqftPerBox || 0;
-      const sqftPerPiece = piecesPerBox > 0 ? sqftPerBox / piecesPerBox : 0;
 
-      if (field === 'sqftInput') {
-        // User entered sqft → auto-calculate cartons and pieces
-        const totalSqft = parseFloat(String(value)) || 0;
-        if (sqftPerBox > 0 && totalSqft > 0) {
-          const totalBoxes = totalSqft / sqftPerBox;
-          updated.carton = Math.floor(totalBoxes);
-          const remainingSqft = totalSqft - (updated.carton * sqftPerBox);
-          updated.piece = sqftPerPiece > 0 ? Math.round(remainingSqft / sqftPerPiece) : 0;
-          // If pieces equal a full box, convert
-          if (updated.piece >= piecesPerBox) {
-            updated.carton += 1;
-            updated.piece = 0;
-          }
-        } else {
-          updated.carton = 0;
-          updated.piece = 0;
+      if (product && isSqftUnit(product.unit)) {
+        if (field === 'sqftInput') {
+          const totalSqft = parseFloat(String(value)) || 0;
+          const { carton, piece } = calcCartonPieceFromSqft(product, totalSqft);
+          updated.carton = carton;
+          updated.piece = piece;
+          updated.qty = carton;
+        } else if (field === 'carton' || field === 'piece') {
+          const sqft = calcSqftQty(product, updated.carton, updated.piece);
+          updated.sqftInput = sqft > 0 ? sqft.toFixed(1) : '';
+          updated.qty = updated.carton;
         }
-        updated.qty = updated.carton;
-      } else if (field === 'carton' || field === 'piece') {
-        // User changed carton/piece → update sqft display
-        const ctn = field === 'carton' ? (Number(value) || 0) : updated.carton;
-        const pc = field === 'piece' ? (Number(value) || 0) : updated.piece;
-        const totalSqft = (ctn * sqftPerBox) + (pc * sqftPerPiece);
-        updated.sqftInput = totalSqft > 0 ? totalSqft.toFixed(1) : '';
-        updated.qty = ctn;
+      } else if (product) {
+        // Non-SQFT: just track carton as qty
+        if (field === 'carton') updated.qty = Number(value) || 0;
       }
       return updated;
     }));
@@ -240,11 +228,7 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
 
   const subtotal = rows.reduce((sum, r) => {
     const product = products.find(p => p.id === r.productId);
-    const sqftPerBox = product?.sqftPerBox || 0;
-    const piecesPerBox = product?.piecesPerBox || 4;
-    const sqftPerPiece = piecesPerBox > 0 ? sqftPerBox / piecesPerBox : 0;
-    const totalSqft = (r.carton * sqftPerBox) + (r.piece * sqftPerPiece);
-    return sum + (totalSqft * r.rate);
+    return sum + calcSubTotal(product, r.carton, r.piece, r.rate);
   }, 0);
   const discountVal = calcDiscount(subtotal, parseFloat(discount) || 0, discountType);
   const returnVal = parseFloat(returnAmt) || 0;
@@ -267,10 +251,7 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
     const items = rows.filter(r => r.productId && (r.carton > 0 || r.piece > 0) && r.rate > 0).map(r => {
       const p = products.find(x => x.id === r.productId);
       const ctn = r.carton;
-      const piecesPerBox = p?.piecesPerBox || 4;
-      const sqftPerPiece = piecesPerBox > 0 ? (p?.sqftPerBox || 0) / piecesPerBox : 0;
-      const sqftQty = (ctn * (p?.sqftPerBox || 0)) + (r.piece * sqftPerPiece);
-      const itemTotal = sqftQty * r.rate;
+      const sqftQty = p ? (isSqftUnit(p.unit) ? calcSqftQty(p, ctn, r.piece) : ctn) : ctn;
       return { productId: r.productId, name: p?.name || 'Custom Item', detail: p ? `${p.size} · ${p.finish}` : '', qty: ctn, price: r.rate, stock: p?.stock ?? 999, carton: ctn, piece: r.piece, sqftQty, category: p?.category || '', itemType: 'Sale' as const };
     });
     if (!items.length) { toast.error(t('addAtLeastOneItem')); return null; }
@@ -696,9 +677,8 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
                 {rows.map((row, idx) => {
                   const product = products.find(p => p.id === row.productId);
                   const piecesPerBox = product?.piecesPerBox || 4;
-                  const sqftPerPiece = piecesPerBox > 0 ? (product?.sqftPerBox || 0) / piecesPerBox : 0;
-                  const sqftQty = (row.carton * (product?.sqftPerBox || 0)) + (row.piece * sqftPerPiece);
-                  const rowTotal = sqftQty * row.rate;
+                  const sqftQty = product ? (isSqftUnit(product.unit) ? calcSqftQty(product, row.carton, row.piece) : row.carton + (row.piece / piecesPerBox)) : 0;
+                  const rowTotal = calcSubTotal(product, row.carton, row.piece, row.rate);
                   return (
                     <tr key={row.id} className="border-b border-border/50 hover:bg-muted/20 transition-colors align-top">
                       <td className="py-2 px-2 text-xs font-semibold text-muted-foreground">{idx + 1}</td>

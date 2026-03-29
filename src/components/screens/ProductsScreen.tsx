@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import JsBarcode from "jsbarcode";
 import { TILE_SIZE_OPTIONS, getAutoPackaging } from "@/lib/tile-packaging";
+import { calcSqftPerBoxFromStrings, isSqftUnit } from "@/lib/calc-utils";
 
 interface ProductsScreenProps {
   products: Product[];
@@ -146,16 +147,11 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
     update('piecesPerBox', String(sizeOpt.piecesPerBox));
   };
 
-  const isSqft = (unit: string) => unit === 'SQFT';
+  const isSqft = (unit: string) => isSqftUnit(unit);
 
-  // Auto-calculate sqftPerBox from height (cm) × width (cm) × piecesPerBox / 929.0304
   const calcSqftPerBox = (f: AddFormData): number => {
-    if (!isSqft(f.unit)) return 0;
-    const h = parseFloat(f.height) || 0;
-    const w = parseFloat(f.width) || 0;
-    const pcs = parseInt(f.piecesPerBox) || 0;
-    if (h > 0 && w > 0 && pcs > 0) return parseFloat(((h * w * pcs) / 929.0304).toFixed(2));
-    return parseFloat(f.sqftPerBox) || 0;
+    const auto = calcSqftPerBoxFromStrings(f.height, f.width, f.piecesPerBox, f.unit);
+    return auto > 0 ? auto : parseFloat(f.sqftPerBox) || 0;
   };
 
   const validateForm = (f: AddFormData): string | null => {

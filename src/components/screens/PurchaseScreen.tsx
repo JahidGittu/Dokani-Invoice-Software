@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback, useRef } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useI18n } from "@/lib/i18n";
 import { formatCurrency, getNextPurchaseNumber, type Product, type Supplier, type PurchaseRecord, type PurchaseItem } from "@/lib/store";
+import { calcSqftQty, calcCartonPieceFromSqft, calcSubTotal, isSqftUnit } from "@/lib/calc-utils";
 import ComboInput from "@/components/ComboInput";
 import { toast } from "sonner";
 
@@ -102,13 +103,13 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
   }, [products, debouncedProductSearch]);
 
   const addProductToItems = (product: Product) => {
-    // Check if already in items
     if (items.find(i => i.productId === product.id)) {
       toast.error('Already added');
       return;
     }
-    const sqftPerBox = product.sqftPerBox || 0;
     const rate = product.buyRate || 0;
+    const initSqft = isSqftUnit(product.unit) ? calcSqftQty(product, 1, 0) : 0;
+    const initSubTotal = calcSubTotal(product, 1, 0, rate);
     setItems(prev => [...prev, {
       id: Date.now(),
       productId: product.id,
@@ -117,9 +118,9 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
       stock: product.stock,
       carton: 1,
       piece: 0,
-      sqftQty: sqftPerBox,
+      sqftQty: initSqft,
       buyRate: rate,
-      subTotal: sqftPerBox * rate,
+      subTotal: initSubTotal,
     }]);
     setProductSearch('');
     searchRef.current?.focus();
@@ -130,24 +131,19 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
       if (item.id !== id) return item;
       const updated = { ...item, [field]: value };
       const product = products.find(p => p.id === item.productId);
-      const sqftPerBox = product?.sqftPerBox || 0;
-      const piecesPerBox = product?.piecesPerBox || 4;
-      const sqftPerPiece = piecesPerBox > 0 ? sqftPerBox / piecesPerBox : 0;
+      if (!product) return updated;
 
-      if (field === 'sqftQty' && sqftPerBox > 0) {
-        // User entered SQFT → auto-calculate carton/piece
-        const totalSqft = value;
-        const totalBoxes = totalSqft / sqftPerBox;
-        updated.carton = Math.floor(totalBoxes);
-        const remainingSqft = totalSqft - (updated.carton * sqftPerBox);
-        updated.piece = sqftPerPiece > 0 ? Math.round(remainingSqft / sqftPerPiece) : 0;
-        if (updated.piece >= piecesPerBox) { updated.carton += 1; updated.piece = 0; }
-        updated.sqftQty = totalSqft;
-      } else {
-        // Carton/piece changed → recalculate sqftQty
-        updated.sqftQty = (updated.carton * sqftPerBox) + (updated.piece * sqftPerPiece);
+      if (isSqftUnit(product.unit)) {
+        if (field === 'sqftQty') {
+          const { carton, piece } = calcCartonPieceFromSqft(product, value);
+          updated.carton = carton;
+          updated.piece = piece;
+          updated.sqftQty = value;
+        } else {
+          updated.sqftQty = calcSqftQty(product, updated.carton, updated.piece);
+        }
       }
-      updated.subTotal = updated.sqftQty * updated.buyRate;
+      updated.subTotal = calcSubTotal(product, updated.carton, updated.piece, updated.buyRate);
       return updated;
     }));
   };
