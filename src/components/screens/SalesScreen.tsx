@@ -869,37 +869,37 @@ tbody tr:nth-child(even){background:#fafafa}
                 <span className="flex-1 text-right text-lg font-black text-pos-on-surface px-3">{formatCurrency(total)}</span>
               </div>
               {/* RETURN */}
-              <div className="flex items-center border border-pos-surface-container rounded-lg overflow-hidden">
+              <div className="flex items-center border border-pos-surface-container rounded-lg">
                 <span className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase">Return</span>
-                <input type="number" value={returnAmt} onChange={e => setReturnAmt(e.target.value)} placeholder="0"
-                  className="flex-1 text-sm py-3 px-3 outline-none bg-transparent text-right font-bold text-pos-error" />
+                <input type="number" min={0} step="any" value={returnAmt} onChange={e => setReturnAmt(e.target.value)} placeholder="0"
+                  className="flex-1 min-w-0 text-sm py-3 px-3 outline-none bg-pos-surface-lowest rounded-r-lg text-right font-bold text-pos-error" />
               </div>
               {/* DIS.% + Less */}
-              <div className="flex items-center border border-pos-surface-container rounded-lg overflow-hidden">
+              <div className="flex items-center border border-pos-surface-container rounded-lg">
                 <span className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase">Dis.%</span>
-                <input type="number" value={discount} onChange={e => setDiscount(e.target.value)} placeholder="0"
-                  className="flex-1 text-sm py-3 px-3 outline-none bg-transparent text-right" />
+                <input type="number" min={0} step="any" value={discount} onChange={e => setDiscount(e.target.value)} placeholder="0"
+                  className="flex-1 min-w-0 text-sm py-3 px-3 outline-none bg-pos-surface-lowest text-right" />
                 <button onClick={() => setDiscountType(discountType === 'percent' ? 'flat' : 'percent')}
-                  className="px-3 py-2 bg-pos-surface-high border-l border-pos-surface-container text-xs font-bold shrink-0">
+                  className="px-3 py-3 bg-pos-surface-high border-l border-pos-surface-container text-xs font-bold shrink-0 rounded-r-lg">
                   {discountType === 'percent' ? 'Less' : '৳'}
                 </button>
               </div>
               {/* LABOUR */}
-              <div className="flex items-center border border-pos-surface-container rounded-lg overflow-hidden">
+              <div className="flex items-center border border-pos-surface-container rounded-lg">
                 <span className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase">Labour</span>
-                <input type="number" value={labourCost} onChange={e => setLabourCost(e.target.value)} placeholder="0"
-                  className="flex-1 text-sm py-3 px-3 outline-none bg-transparent text-right" />
+                <input type="number" min={0} step="any" value={labourCost} onChange={e => setLabourCost(e.target.value)} placeholder="0"
+                  className="flex-1 min-w-0 text-sm py-3 px-3 outline-none bg-pos-surface-lowest rounded-r-lg text-right" />
               </div>
               {/* PAYABLE */}
-              <div className="flex items-center border-2 border-pos-secondary rounded-lg overflow-hidden bg-pos-secondary/5">
+              <div className="flex items-center border-2 border-pos-secondary rounded-lg bg-pos-secondary/5">
                 <span className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase">Payable</span>
                 <span className="flex-1 text-right text-lg font-black text-pos-secondary px-3">{formatCurrency(payable)}</span>
               </div>
               {/* PAID */}
-              <div className="flex items-center border border-pos-surface-container rounded-lg overflow-hidden">
+              <div className="flex items-center border border-pos-surface-container rounded-lg">
                 <span className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase">Paid</span>
-                <input type="number" value={paidAmount} onChange={e => setPaidAmount(e.target.value)} placeholder="0"
-                  className="flex-1 text-sm py-3 px-3 outline-none bg-transparent text-right font-bold" />
+                <input type="number" min={0} step="any" value={paidAmount} onChange={e => setPaidAmount(e.target.value)} placeholder="0"
+                  className="flex-1 min-w-0 text-sm py-3 px-3 outline-none bg-pos-surface-lowest rounded-r-lg text-right font-bold" />
               </div>
               {/* DUE */}
               <div className="flex items-center border border-pos-surface-container rounded-lg overflow-hidden">
