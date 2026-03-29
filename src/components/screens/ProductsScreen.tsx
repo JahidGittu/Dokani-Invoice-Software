@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import JsBarcode from "jsbarcode";
 import { TILE_SIZE_OPTIONS, getAutoPackaging } from "@/lib/tile-packaging";
-import { calcSqftPerBoxFromStrings, isSqftUnit } from "@/lib/calc-utils";
+import { calcSqftPerBoxFromStrings, isSqftUnit, cartonPieceToTotalPieces, totalPiecesToCartonPiece, formatStockDisplay } from "@/lib/calc-utils";
 
 interface ProductsScreenProps {
   products: Product[];
@@ -183,13 +183,16 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
     }
 
     const autoSqftPerBox = calcSqftPerBox(form);
+    const piecesPerBox = parseInt(form.piecesPerBox) || 4;
+    const stockCartons = parseInt(form.stock) || 0;
+    const stockInPieces = cartonPieceToTotalPieces(stockCartons, 0, piecesPerBox);
     onAddProduct({
       name: form.name.trim(), category: form.category, brand: form.brand,
       size: form.size || (form.height && form.width ? `${form.height}×${form.width}` : ''),
       finish: form.finish, unit: form.unit, height: form.height, width: form.width,
-      piecesPerBox: parseInt(form.piecesPerBox) || 4, buyRate: parseFloat(form.buyRate) || 0,
+      piecesPerBox, buyRate: parseFloat(form.buyRate) || 0,
       pricePerBox: parseFloat(form.pricePerBox) || 0, sqftPerBox: autoSqftPerBox,
-      stock: parseInt(form.stock) || 0, reorderLimit: parseInt(form.reorderLimit) || 0,
+      stock: stockInPieces, reorderLimit: parseInt(form.reorderLimit) || 0,
       batch: form.batch || form.barcode, barcode: form.barcode, imageUrl,
     });
     toast.success(`✓ ${form.name} সেভ হয়েছে`);
@@ -204,9 +207,12 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
   // ── Edit modal helpers ──
   const openEditModal = (p: Product) => {
     setEditProduct(p);
+    const ppb = p.piecesPerBox || 4;
+    const { carton: stockCartons } = totalPiecesToCartonPiece(p.stock, ppb);
+    const stockPieces = p.stock % ppb;
     setEditForm({
       barcode: p.barcode || '', category: p.category || '', name: p.name, brand: p.brand || '',
-      unit: p.unit || 'SQFT', height: p.height || '', width: p.width || '', piecesPerBox: String(p.piecesPerBox || 4),
+      unit: p.unit || 'SQFT', height: p.height || '', width: p.width || '', piecesPerBox: String(ppb),
       buyRate: String(p.buyRate || ''), pricePerBox: String(p.pricePerBox || ''),
       stock: String(p.stock || ''), reorderLimit: String(p.reorderLimit || 0),
       size: p.size || '', finish: p.finish || '', sqftPerBox: String(p.sqftPerBox || ''), batch: p.batch || '',
@@ -409,7 +415,7 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
         {/* Row 3: Stock, Reorder, Image */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           <div>
-            <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">Opening Stock</label>
+            <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">Opening Stock (Carton)</label>
             <input type="number" value={f.stock} onChange={e => update('stock', e.target.value)} className={formInputCls} placeholder="0" />
           </div>
           <div>

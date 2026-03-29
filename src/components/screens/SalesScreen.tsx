@@ -2,7 +2,7 @@ import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useI18n } from "@/lib/i18n";
 import { formatCurrency, getNextInvoiceNumber, downloadCSV, calcDiscount, numberToWords, type CartItem, type Product, type SaleRecord, type Customer, type CompanySettings } from "@/lib/store";
-import { calcSqftQty, calcCartonPieceFromSqft, calcSubTotal, isSqftUnit, getDisplaySqftQty } from "@/lib/calc-utils";
+import { calcSqftQty, calcCartonPieceFromSqft, calcSubTotal, isSqftUnit, getDisplaySqftQty, cartonPieceToTotalPieces, totalPiecesToCartonPiece, formatStockDisplay } from "@/lib/calc-utils";
 import { toast } from "sonner";
 import InvoiceModal from "@/components/InvoiceModal";
 import ComboInput from "@/components/ComboInput";
@@ -306,13 +306,12 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
       previousDues: prevDues, soldBy: salesMan || settings.userName || '',
     };
 
-    // Stock deduction: carton count (piece-only sales need at least 1 carton deduction)
+    // Stock deduction: total pieces
     onSaleComplete(sale, items.map(i => {
       const p = products.find(x => x.id === i.productId);
       const piecesPerBox = p?.piecesPerBox || 4;
-      // Total boxes to deduct = full cartons + ceiling of remaining pieces as fraction
-      const totalBoxes = i.carton + (i.piece > 0 ? Math.ceil(i.piece / piecesPerBox) : 0);
-      return { productId: i.productId, qty: Math.max(1, totalBoxes) };
+      const totalPieces = cartonPieceToTotalPieces(i.carton, i.piece, piecesPerBox);
+      return { productId: i.productId, qty: Math.max(1, totalPieces) };
     }));
     if (!isWalkingCustomer && finalCustomer !== t('walkInCustomer') && !customers.find(c => c.name === finalCustomer)) {
       onAutoAddCustomer(finalCustomer, finalPhone, finalAddress);
@@ -551,7 +550,7 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
                       }}
                         className="w-full text-left px-3 py-2 text-xs hover:bg-accent transition-colors flex justify-between items-center">
                         <span className="font-medium">{p.name} <span className="text-muted-foreground">({p.size})</span></span>
-                        <span className="text-muted-foreground text-[10px]">Stock: {p.stock}</span>
+                        <span className="text-muted-foreground text-[10px]">Stock: {formatStockDisplay(p.stock, p.piecesPerBox || 4)}</span>
                       </button>
                     )) : (
                       <div className="px-3 py-3 text-xs text-muted-foreground text-center">No products found</div>
@@ -559,8 +558,8 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
                   </div>
                 )}
               </div>
-              <div className="w-24 bg-pos-surface-high border border-pos-surface-container rounded-xl py-3 px-3 text-center font-bold text-sm text-pos-on-surface">
-                {selectedProduct ? selectedProduct.stock : 'Stock'}
+              <div className="w-28 bg-pos-surface-high border border-pos-surface-container rounded-xl py-3 px-2 text-center font-bold text-xs text-pos-on-surface">
+                {selectedProduct ? formatStockDisplay(selectedProduct.stock, selectedProduct.piecesPerBox || 4) : 'Stock'}
               </div>
             </div>
 

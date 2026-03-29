@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useMemo, useEffect } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useI18n } from "@/lib/i18n";
 import { formatCurrency, getNextInvoiceNumber, calcDiscount, numberToWords, type Product, type SaleRecord, type Customer, type CompanySettings } from "@/lib/store";
-import { calcSqftQty, calcCartonPieceFromSqft, calcSubTotal, isSqftUnit } from "@/lib/calc-utils";
+import { calcSqftQty, calcCartonPieceFromSqft, calcSubTotal, isSqftUnit, cartonPieceToTotalPieces, totalPiecesToCartonPiece, formatStockDisplay } from "@/lib/calc-utils";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
@@ -117,7 +117,7 @@ function ProductPicker({
                 </div>
                 <div className="text-right shrink-0">
                   <div className="font-bold text-primary text-[11px]">৳{p.pricePerBox}</div>
-                  <div className={`text-[9px] ${p.stock <= 20 ? 'text-destructive' : 'text-muted-foreground'}`}>{p.stock} {t('boxes')}</div>
+                  <div className={`text-[9px] ${p.stock <= 20 ? 'text-destructive' : 'text-muted-foreground'}`}>{formatStockDisplay(p.stock, p.piecesPerBox || 4)}</div>
                 </div>
               </div>
             </button>
@@ -252,11 +252,13 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
       const p = products.find(x => x.id === r.productId);
       const ctn = r.carton;
       const sqftQty = p ? (isSqftUnit(p.unit) ? calcSqftQty(p, ctn, r.piece) : ctn) : ctn;
-      return { productId: r.productId, name: p?.name || 'Custom Item', detail: p ? `${p.size} · ${p.finish}` : '', qty: ctn, price: r.rate, stock: p?.stock ?? 999, carton: ctn, piece: r.piece, sqftQty, category: p?.category || '', itemType: 'Sale' as const };
+      const piecesPerBox = p?.piecesPerBox || 4;
+      const totalPiecesNeeded = cartonPieceToTotalPieces(ctn, r.piece, piecesPerBox);
+      return { productId: r.productId, name: p?.name || 'Custom Item', detail: p ? `${p.size} · ${p.finish}` : '', qty: ctn, price: r.rate, stock: p?.stock ?? 999, carton: ctn, piece: r.piece, sqftQty, category: p?.category || '', itemType: 'Sale' as const, totalPiecesNeeded };
     });
     if (!items.length) { toast.error(t('addAtLeastOneItem')); return null; }
-    const overStock = items.find(i => i.qty > i.stock);
-    if (overStock) { toast.error(`${overStock.name}: ${t('qty')} ${overStock.qty} > ${t('stock')} ${overStock.stock}`); return null; }
+    const overStock = items.find(i => i.totalPiecesNeeded > i.stock);
+    if (overStock) { toast.error(`${overStock.name}: প্রয়োজন ${overStock.totalPiecesNeeded} Pcs > স্টক ${overStock.stock} Pcs`); return null; }
     
     // Validate required fields
     if (!paidAmount && status !== 'credit') {
@@ -274,12 +276,12 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
       date: now.toISOString(), time: now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
       paid: paidVal, due: dueVal, delivery: deliveryVal, labour: labourVal, returnAmount: returnVal, lessAmount: lessVal, balance: balanceVal,
     };
-    // Stock deduction: include pieces as fractional cartons (ceil)
+    // Stock deduction: total pieces
     return { sale, deductions: items.filter(i => i.productId).map(i => {
       const p = products.find(x => x.id === i.productId);
       const piecesPerBox = p?.piecesPerBox || 4;
-      const totalBoxes = i.carton + (i.piece > 0 ? Math.ceil(i.piece / piecesPerBox) : 0);
-      return { productId: i.productId, qty: Math.max(totalBoxes > 0 ? totalBoxes : i.qty, 1) };
+      const totalPieces = cartonPieceToTotalPieces(i.carton, i.piece, piecesPerBox);
+      return { productId: i.productId, qty: Math.max(1, totalPieces) };
     }) };
   };
 
@@ -944,7 +946,7 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
                   </div>
                   <div className="text-right">
                     <div className="font-bold text-primary">৳{scanResult.pricePerBox}</div>
-                    <div className="text-[10px] text-muted-foreground">{scanResult.stock} {t('boxes')}</div>
+                    <div className="text-[10px] text-muted-foreground">{formatStockDisplay(scanResult.stock, scanResult.piecesPerBox || 4)}</div>
                   </div>
                 </div>
               </div>

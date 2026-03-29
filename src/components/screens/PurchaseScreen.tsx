@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback, useRef } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useI18n } from "@/lib/i18n";
 import { formatCurrency, getNextPurchaseNumber, type Product, type Supplier, type PurchaseRecord, type PurchaseItem, type CompanySettings } from "@/lib/store";
-import { calcSqftQty, calcCartonPieceFromSqft, calcSubTotal, isSqftUnit } from "@/lib/calc-utils";
+import { calcSqftQty, calcCartonPieceFromSqft, calcSubTotal, isSqftUnit, cartonPieceToTotalPieces, formatStockDisplay } from "@/lib/calc-utils";
 import ComboInput from "@/components/ComboInput";
 import { toast } from "sonner";
 
@@ -217,12 +217,12 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
     };
 
     onAddPurchase(purchase);
-    // Stock addition: include pieces as fractional cartons (ceil)
+    // Stock addition: total pieces
     onAddStock(items.map(i => {
       const p = products.find(x => x.id === i.productId);
       const piecesPerBox = p?.piecesPerBox || 4;
-      const totalBoxes = i.carton + (i.piece > 0 ? Math.ceil(i.piece / piecesPerBox) : 0);
-      return { productId: i.productId, qty: Math.max(totalBoxes, 1) };
+      const totalPieces = cartonPieceToTotalPieces(i.carton, i.piece, piecesPerBox);
+      return { productId: i.productId, qty: Math.max(1, totalPieces) };
     }));
     if (dueVal > 0) onUpdateSupplierDue(supplierName, dueVal);
     toast.success('Purchase saved successfully');
@@ -406,7 +406,7 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
                       <button key={p.id} type="button" onClick={() => { addProductToItems(p); setProductSearch(''); }}
                         className="w-full text-left px-3 py-2 text-sm hover:bg-accent transition-colors flex items-center justify-between gap-2 border-b border-border/50 last:border-0">
                         <span className="font-medium">{p.name}</span>
-                        <span className="text-xs text-muted-foreground shrink-0">{p.barcode || p.batch || ''} | Stock: {p.stock}</span>
+                        <span className="text-xs text-muted-foreground shrink-0">{p.barcode || p.batch || ''} | Stock: {formatStockDisplay(p.stock, p.piecesPerBox || 4)}</span>
                       </button>
                     ))}
                   </div>
@@ -429,7 +429,7 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
                       <button key={p.id} type="button" onClick={() => { addProductToItems(p); }}
                         className="w-full text-left px-3 py-2 text-sm hover:bg-accent rounded-lg transition-colors flex items-center justify-between gap-2">
                         <span className="font-medium">{p.name}</span>
-                        <span className="text-xs text-muted-foreground">{p.barcode || ''} | Stock: {p.stock}</span>
+                        <span className="text-xs text-muted-foreground">{p.barcode || ''} | Stock: {formatStockDisplay(p.stock, p.piecesPerBox || 4)}</span>
                       </button>
                     ))}
                   </div>
@@ -470,7 +470,7 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
                           <td className="px-3 py-2 text-sm font-mono">{p.barcode || p.batch || '—'}</td>
                           <td className="px-3 py-2 text-sm font-medium">{p.name}</td>
                           <td className="px-3 py-2 text-center">
-                            <span className={`text-sm ${p.stock <= 0 ? 'text-pos-error font-bold' : ''}`}>{p.stock}</span>
+                            <span className={`text-sm ${p.stock <= 0 ? 'text-pos-error font-bold' : ''}`}>{formatStockDisplay(p.stock, p.piecesPerBox || 4)}</span>
                           </td>
                           {isSelected ? (
                             <>
@@ -891,7 +891,7 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
                       <button key={p.id} type="button" onClick={() => addEditProduct(p)}
                         className="w-full text-left px-3 py-2 text-sm hover:bg-accent transition-colors flex items-center justify-between gap-2 border-b border-border/50 last:border-0">
                         <span className="font-medium">{p.name}</span>
-                        <span className="text-xs text-muted-foreground">{p.barcode || ''} | Stock: {p.stock}</span>
+                        <span className="text-xs text-muted-foreground">{p.barcode || ''} | Stock: {formatStockDisplay(p.stock, p.piecesPerBox || 4)}</span>
                       </button>
                     ))}
                   </div>

@@ -106,3 +106,30 @@ export function calcItemTotal(sqftQty: number | undefined, qty: number, price: n
   }
   return qty * price;
 }
+
+// ═══════════════════════════════════════════
+// PIECE-BASED STOCK SYSTEM
+// stock column stores TOTAL PIECES (not cartons)
+// ═══════════════════════════════════════════
+
+/** Convert carton + piece input to total pieces for stock */
+export function cartonPieceToTotalPieces(carton: number, piece: number, piecesPerBox: number): number {
+  return (carton * piecesPerBox) + piece;
+}
+
+/** Convert total pieces (stock) to carton + remaining pieces for display */
+export function totalPiecesToCartonPiece(totalPieces: number, piecesPerBox: number): { carton: number; piece: number } {
+  if (piecesPerBox <= 0 || totalPieces <= 0) return { carton: 0, piece: 0 };
+  const carton = Math.floor(totalPieces / piecesPerBox);
+  const piece = totalPieces % piecesPerBox;
+  return { carton, piece };
+}
+
+/** Format stock for display: "50 Ctn 2 Pcs" */
+export function formatStockDisplay(totalPieces: number, piecesPerBox: number): string {
+  if (totalPieces <= 0) return '0';
+  const { carton, piece } = totalPiecesToCartonPiece(totalPieces, piecesPerBox);
+  if (piece === 0) return `${carton} Ctn`;
+  if (carton === 0) return `${piece} Pcs`;
+  return `${carton} Ctn ${piece} Pcs`;
+}

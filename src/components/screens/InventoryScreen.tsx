@@ -3,6 +3,7 @@ import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { type Product } from "@/lib/store";
+import { formatStockDisplay, totalPiecesToCartonPiece } from "@/lib/calc-utils";
 
 interface InventoryLog {
   id: string;
@@ -63,7 +64,7 @@ export default function InventoryScreen({ products }: InventoryScreenProps) {
         </div>
         <div className="bg-pos-surface-lowest rounded-xl p-5 border border-pos-surface-container">
           <div className="text-xs font-bold text-pos-on-surface-variant uppercase mb-2">{t('totalStock')}</div>
-          <div className="text-2xl font-black text-pos-on-surface">{products.reduce((s, p) => s + p.stock, 0).toLocaleString()} {t('boxes')}</div>
+          <div className="text-2xl font-black text-pos-on-surface">{products.reduce((s, p) => s + p.stock, 0).toLocaleString()} Pcs</div>
         </div>
         <div className="bg-pos-surface-lowest rounded-xl p-5 border border-pos-surface-container">
           <div className="text-xs font-bold text-pos-on-surface-variant uppercase mb-2">{t('lowStockItems')}</div>
@@ -90,7 +91,7 @@ export default function InventoryScreen({ products }: InventoryScreenProps) {
                 <tr key={p.id} className="hover:bg-pos-surface-low transition-colors">
                   <td className="px-4 sm:px-8 py-4 font-semibold">{p.name}</td>
                   <td className="px-4 sm:px-8 py-4"><span className="px-2 py-0.5 bg-pos-secondary-container text-pos-on-secondary-container rounded text-xs font-bold">{p.size}</span></td>
-                  <td className="px-4 sm:px-8 py-4 font-bold">{p.stock} {t('boxes')}</td>
+                  <td className="px-4 sm:px-8 py-4 font-bold">{formatStockDisplay(p.stock, p.piecesPerBox || 4)}</td>
                   <td className="px-4 sm:px-8 py-4">
                     <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
                       p.stock <= 0 ? 'bg-pos-error text-white' :
