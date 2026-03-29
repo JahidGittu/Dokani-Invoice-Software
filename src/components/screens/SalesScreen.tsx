@@ -133,16 +133,71 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const paginated = useMemo(() => filtered.slice(page * pageSize, (page + 1) * pageSize), [filtered, page, pageSize]);
 
-  // ── Add Sale: product search (show all, filter on search) ──
+  // ── Add Sale: product search ──
   const debouncedProductSearch = useDebounce(productSearch, 200);
   const displayProducts = useMemo(() => {
-    if (!debouncedProductSearch) return products;
+    if (!debouncedProductSearch) return [];
     return products.filter(p =>
       p.name.toLowerCase().includes(debouncedProductSearch.toLowerCase()) ||
       (p.barcode || '').toLowerCase().includes(debouncedProductSearch.toLowerCase()) ||
       p.batch.toLowerCase().includes(debouncedProductSearch.toLowerCase())
     );
   }, [products, debouncedProductSearch]);
+
+  const selectedProduct = selectedProductId ? products.find(p => p.id === selectedProductId) : null;
+
+  // Bi-directional calc for manual entry
+  const handleManualCartonChange = (val: number) => {
+    setManualCarton(val);
+    if (selectedProduct && isSqftUnit(selectedProduct.unit)) {
+      setManualSqft(parseFloat(calcSqftQty(selectedProduct, val, manualPiece).toFixed(3)));
+    }
+  };
+  const handleManualPieceChange = (val: number) => {
+    setManualPiece(val);
+    if (selectedProduct && isSqftUnit(selectedProduct.unit)) {
+      setManualSqft(parseFloat(calcSqftQty(selectedProduct, manualCarton, val).toFixed(3)));
+    }
+  };
+  const handleManualSqftChange = (val: number) => {
+    setManualSqft(val);
+    if (selectedProduct && isSqftUnit(selectedProduct.unit)) {
+      const { carton, piece } = calcCartonPieceFromSqft(selectedProduct, val);
+      setManualCarton(carton);
+      setManualPiece(piece);
+    }
+  };
+
+  // Recent customers (last 5 by created_at)
+  const recentCustomers = useMemo(() => {
+    return [...customers].sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()).slice(0, 5);
+  }, [customers]);
+
+  const handleSelectCustomer = (name: string) => {
+    if (name === 'Walking Customer' || name === 'ওয়াকিং কাস্টমার') {
+      setIsWalkingCustomer(true);
+      setCustomerName(name);
+      setPhone(''); setAddress('');
+      setWalkingName(''); setWalkingPhone(''); setWalkingAddress('');
+    } else {
+      setIsWalkingCustomer(false);
+      setCustomerName(name);
+      const c = customers.find(x => x.name === name);
+      if (c) { setPhone(c.phone || ''); setAddress(c.address || ''); }
+    }
+    setShowCustomerDropdown(false);
+  };
+
+  const handleSaveNewCustomer = () => {
+    if (!newCustName.trim()) { toast.error('Customer name required'); return; }
+    onAutoAddCustomer(newCustName.trim(), newCustPhone, newCustAddress);
+    setCustomerName(newCustName.trim());
+    setPhone(newCustPhone); setAddress(newCustAddress);
+    setIsWalkingCustomer(false);
+    setShowAddCustomerModal(false);
+    setNewCustName(''); setNewCustPhone(''); setNewCustType('General Customer'); setNewCustAddress('');
+    toast.success('Customer added');
+  };
 
   const addProductToItems = (product: Product, carton?: number, piece?: number, sqft?: number, rate?: number) => {
     if (items.find(i => i.productId === product.id)) {
@@ -185,7 +240,7 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
           const { carton, piece } = calcCartonPieceFromSqft(product, Number(value));
           updated.carton = carton;
           updated.piece = piece;
-        } else {
+        } else if (field === 'carton' || field === 'piece') {
           updated.sqftQty = calcSqftQty(product, updated.carton, updated.piece);
         }
       }
@@ -204,18 +259,59 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
   const payable = Math.max(0, total - returnVal - discountVal - lessVal + deliveryVal + labourVal);
   const paidVal = parseFloat(paidAmount) || 0;
   const dueVal = Math.max(0, payable - paidVal);
-  // Previous dues from customer
-  const selectedCustomer = customers.find(c => c.name === customerName);
-  const prevDues = selectedCustomer?.totalDue || 0;
+  const selectedCustomerObj = customers.find(c => c.name === customerName);
+  const prevDues = selectedCustomerObj?.totalDue || 0;
   const balanceVal = dueVal + prevDues;
 
   const openAddSale = () => {
     setView('add');
     setSaleDate(new Date().toISOString().split('T')[0]);
     setCustomerName(''); setPhone(''); setAddress('');
+    setIsWalkingCustomer(false); setWalkingName(''); setWalkingPhone(''); setWalkingAddress('');
     setItems([]); setDiscount(''); setDelivery(''); setPaidAmount('');
-    setRemark(''); setSaleStatus('Complete'); setPaymentMode('Cash');
-    setReturnAmt(''); setLessAmt(''); setLabourCost('');
+    setRemark(''); setSaleStatus('Complete'); setDeliveryStatus('Complete');
+    setPaymentMode('Cash'); setReturnAmt(''); setLessAmt(''); setLabourCost('');
+    setSalesMan('');
+  };
+
+  const handleSave = () => {
+    if (!items.length) { toast.error('কমপক্ষে একটি প্রোডাক্ট যোগ করুন'); return; }
+    if (!paidAmount && saleStatus !== 'Credit') { toast.error('Paid amount দিন!'); return; }
+
+    const inv = getNextInvoiceNumber(settings.invPrefix);
+    const now = new Date(saleDate);
+    const autoStatus = paidVal >= payable ? 'paid' : paidVal > 0 ? 'pending' : 'credit';
+
+    const finalCustomer = isWalkingCustomer ? (walkingName || t('walkInCustomer')) : (customerName || t('walkInCustomer'));
+    const finalPhone = isWalkingCustomer ? walkingPhone : phone;
+    const finalAddress = isWalkingCustomer ? walkingAddress : address;
+
+    const saleItems = items.map(i => {
+      const p = products.find(x => x.id === i.productId);
+      return {
+        productId: i.productId, name: i.name, detail: p ? `${p.size} · ${p.finish}` : '',
+        qty: i.carton, price: i.salesRate, carton: i.carton, piece: i.piece,
+        sqftQty: i.sqftQty, category: p?.category || '', itemType: i.itemType as 'Sale',
+      };
+    });
+
+    const sale: SaleRecord = {
+      id: crypto.randomUUID(), invoice: inv, customer: finalCustomer,
+      phone: finalPhone, address: finalAddress, items: saleItems, subtotal: total, discount: discountVal,
+      discountType, total: payable, paymentMethod: paymentMode.toLowerCase(),
+      notes: remark, status: autoStatus as SaleRecord['status'],
+      date: now.toISOString(), time: now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
+      paid: paidVal, due: dueVal, delivery: deliveryVal, returnAmount: returnVal,
+      lessAmount: lessVal, balance: balanceVal, labour: labourVal,
+      previousDues: prevDues, soldBy: salesMan || settings.userName || '',
+    };
+
+    onSaleComplete(sale, items.map(i => ({ productId: i.productId, qty: i.carton })));
+    if (!isWalkingCustomer && finalCustomer !== t('walkInCustomer') && !customers.find(c => c.name === finalCustomer)) {
+      onAutoAddCustomer(finalCustomer, finalPhone, finalAddress);
+    }
+    toast.success(`Sale saved: ${inv}`);
+    setView('history');
   };
 
   const handleSave = () => {
