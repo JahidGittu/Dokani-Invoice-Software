@@ -270,13 +270,52 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
               </div>
             </div>
 
-            {/* Product search */}
-            <div className="relative">
-              <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-pos-on-surface-variant">search</span>
-              <input ref={searchRef} value={productSearch} onChange={e => setProductSearch(e.target.value)}
-                className="w-full bg-[hsl(0,80%,92%)] border-2 border-pos-secondary/30 rounded-xl text-sm py-3 pl-11 pr-4 outline-none focus:border-pos-secondary transition-colors placeholder:text-pos-on-surface-variant/70"
-                placeholder="Search the Product..." />
+            {/* Product search + Recent button */}
+            <div className="flex gap-2 items-center">
+              <div className="relative flex-1">
+                <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-pos-on-surface-variant">search</span>
+                <input ref={searchRef} value={productSearch} onChange={e => { setProductSearch(e.target.value); setShowRecent(false); }}
+                  className="w-full bg-[hsl(0,80%,92%)] border-2 border-pos-secondary/30 rounded-xl text-sm py-3 pl-11 pr-4 outline-none focus:border-pos-secondary transition-colors placeholder:text-pos-on-surface-variant/70"
+                  placeholder="Search product by name or barcode..." />
+                {/* Search results dropdown */}
+                {searchResults.length > 0 && (
+                  <div className="absolute left-0 right-0 top-full mt-1 z-30 bg-popover border border-border rounded-lg shadow-xl max-h-[220px] overflow-y-auto">
+                    {searchResults.map(p => (
+                      <button key={p.id} type="button" onClick={() => { addProductToItems(p); setProductSearch(''); }}
+                        className="w-full text-left px-3 py-2 text-sm hover:bg-accent transition-colors flex items-center justify-between gap-2 border-b border-border/50 last:border-0">
+                        <span className="font-medium">{p.name}</span>
+                        <span className="text-xs text-muted-foreground shrink-0">{p.barcode || p.batch || ''} | Stock: {p.stock}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <button type="button" onClick={() => setShowRecent(!showRecent)}
+                className={`shrink-0 px-4 py-3 rounded-xl text-sm font-bold flex items-center gap-1.5 border-2 transition-colors ${showRecent ? 'bg-pos-secondary text-white border-pos-secondary' : 'bg-pos-surface-low text-pos-on-surface-variant border-pos-surface-container hover:border-pos-secondary'}`}>
+                <span className="material-symbols-outlined text-base">schedule</span>
+                Recent
+              </button>
             </div>
+
+            {/* Recent products popup */}
+            {showRecent && (
+              <div className="bg-pos-surface-lowest rounded-xl border-2 border-pos-secondary/30 p-3 max-h-[220px] overflow-y-auto">
+                <div className="text-xs font-bold text-pos-on-surface-variant uppercase mb-2">সাম্প্রতিক প্রোডাক্ট (৭ দিন)</div>
+                {recentProducts.length > 0 ? (
+                  <div className="space-y-1">
+                    {recentProducts.map(p => (
+                      <button key={p.id} type="button" onClick={() => { addProductToItems(p); }}
+                        className="w-full text-left px-3 py-2 text-sm hover:bg-accent rounded-lg transition-colors flex items-center justify-between gap-2">
+                        <span className="font-medium">{p.name}</span>
+                        <span className="text-xs text-muted-foreground">{p.barcode || ''} | Stock: {p.stock}</span>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-4">সাম্প্রতিক কোনো প্রোডাক্ট নেই</p>
+                )}
+              </div>
+            )}
 
             {/* All products table with checkbox */}
             <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container overflow-hidden">
