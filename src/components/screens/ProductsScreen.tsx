@@ -186,12 +186,13 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
       setUploading(false);
     }
 
+    const autoSqftPerBox = calcSqftPerBox(form);
     onAddProduct({
       name: form.name.trim(), category: form.category, brand: form.brand,
       size: form.size || (form.height && form.width ? `${form.height}×${form.width}` : ''),
       finish: form.finish, unit: form.unit, height: form.height, width: form.width,
       piecesPerBox: parseInt(form.piecesPerBox) || 4, buyRate: parseFloat(form.buyRate) || 0,
-      pricePerBox: parseFloat(form.pricePerBox) || 0, sqftPerBox: parseFloat(form.sqftPerBox) || 0,
+      pricePerBox: parseFloat(form.pricePerBox) || 0, sqftPerBox: autoSqftPerBox,
       stock: parseInt(form.stock) || 0, reorderLimit: parseInt(form.reorderLimit) || 0,
       batch: form.batch || form.barcode, barcode: form.barcode, imageUrl,
     });
