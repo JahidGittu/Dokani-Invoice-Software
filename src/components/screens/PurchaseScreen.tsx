@@ -470,7 +470,7 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
                           <td className="px-3 py-2 text-sm font-mono">{p.barcode || p.batch || '—'}</td>
                           <td className="px-3 py-2 text-sm font-medium">{p.name}</td>
                           <td className="px-3 py-2 text-center">
-                            <span className={`text-sm ${p.stock <= 0 ? 'text-pos-error font-bold' : ''}`}>{p.stock}</span>
+                            <span className={`text-sm ${p.stock <= 0 ? 'text-pos-error font-bold' : ''}`}>{formatStockDisplay(p.stock, p.piecesPerBox || 4)}</span>
                           </td>
                           {isSelected ? (
                             <>
