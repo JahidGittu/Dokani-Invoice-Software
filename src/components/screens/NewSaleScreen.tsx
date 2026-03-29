@@ -240,9 +240,11 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
 
   const subtotal = rows.reduce((sum, r) => {
     const product = products.find(p => p.id === r.productId);
+    const sqftPerBox = product?.sqftPerBox || 0;
     const piecesPerBox = product?.piecesPerBox || 4;
-    const pricePerPiece = piecesPerBox > 0 ? r.rate / piecesPerBox : 0;
-    return sum + (r.carton * r.rate) + (r.piece * pricePerPiece);
+    const sqftPerPiece = piecesPerBox > 0 ? sqftPerBox / piecesPerBox : 0;
+    const totalSqft = (r.carton * sqftPerBox) + (r.piece * sqftPerPiece);
+    return sum + (totalSqft * r.rate);
   }, 0);
   const discountVal = calcDiscount(subtotal, parseFloat(discount) || 0, discountType);
   const returnVal = parseFloat(returnAmt) || 0;
@@ -268,8 +270,7 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
       const piecesPerBox = p?.piecesPerBox || 4;
       const sqftPerPiece = piecesPerBox > 0 ? (p?.sqftPerBox || 0) / piecesPerBox : 0;
       const sqftQty = (ctn * (p?.sqftPerBox || 0)) + (r.piece * sqftPerPiece);
-      const pricePerPiece = piecesPerBox > 0 ? r.rate / piecesPerBox : 0;
-      const itemTotal = (ctn * r.rate) + (r.piece * pricePerPiece);
+      const itemTotal = sqftQty * r.rate;
       return { productId: r.productId, name: p?.name || 'Custom Item', detail: p ? `${p.size} · ${p.finish}` : '', qty: ctn, price: r.rate, stock: p?.stock ?? 999, carton: ctn, piece: r.piece, sqftQty, category: p?.category || '', itemType: 'Sale' as const };
     });
     if (!items.length) { toast.error(t('addAtLeastOneItem')); return null; }
@@ -697,8 +698,7 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
                   const piecesPerBox = product?.piecesPerBox || 4;
                   const sqftPerPiece = piecesPerBox > 0 ? (product?.sqftPerBox || 0) / piecesPerBox : 0;
                   const sqftQty = (row.carton * (product?.sqftPerBox || 0)) + (row.piece * sqftPerPiece);
-                  const pricePerPiece = piecesPerBox > 0 ? row.rate / piecesPerBox : 0;
-                  const rowTotal = (row.carton * row.rate) + (row.piece * pricePerPiece);
+                  const rowTotal = sqftQty * row.rate;
                   return (
                     <tr key={row.id} className="border-b border-border/50 hover:bg-muted/20 transition-colors align-top">
                       <td className="py-2 px-2 text-xs font-semibold text-muted-foreground">{idx + 1}</td>
