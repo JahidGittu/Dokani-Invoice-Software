@@ -183,13 +183,16 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
     }
 
     const autoSqftPerBox = calcSqftPerBox(form);
+    const piecesPerBox = parseInt(form.piecesPerBox) || 4;
+    const stockCartons = parseInt(form.stock) || 0;
+    const stockInPieces = cartonPieceToTotalPieces(stockCartons, 0, piecesPerBox);
     onAddProduct({
       name: form.name.trim(), category: form.category, brand: form.brand,
       size: form.size || (form.height && form.width ? `${form.height}×${form.width}` : ''),
       finish: form.finish, unit: form.unit, height: form.height, width: form.width,
-      piecesPerBox: parseInt(form.piecesPerBox) || 4, buyRate: parseFloat(form.buyRate) || 0,
+      piecesPerBox, buyRate: parseFloat(form.buyRate) || 0,
       pricePerBox: parseFloat(form.pricePerBox) || 0, sqftPerBox: autoSqftPerBox,
-      stock: parseInt(form.stock) || 0, reorderLimit: parseInt(form.reorderLimit) || 0,
+      stock: stockInPieces, reorderLimit: parseInt(form.reorderLimit) || 0,
       batch: form.batch || form.barcode, barcode: form.barcode, imageUrl,
     });
     toast.success(`✓ ${form.name} সেভ হয়েছে`);
