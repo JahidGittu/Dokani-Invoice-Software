@@ -200,11 +200,15 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
-            <span className="text-xs text-pos-on-surface-variant uppercase tracking-widest block mb-1">Purchase</span>
+            <div className="flex items-center gap-1.5 text-sm mb-1">
+              <span className="text-pos-secondary font-semibold">Purchase</span>
+              <span className="text-pos-error font-semibold">›</span>
+              <span className="text-pos-error font-semibold">Add Purchase</span>
+            </div>
             <h2 className="text-2xl font-bold text-pos-on-surface tracking-tight">Add Purchase</h2>
           </div>
-          <button onClick={() => setView('history')} className="px-5 py-2.5 bg-pos-secondary text-white rounded-lg font-semibold text-sm flex items-center gap-2 shadow-lg hover:-translate-y-0.5 transition-transform">
-            <span className="material-symbols-outlined text-lg">history</span>Purchase History
+          <button onClick={() => setView('history')} className="px-5 py-2.5 bg-pos-surface-container text-pos-on-surface-variant rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-pos-surface-high transition-colors border border-pos-surface-container">
+            <span className="material-symbols-outlined text-lg">folder_open</span>Purchase History
           </button>
         </div>
 
