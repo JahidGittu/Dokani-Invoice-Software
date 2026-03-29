@@ -400,7 +400,11 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
-          <span className="text-xs text-pos-on-surface-variant uppercase tracking-widest block mb-1">Purchase</span>
+          <div className="flex items-center gap-1.5 text-sm mb-1">
+            <span className="text-pos-secondary font-semibold">Purchase</span>
+            <span className="text-pos-on-surface-variant">›</span>
+            <span className="text-pos-secondary font-medium">History</span>
+          </div>
           <h2 className="text-2xl sm:text-4xl font-bold text-pos-on-surface leading-tight tracking-tighter">Purchase History</h2>
         </div>
         <button onClick={openAddPurchase} className="px-5 py-2.5 bg-gradient-to-b from-pos-secondary to-pos-secondary-dim text-white rounded-lg font-semibold text-sm flex items-center gap-2 shadow-lg hover:-translate-y-0.5 transition-transform">
