@@ -361,10 +361,21 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
 <div class="sig-row"><div class="sig">Customer Signature</div><div class="sig">Authorized Signature</div></div>
 <div class="disclaimer">বিক্রিত মাল ১ মাসের মধ্যে ফেরত নেওয়া হয়।চায়না/ইন্ডিয়ান মাল ফেরত নেওয়া হয় না।</div>
 </div></body></html>`;
-    const w = window.open('', '_blank', 'width=800,height=1000');
-    if (!w) { toast.error('Popup blocked'); return; }
-    w.document.write(html); w.document.close(); w.focus();
-    setTimeout(() => w.print(), 500);
+    // Print in same page using iframe
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.top = '-10000px';
+    iframe.style.left = '-10000px';
+    iframe.style.width = '210mm';
+    iframe.style.height = '297mm';
+    document.body.appendChild(iframe);
+    const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+    if (!iframeDoc) { toast.error('Print failed'); document.body.removeChild(iframe); return; }
+    iframeDoc.open(); iframeDoc.write(html); iframeDoc.close();
+    setTimeout(() => {
+      iframe.contentWindow?.print();
+      setTimeout(() => document.body.removeChild(iframe), 1000);
+    }, 500);
   };
 
   const generatePDF = async (sale: SaleRecord) => {

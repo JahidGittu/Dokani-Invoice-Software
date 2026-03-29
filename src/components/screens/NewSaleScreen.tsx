@@ -455,8 +455,15 @@ tbody tr:nth-child(even){background:#fafafa}
   };
 
   const handleThermalPrint = (sale: SaleRecord) => {
-    const w = window.open('', '_blank', 'width=320,height=600');
-    if (!w) { toast.error(t('popupBlocked')); return; }
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.top = '-10000px';
+    iframe.style.left = '-10000px';
+    iframe.style.width = '80mm';
+    iframe.style.height = '400mm';
+    document.body.appendChild(iframe);
+    const w = iframe.contentWindow;
+    if (!w) { toast.error(t('popupBlocked')); document.body.removeChild(iframe); return; }
     w.document.write(`<!DOCTYPE html><html><head><title>${sale.invoice}</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
