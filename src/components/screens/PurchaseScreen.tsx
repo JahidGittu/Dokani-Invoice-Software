@@ -540,7 +540,7 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
                       );
                     })}
                     {displayProducts.length === 0 && (
-                      <tr><td colSpan={9} className="px-8 py-8 text-center text-sm text-pos-on-surface-variant">
+                      <tr><td colSpan={8} className="px-8 py-8 text-center text-sm text-pos-on-surface-variant">
                         <span className="material-symbols-outlined text-3xl mb-2 block opacity-30">search</span>
                         সার্চ করে প্রোডাক্ট যোগ করুন
                       </td></tr>
