@@ -613,22 +613,24 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
             {/* Cart table — only added items */}
             <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container overflow-hidden">
               <div className="overflow-x-auto max-h-[350px] overflow-y-auto">
-                <table className="w-full min-w-[700px]">
+                <table className="w-full min-w-[600px]">
                   <thead className="sticky top-0 z-10">
                     <tr className="text-[10px] font-bold text-white uppercase tracking-wider bg-[hsl(230,45%,35%)]">
                       <th className="px-2 py-2.5 w-8"><span className="material-symbols-outlined text-sm">delete</span></th>
                       <th className="px-3 py-2.5">Type</th>
-                      <th className="px-3 py-2.5">Barcode</th>
                       <th className="px-3 py-2.5">Description</th>
-                      <th className="px-3 py-2.5 text-center">Carton</th>
+                      <th className="px-3 py-2.5 text-center">Qty / Carton</th>
                       <th className="px-3 py-2.5 text-center">Piece</th>
                       <th className="px-3 py-2.5 text-center">Sqft./Qty.</th>
-                      <th className="px-3 py-2.5 text-right">Sales Rate</th>
+                      <th className="px-3 py-2.5 text-right">Rate</th>
                       <th className="px-3 py-2.5 text-right">Sub Total</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-pos-surface-container">
-                    {items.map(item => (
+                    {items.map(item => {
+                      const itemProduct = products.find(p => p.id === item.productId);
+                      const itemIsSqft = itemProduct ? isSqftUnit(itemProduct.unit) : true;
+                      return (
                       <tr key={item.id} className="hover:bg-muted/30">
                         <td className="px-2 py-2 text-center">
                           <input type="checkbox" checked onChange={() => removeItem(item.id)}
@@ -640,24 +642,40 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
                             <option>Sale</option><option>Return</option>
                           </select>
                         </td>
-                        <td className="px-3 py-2 text-sm font-mono">{item.barcode || '—'}</td>
-                        <td className="px-3 py-2 text-sm font-medium">{item.name}</td>
-                        <td className="px-1 py-1">
-                          <input type="number" min={0} value={item.carton} onChange={e => updateItem(item.id, 'carton', parseInt(e.target.value) || 0)}
-                            className="w-16 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-center outline-none focus:border-pos-secondary mx-auto block" />
+                        <td className="px-3 py-2 text-sm font-medium">
+                          {item.name}
+                          {!itemIsSqft && <span className="text-[10px] ml-1 text-muted-foreground">({itemProduct?.unit})</span>}
                         </td>
-                        <td className="px-1 py-1">
-                          <input type="number" min={0} value={item.piece} onChange={e => updateItem(item.id, 'piece', parseInt(e.target.value) || 0)}
-                            className="w-14 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-center outline-none focus:border-pos-secondary mx-auto block" />
-                        </td>
-                        <td className="px-3 py-2 text-center text-sm">{item.sqftQty > 0 ? item.sqftQty.toFixed(3) : '0'}</td>
+                        {itemIsSqft ? (
+                          <>
+                            <td className="px-1 py-1">
+                              <input type="number" min={0} value={item.carton} onChange={e => updateItem(item.id, 'carton', parseInt(e.target.value) || 0)}
+                                className="w-16 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-center outline-none focus:border-pos-secondary mx-auto block" />
+                            </td>
+                            <td className="px-1 py-1">
+                              <input type="number" min={0} value={item.piece} onChange={e => updateItem(item.id, 'piece', parseInt(e.target.value) || 0)}
+                                className="w-14 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-center outline-none focus:border-pos-secondary mx-auto block" />
+                            </td>
+                            <td className="px-3 py-2 text-center text-sm">{item.sqftQty > 0 ? item.sqftQty.toFixed(3) : '0'}</td>
+                          </>
+                        ) : (
+                          <>
+                            <td className="px-1 py-1">
+                              <input type="number" min={1} value={item.piece} onChange={e => updateItem(item.id, 'piece', parseInt(e.target.value) || 0)}
+                                className="w-16 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-center outline-none focus:border-pos-secondary mx-auto block" />
+                            </td>
+                            <td className="px-3 py-2 text-center text-sm text-muted-foreground">—</td>
+                            <td className="px-3 py-2 text-center text-sm text-muted-foreground">—</td>
+                          </>
+                        )}
                         <td className="px-1 py-1">
                           <input type="number" value={item.salesRate} onChange={e => updateItem(item.id, 'salesRate', parseFloat(e.target.value) || 0)}
                             className="w-20 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-right outline-none focus:border-pos-secondary ml-auto block" />
                         </td>
                         <td className="px-3 py-2 text-right font-bold text-sm">{formatCurrency(item.subTotal)}</td>
                       </tr>
-                    ))}
+                      );
+                    })}
                     {items.length === 0 && (
                       <tr><td colSpan={9} className="px-8 py-12 text-center text-sm text-pos-on-surface-variant">
                         <span className="material-symbols-outlined text-3xl mb-2 block opacity-30">search</span>
