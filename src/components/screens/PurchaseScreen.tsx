@@ -35,7 +35,7 @@ interface PurchaseItemRow {
   subTotal: number;
 }
 
-export default function PurchaseScreen({ products, suppliers, purchases, onAddPurchase, onDeletePurchase, onAddStock, onUpdateSupplierDue, settings }: PurchaseScreenProps) {
+export default function PurchaseScreen({ products, suppliers, purchases, onAddPurchase, onDeletePurchase, onUpdatePurchase, onAddStock, onUpdateSupplierDue, settings }: PurchaseScreenProps) {
   const { t } = useI18n();
 
   // ── View toggle ──
