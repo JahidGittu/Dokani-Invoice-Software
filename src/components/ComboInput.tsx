@@ -64,6 +64,7 @@ export default function ComboInput({ value, onChange, options, onAddNew, placeho
 
   const dropdown = open && (filtered.length > 0 || isNew) ? createPortal(
     <div
+      ref={dropdownRef}
       style={{
         position: 'fixed',
         left: dropPos.left,
