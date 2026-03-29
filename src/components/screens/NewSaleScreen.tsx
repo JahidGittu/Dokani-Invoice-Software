@@ -214,7 +214,7 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
       } else {
         const emptyRow = rows.find(r => !r.productId);
         if (emptyRow) {
-          setRows(prev => prev.map(r => r.id === emptyRow.id ? { ...r, productId: found.id, rate: found.pricePerBox, qty: 1, carton: 1, piece: 0, sqftInput: '', searchQuery: '' } : r));
+          setRows(prev => prev.map(r => r.id === emptyRow.id ? { ...r, productId: found.id, rate: found.pricePerBox, qty: 1, carton: 1, piece: 0, sqftInput: '', searchQuery: '', showDropdown: false } : r));
         } else {
           setRows(prev => [...prev, { id: Date.now(), productId: found.id, qty: 1, rate: found.pricePerBox, searchQuery: '', showDropdown: false, carton: 1, piece: 0, sqftInput: '' }]);
         }
