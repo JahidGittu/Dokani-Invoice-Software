@@ -306,7 +306,14 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
       previousDues: prevDues, soldBy: salesMan || settings.userName || '',
     };
 
-    onSaleComplete(sale, items.map(i => ({ productId: i.productId, qty: i.carton })));
+    // Stock deduction: carton count (piece-only sales need at least 1 carton deduction)
+    onSaleComplete(sale, items.map(i => {
+      const p = products.find(x => x.id === i.productId);
+      const piecesPerBox = p?.piecesPerBox || 4;
+      // Total boxes to deduct = full cartons + ceiling of remaining pieces as fraction
+      const totalBoxes = i.carton + (i.piece > 0 ? Math.ceil(i.piece / piecesPerBox) : 0);
+      return { productId: i.productId, qty: Math.max(1, totalBoxes) };
+    }));
     if (!isWalkingCustomer && finalCustomer !== t('walkInCustomer') && !customers.find(c => c.name === finalCustomer)) {
       onAutoAddCustomer(finalCustomer, finalPhone, finalAddress);
     }
@@ -354,10 +361,21 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
 <div class="sig-row"><div class="sig">Customer Signature</div><div class="sig">Authorized Signature</div></div>
 <div class="disclaimer">বিক্রিত মাল ১ মাসের মধ্যে ফেরত নেওয়া হয়।চায়না/ইন্ডিয়ান মাল ফেরত নেওয়া হয় না।</div>
 </div></body></html>`;
-    const w = window.open('', '_blank', 'width=800,height=1000');
-    if (!w) { toast.error('Popup blocked'); return; }
-    w.document.write(html); w.document.close(); w.focus();
-    setTimeout(() => w.print(), 500);
+    // Print in same page using iframe
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.top = '-10000px';
+    iframe.style.left = '-10000px';
+    iframe.style.width = '210mm';
+    iframe.style.height = '297mm';
+    document.body.appendChild(iframe);
+    const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+    if (!iframeDoc) { toast.error('Print failed'); document.body.removeChild(iframe); return; }
+    iframeDoc.open(); iframeDoc.write(html); iframeDoc.close();
+    setTimeout(() => {
+      iframe.contentWindow?.print();
+      setTimeout(() => document.body.removeChild(iframe), 1000);
+    }, 500);
   };
 
   const generatePDF = async (sale: SaleRecord) => {
@@ -389,7 +407,7 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
       `${item.carton ?? item.qty} Carton ${item.piece ?? 0} Piece`,
       item.category || '-', `${item.name}${item.detail ? ` (${item.detail})` : ''}`,
       String(Number(item.sqftQty ?? item.qty).toFixed(2)), String(item.price),
-      String(Math.round((item.carton ?? item.qty) * item.price)),
+      String(Math.round((item.sqftQty && item.sqftQty > 0 ? item.sqftQty : (item.carton ?? item.qty)) * item.price)),
     ]);
     doc.autoTable({ startY: y, head: [['SN', 'TYPE', 'CARTON/PIECE', 'CATEGORY', 'PRODUCT NAME', 'SQFT./QTY.', 'PRICE', 'SUB TOTAL']], body: tableData, theme: 'grid', margin: { left: 15, right: 15 }, styles: { fontSize: 8, cellPadding: 2.5, textColor: [34, 34, 34] }, headStyles: { fillColor: [192, 57, 43], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 7.5 }, columnStyles: { 0: { cellWidth: 10, halign: 'center' }, 1: { cellWidth: 14 }, 2: { cellWidth: 30 }, 3: { cellWidth: 20 }, 4: { cellWidth: 42 }, 5: { cellWidth: 22, halign: 'right' }, 6: { cellWidth: 18, halign: 'right' }, 7: { cellWidth: 24, halign: 'right', fontStyle: 'bold' } } });
     y = doc.lastAutoTable.finalY + 6;

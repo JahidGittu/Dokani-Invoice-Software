@@ -150,6 +150,7 @@ export default function ShopLayout() {
 // Hook for child routes to access shop context
 import { useOutletContext } from 'react-router-dom';
 
-export function useShopContext() {
-  return useOutletContext<any>();
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function useShopContext(): any {
+  return useOutletContext();
 }

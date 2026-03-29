@@ -274,7 +274,13 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
       date: now.toISOString(), time: now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
       paid: paidVal, due: dueVal, delivery: deliveryVal, labour: labourVal, returnAmount: returnVal, lessAmount: lessVal, balance: balanceVal,
     };
-    return { sale, deductions: items.filter(i => i.productId).map(i => ({ productId: i.productId, qty: i.qty })) };
+    // Stock deduction: include pieces as fractional cartons (ceil)
+    return { sale, deductions: items.filter(i => i.productId).map(i => {
+      const p = products.find(x => x.id === i.productId);
+      const piecesPerBox = p?.piecesPerBox || 4;
+      const totalBoxes = i.carton + (i.piece > 0 ? Math.ceil(i.piece / piecesPerBox) : 0);
+      return { productId: i.productId, qty: Math.max(totalBoxes > 0 ? totalBoxes : i.qty, 1) };
+    }) };
   };
 
   const commitSale = (sale: SaleRecord, deductions: { productId: string; qty: number }[]) => {
@@ -397,7 +403,7 @@ tbody tr:nth-child(even){background:#fafafa}
 <thead><tr><th>SN</th><th>TYPE</th><th>CARTON/PIECE</th><th>CATEGORY</th><th>PRODUCT NAME</th><th class="r">SQFT./QTY.</th><th class="r">PRICE</th><th class="r">SUB TOTAL</th></tr></thead>
 <tbody>${sale.items.map((item, idx) => {
   const p = products.find(x => x.id === item.productId);
-  return `<tr><td>${idx+1}</td><td>Sale</td><td>${item.carton ?? item.qty} Carton ${item.piece ?? 0} Piece</td><td>${item.category || p?.category || '-'}</td><td class="b">${item.name}${p ? ` (Size: ${p.size})` : ''}</td><td class="r">${Number(item.sqftQty ?? (item.qty * (p?.sqftPerBox || 1))).toFixed(2)}</td><td class="r">${item.price}</td><td class="r b">${item.price * item.qty}</td></tr>`;
+  return `<tr><td>${idx+1}</td><td>Sale</td><td>${item.carton ?? item.qty} Carton ${item.piece ?? 0} Piece</td><td>${item.category || p?.category || '-'}</td><td class="b">${item.name}${p ? ` (Size: ${p.size})` : ''}</td><td class="r">${Number(item.sqftQty ?? (item.qty * (p?.sqftPerBox || 1))).toFixed(2)}</td><td class="r">${item.price}</td><td class="r b">${Math.round((item.sqftQty && item.sqftQty > 0 ? item.sqftQty : item.qty) * item.price)}</td></tr>`;
 }).join('')}</tbody>
 </table>
 <div class="bottom">
@@ -432,17 +438,32 @@ tbody tr:nth-child(even){background:#fafafa}
 
   const handlePrintSale = async (sale: SaleRecord) => {
     const html = await generatePrintHTML(sale);
-    const w = window.open('', '_blank', 'width=800,height=1000');
-    if (!w) { toast.error(t('popupBlocked')); return; }
-    w.document.write(html);
-    w.document.close();
-    w.focus();
-    setTimeout(() => w.print(), 500);
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.top = '-10000px';
+    iframe.style.left = '-10000px';
+    iframe.style.width = '210mm';
+    iframe.style.height = '297mm';
+    document.body.appendChild(iframe);
+    const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+    if (!iframeDoc) { toast.error(t('popupBlocked')); document.body.removeChild(iframe); return; }
+    iframeDoc.open(); iframeDoc.write(html); iframeDoc.close();
+    setTimeout(() => {
+      iframe.contentWindow?.print();
+      setTimeout(() => document.body.removeChild(iframe), 1000);
+    }, 500);
   };
 
   const handleThermalPrint = (sale: SaleRecord) => {
-    const w = window.open('', '_blank', 'width=320,height=600');
-    if (!w) { toast.error(t('popupBlocked')); return; }
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.top = '-10000px';
+    iframe.style.left = '-10000px';
+    iframe.style.width = '80mm';
+    iframe.style.height = '400mm';
+    document.body.appendChild(iframe);
+    const w = iframe.contentWindow;
+    if (!w) { toast.error(t('popupBlocked')); document.body.removeChild(iframe); return; }
     w.document.write(`<!DOCTYPE html><html><head><title>${sale.invoice}</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -472,8 +493,10 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
 <div class="center" style="font-size:9px;margin-top:4px">Thank you! Visit again.</div>
 </body></html>`);
     w.document.close();
-    w.focus();
-    setTimeout(() => w.print(), 400);
+    setTimeout(() => {
+      w.print();
+      setTimeout(() => document.body.removeChild(iframe), 1000);
+    }, 400);
   };
 
   const generatePDF = async (sale: SaleRecord) => {

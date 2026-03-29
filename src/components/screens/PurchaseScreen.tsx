@@ -217,7 +217,13 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
     };
 
     onAddPurchase(purchase);
-    onAddStock(items.map(i => ({ productId: i.productId, qty: i.carton })));
+    // Stock addition: include pieces as fractional cartons (ceil)
+    onAddStock(items.map(i => {
+      const p = products.find(x => x.id === i.productId);
+      const piecesPerBox = p?.piecesPerBox || 4;
+      const totalBoxes = i.carton + (i.piece > 0 ? Math.ceil(i.piece / piecesPerBox) : 0);
+      return { productId: i.productId, qty: Math.max(totalBoxes, 1) };
+    }));
     if (dueVal > 0) onUpdateSupplierDue(supplierName, dueVal);
     toast.success('Purchase saved successfully');
     setView('history');
