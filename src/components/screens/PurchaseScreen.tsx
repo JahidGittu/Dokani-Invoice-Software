@@ -830,6 +830,150 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
           </div>
         </div>
       )}
+
+      {/* Edit Purchase Modal */}
+      {editPurchase && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4" onClick={() => setEditPurchase(null)}>
+          <div className="bg-background rounded-xl w-[95vw] max-w-[900px] max-h-[90vh] shadow-2xl flex flex-col" onClick={e => e.stopPropagation()}>
+            {/* Modal header */}
+            <div className="flex justify-between items-center px-5 py-3 border-b border-border">
+              <h3 className="text-lg font-bold text-foreground">Edit Purchase #{editPurchase.invoice}</h3>
+              <button onClick={() => setEditPurchase(null)} className="w-8 h-8 rounded-lg hover:bg-accent flex items-center justify-center">
+                <span className="material-symbols-outlined text-muted-foreground">close</span>
+              </button>
+            </div>
+
+            <div className="overflow-y-auto flex-1 p-5 space-y-4">
+              {/* Top fields */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1">Date</label>
+                  <input type="date" value={editDate} onChange={e => setEditDate(e.target.value)}
+                    className="w-full bg-muted border border-border rounded-lg text-sm py-2.5 px-3 outline-none" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1">Invoice #</label>
+                  <input value={editInvoice} onChange={e => setEditInvoice(e.target.value)}
+                    className="w-full bg-muted border border-border rounded-lg text-sm py-2.5 px-3 outline-none" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1">Supplier *</label>
+                  <ComboInput value={editSupplier} onChange={setEditSupplier} options={suppliers.map(s => s.name)} placeholder="Select Supplier..."
+                    className="w-full bg-muted border border-border rounded-lg text-sm py-2.5 px-3 outline-none" />
+                </div>
+              </div>
+
+              {/* Product search */}
+              <div className="relative">
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">search</span>
+                <input value={editProductSearch} onChange={e => setEditProductSearch(e.target.value)}
+                  className="w-full bg-muted border border-border rounded-lg text-sm py-2.5 pl-10 pr-4 outline-none focus:ring-1 focus:ring-ring"
+                  placeholder="Search product to add..." />
+                {editSearchResults.length > 0 && (
+                  <div className="absolute left-0 right-0 top-full mt-1 z-30 bg-popover border border-border rounded-lg shadow-xl max-h-[180px] overflow-y-auto">
+                    {editSearchResults.map(p => (
+                      <button key={p.id} type="button" onClick={() => addEditProduct(p)}
+                        className="w-full text-left px-3 py-2 text-sm hover:bg-accent transition-colors flex items-center justify-between gap-2 border-b border-border/50 last:border-0">
+                        <span className="font-medium">{p.name}</span>
+                        <span className="text-xs text-muted-foreground">{p.barcode || ''} | Stock: {p.stock}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Items table */}
+              <div className="border border-border rounded-lg overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-[10px] font-bold text-white uppercase bg-[hsl(230,45%,35%)]">
+                      <th className="px-2 py-2">Product</th>
+                      <th className="px-2 py-2 text-center">Carton</th>
+                      <th className="px-2 py-2 text-center">Piece</th>
+                      <th className="px-2 py-2 text-center">Sqft/Qty</th>
+                      <th className="px-2 py-2 text-right">Rate</th>
+                      <th className="px-2 py-2 text-right">Sub Total</th>
+                      <th className="px-2 py-2 w-8"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {editItems.map(item => (
+                      <tr key={item.id} className="hover:bg-muted/30">
+                        <td className="px-2 py-1.5 font-medium">{item.name}</td>
+                        <td className="px-1 py-1">
+                          <input type="number" min={0} value={item.carton} onChange={e => updateEditItem(item.id, 'carton', parseInt(e.target.value) || 0)}
+                            className="w-16 bg-background border border-border rounded text-sm py-1.5 text-center outline-none focus:border-ring mx-auto block" />
+                        </td>
+                        <td className="px-1 py-1">
+                          <input type="number" min={0} value={item.piece} onChange={e => updateEditItem(item.id, 'piece', parseInt(e.target.value) || 0)}
+                            className="w-14 bg-background border border-border rounded text-sm py-1.5 text-center outline-none focus:border-ring mx-auto block" />
+                        </td>
+                        <td className="px-1 py-1">
+                          <input type="number" min={0} value={item.sqftQty} onChange={e => updateEditItem(item.id, 'sqftQty', parseFloat(e.target.value) || 0)}
+                            className="w-16 bg-background border border-border rounded text-sm py-1.5 text-center outline-none focus:border-ring mx-auto block" />
+                        </td>
+                        <td className="px-1 py-1">
+                          <input type="number" value={item.buyRate} onChange={e => updateEditItem(item.id, 'buyRate', parseFloat(e.target.value) || 0)}
+                            className="w-20 bg-background border border-border rounded text-sm py-1.5 text-right outline-none focus:border-ring ml-auto block" />
+                        </td>
+                        <td className="px-2 py-1.5 text-right font-bold">{formatCurrency(item.subTotal)}</td>
+                        <td className="px-1 py-1">
+                          <button onClick={() => setEditItems(prev => prev.filter(i => i.id !== item.id))} className="w-6 h-6 rounded bg-destructive/10 text-destructive flex items-center justify-center hover:bg-destructive/20">
+                            <span className="material-symbols-outlined text-sm">close</span>
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                    {editItems.length === 0 && (
+                      <tr><td colSpan={7} className="px-4 py-6 text-center text-sm text-muted-foreground">No products added</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Summary fields */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div>
+                  <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1">Discount</label>
+                  <input type="number" value={editDiscount} onChange={e => setEditDiscount(e.target.value)} placeholder="0"
+                    className="w-full bg-muted border border-border rounded-lg text-sm py-2 px-3 outline-none" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1">Labour/Delivery</label>
+                  <input type="number" value={editDelivery} onChange={e => setEditDelivery(e.target.value)} placeholder="0"
+                    className="w-full bg-muted border border-border rounded-lg text-sm py-2 px-3 outline-none" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1">Paid</label>
+                  <input type="number" value={editPaid} onChange={e => setEditPaid(e.target.value)} placeholder="0"
+                    className="w-full bg-muted border border-border rounded-lg text-sm py-2 px-3 outline-none" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1">Remark</label>
+                  <input value={editRemark} onChange={e => setEditRemark(e.target.value)} placeholder="Note..."
+                    className="w-full bg-muted border border-border rounded-lg text-sm py-2 px-3 outline-none" />
+                </div>
+              </div>
+
+              {/* Totals */}
+              <div className="flex justify-end">
+                <div className="w-[240px] text-sm space-y-1">
+                  <div className="flex justify-between"><span className="text-muted-foreground">Total</span><span className="font-bold">{formatCurrency(editTotal)}</span></div>
+                  <div className="flex justify-between border-t border-border pt-1"><span className="font-black text-primary">Payable</span><span className="font-black text-primary">{formatCurrency(editPayable)}</span></div>
+                  <div className="flex justify-between"><span className="text-[hsl(125,60%,35%)]">Paid</span><span className="font-bold">{formatCurrency(editPaidVal)}</span></div>
+                  <div className="flex justify-between"><span className={editDueVal > 0 ? 'text-destructive font-bold' : 'text-[hsl(125,60%,35%)]'}>Due</span><span className={`font-bold ${editDueVal > 0 ? 'text-destructive' : ''}`}>{formatCurrency(editDueVal)}</span></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="flex justify-end gap-3 px-5 py-3 border-t border-border">
+              <button onClick={() => setEditPurchase(null)} className="px-5 py-2.5 bg-secondary text-secondary-foreground rounded-lg font-semibold text-sm">Cancel</button>
+              <button onClick={handleEditSave} className="px-5 py-2.5 bg-primary text-primary-foreground rounded-lg font-semibold text-sm">Update Purchase</button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
