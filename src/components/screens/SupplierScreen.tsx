@@ -3,6 +3,7 @@ import { useI18n } from "@/lib/i18n";
 import { formatCurrency, type Supplier } from "@/lib/store";
 import { toast } from "sonner";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import { Pencil, Trash2 } from "lucide-react";
 
 interface SupplierScreenProps {
   suppliers: Supplier[];
