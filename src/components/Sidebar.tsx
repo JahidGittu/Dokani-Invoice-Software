@@ -53,7 +53,6 @@ const navGroups: NavGroup[] = [
 ];
 
 const footerItems: NavItem[] = [
-  { id: 'excel', icon: 'file_upload', labelKey: 'excelImport' },
   { id: 'settings', icon: 'settings', labelKey: 'settings' },
 ];
 
