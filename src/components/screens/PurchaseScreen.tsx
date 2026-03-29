@@ -534,8 +534,8 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
                     <td className={`px-4 py-3 text-sm text-right font-semibold ${p.due > 0 ? 'text-destructive' : ''}`}>{formatCurrency(p.due)}</td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-1">
-                        <button onClick={() => setViewId(p.id)} className="w-7 h-7 rounded bg-[hsl(125,60%,35%)] text-white flex items-center justify-center" title="View">
-                          <span className="material-symbols-outlined text-sm">visibility</span>
+                        <button onClick={() => setViewId(p.id)} className="w-7 h-7 rounded bg-[hsl(125,60%,35%)] text-white flex items-center justify-center" title="Print Preview">
+                          <span className="material-symbols-outlined text-sm">print</span>
                         </button>
                         <button className="w-7 h-7 rounded bg-pos-secondary text-white flex items-center justify-center" title="Edit">
                           <span className="material-symbols-outlined text-sm">edit</span>
