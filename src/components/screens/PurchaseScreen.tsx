@@ -129,12 +129,24 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
     setItems(prev => prev.map(item => {
       if (item.id !== id) return item;
       const updated = { ...item, [field]: value };
-      // Recalculate sqftQty and subTotal based on SQFT rate
       const product = products.find(p => p.id === item.productId);
       const sqftPerBox = product?.sqftPerBox || 0;
       const piecesPerBox = product?.piecesPerBox || 4;
       const sqftPerPiece = piecesPerBox > 0 ? sqftPerBox / piecesPerBox : 0;
-      updated.sqftQty = (updated.carton * sqftPerBox) + (updated.piece * sqftPerPiece);
+
+      if (field === 'sqftQty' && sqftPerBox > 0) {
+        // User entered SQFT → auto-calculate carton/piece
+        const totalSqft = value;
+        const totalBoxes = totalSqft / sqftPerBox;
+        updated.carton = Math.floor(totalBoxes);
+        const remainingSqft = totalSqft - (updated.carton * sqftPerBox);
+        updated.piece = sqftPerPiece > 0 ? Math.round(remainingSqft / sqftPerPiece) : 0;
+        if (updated.piece >= piecesPerBox) { updated.carton += 1; updated.piece = 0; }
+        updated.sqftQty = totalSqft;
+      } else {
+        // Carton/piece changed → recalculate sqftQty
+        updated.sqftQty = (updated.carton * sqftPerBox) + (updated.piece * sqftPerPiece);
+      }
       updated.subTotal = updated.sqftQty * updated.buyRate;
       return updated;
     }));
