@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import type { Product, Customer, SaleRecord, SaleItem, CompanySettings, Supplier, PurchaseRecord, PurchaseItem } from './store';
+import { cartonPieceToTotalPieces } from './calc-utils';
 import { toast } from 'sonner';
 
 // ─── Products Hook (Supabase) ───
