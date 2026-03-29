@@ -170,7 +170,7 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
 
   // Recent customers (last 5 by created_at)
   const recentCustomers = useMemo(() => {
-    return [...customers].sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()).slice(0, 5);
+    return [...customers].slice(0, 5);
   }, [customers]);
 
   const handleSelectCustomer = (name: string) => {
