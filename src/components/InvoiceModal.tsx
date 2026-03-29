@@ -235,7 +235,7 @@ ${sale.phone ? `<div style="font-size:10px">Phone: ${sale.phone}</div>` : ''}
 <div class="line"></div>
 ${sale.items.map(item => `
 <div class="bold">${item.name}</div>
-<div class="row"><span>${item.qty} x ${formatCurrency(item.price)}</span><span>${formatCurrency(item.price * item.qty)}</span></div>
+<div class="row"><span>${Number(item.sqftQty ?? item.qty).toFixed(2)} sqft x ${formatCurrency(item.price)}</span><span>${formatCurrency((item.sqftQty ?? item.qty) * item.price)}</span></div>
 `).join('')}
 <div class="line"></div>
 <div class="row"><span>Subtotal</span><span>${formatCurrency(sale.subtotal)}</span></div>
