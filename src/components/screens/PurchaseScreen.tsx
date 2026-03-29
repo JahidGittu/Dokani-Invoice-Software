@@ -597,11 +597,16 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
             <span className="text-pos-on-surface-variant">›</span>
             <span className="text-pos-secondary font-medium">History</span>
           </div>
-          <h2 className="text-2xl sm:text-4xl font-bold text-pos-on-surface leading-tight tracking-tighter">Purchase History</h2>
+          <h2 className="text-2xl font-bold text-pos-on-surface tracking-tight">Purchase</h2>
         </div>
-        <button onClick={openAddPurchase} className="px-5 py-2.5 bg-gradient-to-b from-pos-secondary to-pos-secondary-dim text-white rounded-lg font-semibold text-sm flex items-center gap-2 shadow-lg hover:-translate-y-0.5 transition-transform">
-          <span className="material-symbols-outlined text-lg">add</span>Add Purchase
-        </button>
+        <div className="flex gap-1 bg-pos-surface-container rounded-lg p-1">
+          <button onClick={openAddPurchase} className="px-4 py-2 rounded-md text-sm font-semibold flex items-center gap-1.5 transition-colors text-pos-on-surface-variant hover:bg-pos-surface-high">
+            <span className="material-symbols-outlined text-base">add</span>Add Purchase
+          </button>
+          <button onClick={() => setView('history')} className="px-4 py-2 rounded-md text-sm font-semibold flex items-center gap-1.5 transition-colors bg-pos-secondary text-white shadow">
+            <span className="material-symbols-outlined text-base">folder_open</span>Purchase History
+          </button>
+        </div>
       </div>
 
       {/* Table */}
