@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback, useRef } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useI18n } from "@/lib/i18n";
 import { formatCurrency, getNextPurchaseNumber, type Product, type Supplier, type PurchaseRecord, type PurchaseItem } from "@/lib/store";
+import { calcSqftQty, calcCartonPieceFromSqft, calcSubTotal, isSqftUnit } from "@/lib/calc-utils";
 import ComboInput from "@/components/ComboInput";
 import { toast } from "sonner";
 

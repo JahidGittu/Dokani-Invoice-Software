@@ -2,6 +2,7 @@ import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useI18n } from "@/lib/i18n";
 import { formatCurrency, getNextInvoiceNumber, downloadCSV, calcDiscount, numberToWords, type CartItem, type Product, type SaleRecord, type Customer, type CompanySettings } from "@/lib/store";
+import { calcSqftQty, calcCartonPieceFromSqft, calcSubTotal, isSqftUnit, getDisplaySqftQty } from "@/lib/calc-utils";
 import { toast } from "sonner";
 import InvoiceModal from "@/components/InvoiceModal";
 import ComboInput from "@/components/ComboInput";

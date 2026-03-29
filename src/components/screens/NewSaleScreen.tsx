@@ -2,6 +2,7 @@ import { useState, useCallback, useRef, useMemo, useEffect } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useI18n } from "@/lib/i18n";
 import { formatCurrency, getNextInvoiceNumber, calcDiscount, numberToWords, type Product, type SaleRecord, type Customer, type CompanySettings } from "@/lib/store";
+import { calcSqftQty, calcCartonPieceFromSqft, calcSubTotal, isSqftUnit } from "@/lib/calc-utils";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
