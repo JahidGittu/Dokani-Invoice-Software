@@ -472,6 +472,7 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
                     {displayProducts.map(p => {
                       const item = items.find(i => i.productId === p.id);
                       const isSelected = !!item;
+                      const pIsSqft = isSqftUnit(p.unit);
                       return (
                         <tr key={p.id} className={`transition-colors ${isSelected ? 'bg-[hsl(45,100%,96%)] dark:bg-[hsl(45,20%,12%)]' : 'hover:bg-muted/30'}`}>
                           <td className="px-2 py-2 text-center">
@@ -479,25 +480,50 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
                               onChange={() => isSelected ? removeItem(item!.id) : addProductToItems(p)}
                               className="w-4 h-4 rounded border-pos-surface-container accent-pos-secondary cursor-pointer" />
                           </td>
-                          <td className="px-3 py-2 text-sm font-mono">{p.barcode || p.batch || '—'}</td>
-                          <td className="px-3 py-2 text-sm font-medium">{p.name}</td>
+                          <td className="px-3 py-2 text-sm font-medium">
+                            {p.name}
+                            {!pIsSqft && <span className="text-[10px] ml-1 text-muted-foreground">({p.unit})</span>}
+                          </td>
                           <td className="px-3 py-2 text-center">
-                            <span className={`text-sm ${p.stock <= 0 ? 'text-pos-error font-bold' : ''}`}>{formatStockDisplay(p.stock, p.piecesPerBox || 4)}</span>
+                            <span className={`text-sm ${p.stock <= 0 ? 'text-pos-error font-bold' : ''}`}>
+                              {pIsSqft ? formatStockDisplay(p.stock, p.piecesPerBox || 4) : `${p.stock} ${p.unit || 'Pcs'}`}
+                            </span>
                           </td>
                           {isSelected ? (
+                            pIsSqft ? (
+                              <>
+                                <td className="px-1 py-1">
+                                  <input type="number" min={0} value={item!.carton} onChange={e => updateItem(item!.id, 'carton', parseInt(e.target.value) || 0)}
+                                    className="w-16 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-center outline-none focus:border-pos-secondary mx-auto block" />
+                                </td>
+                                <td className="px-1 py-1">
+                                  <input type="number" min={0} value={item!.piece} onChange={e => updateItem(item!.id, 'piece', parseInt(e.target.value) || 0)}
+                                    className="w-14 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-center outline-none focus:border-pos-secondary mx-auto block" />
+                                </td>
+                                <td className="px-1 py-1">
+                                  <input type="number" min={0} value={item!.sqftQty} onChange={e => updateItem(item!.id, 'sqftQty', parseFloat(e.target.value) || 0)}
+                                    className="w-16 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-center outline-none focus:border-pos-secondary mx-auto block" />
+                                </td>
+                              </>
+                            ) : (
+                              <>
+                                <td className="px-1 py-1">
+                                  <input type="number" min={1} value={item!.piece} onChange={e => updateItem(item!.id, 'piece', parseInt(e.target.value) || 0)}
+                                    className="w-16 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-center outline-none focus:border-pos-secondary mx-auto block" />
+                                </td>
+                                <td className="px-3 py-2 text-center text-sm text-muted-foreground">—</td>
+                                <td className="px-3 py-2 text-center text-sm text-muted-foreground">—</td>
+                              </>
+                            )
+                          ) : (
                             <>
-                              <td className="px-1 py-1">
-                                <input type="number" min={0} value={item!.carton} onChange={e => updateItem(item!.id, 'carton', parseInt(e.target.value) || 0)}
-                                  className="w-16 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-center outline-none focus:border-pos-secondary mx-auto block" />
-                              </td>
-                              <td className="px-1 py-1">
-                                <input type="number" min={0} value={item!.piece} onChange={e => updateItem(item!.id, 'piece', parseInt(e.target.value) || 0)}
-                                  className="w-14 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-center outline-none focus:border-pos-secondary mx-auto block" />
-                              </td>
-                              <td className="px-1 py-1">
-                                <input type="number" min={0} value={item!.sqftQty} onChange={e => updateItem(item!.id, 'sqftQty', parseFloat(e.target.value) || 0)}
-                                  className="w-16 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-center outline-none focus:border-pos-secondary mx-auto block" />
-                              </td>
+                              <td className="px-3 py-2 text-center text-sm text-muted-foreground">0</td>
+                              <td className="px-3 py-2 text-center text-sm text-muted-foreground">—</td>
+                              <td className="px-3 py-2 text-center text-sm text-muted-foreground">—</td>
+                            </>
+                          )}
+                          {isSelected ? (
+                            <>
                               <td className="px-1 py-1">
                                 <input type="number" value={item!.buyRate} onChange={e => updateItem(item!.id, 'buyRate', parseFloat(e.target.value) || 0)}
                                   className="w-20 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-right outline-none focus:border-pos-secondary ml-auto block" />
@@ -506,9 +532,6 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
                             </>
                           ) : (
                             <>
-                              <td className="px-3 py-2 text-center text-sm text-muted-foreground">0</td>
-                              <td className="px-3 py-2 text-center text-sm text-muted-foreground">0</td>
-                              <td className="px-3 py-2 text-center text-sm text-muted-foreground">0</td>
                               <td className="px-3 py-2 text-right text-sm text-muted-foreground">{p.buyRate || 0}</td>
                               <td className="px-3 py-2 text-right text-sm text-muted-foreground">0.00</td>
                             </>
