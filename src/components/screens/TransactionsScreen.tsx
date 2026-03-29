@@ -21,7 +21,7 @@ export default function TransactionsScreen({ sales, purchases }: TransactionsScr
         date: s.date,
         type: 'income',
         description: `Sale to ${s.customer}`,
-        amount: s.total,
+        amount: s.paid ?? s.total,
         method: s.paymentMethod,
         reference: s.invoice,
       });
