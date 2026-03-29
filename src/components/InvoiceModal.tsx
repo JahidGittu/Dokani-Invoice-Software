@@ -234,10 +234,11 @@ ${companyPhone ? `<div style="font-size:9px">${companyPhone}</div>` : ''}
 <div style="font-size:10px">Customer: ${sale.customer}</div>
 ${sale.phone ? `<div style="font-size:10px">Phone: ${sale.phone}</div>` : ''}
 <div class="line"></div>
-${sale.items.map(item => `
-<div class="bold">${item.name}</div>
-<div class="row"><span>${Number(item.sqftQty ?? item.qty).toFixed(2)} sqft x ${formatCurrency(item.price)}</span><span>${formatCurrency((item.sqftQty ?? item.qty) * item.price)}</span></div>
-`).join('')}
+${sale.items.map(item => {
+const lineTotal = calcItemTotal(item.sqftQty, item.qty, item.price);
+return `<div class="bold">${item.name}</div>
+<div class="row"><span>${Number(item.sqftQty ?? item.qty).toFixed(2)} x ${formatCurrency(item.price)}</span><span>${formatCurrency(lineTotal)}</span></div>`;
+}).join('')}
 <div class="line"></div>
 <div class="row"><span>Subtotal</span><span>${formatCurrency(sale.subtotal)}</span></div>
 ${sale.discount > 0 ? `<div class="row"><span>Discount</span><span>-${formatCurrency(sale.discount)}</span></div>` : ''}
