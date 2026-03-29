@@ -17,7 +17,6 @@ import NotFound from "./pages/NotFound";
 import DashboardPage from "./pages/shop/Dashboard";
 import ProductsPage from "./pages/shop/Products";
 import SalesPage from "./pages/shop/Sales";
-import NewSalePage from "./pages/shop/NewSale";
 import InventoryPage from "./pages/shop/Inventory";
 import CustomersPage from "./pages/shop/Customers";
 import ReportsPage from "./pages/shop/Reports";
