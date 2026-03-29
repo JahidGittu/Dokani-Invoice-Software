@@ -24,7 +24,7 @@ import ReportsPage from "./pages/shop/Reports";
 import PurchasesPage from "./pages/shop/Purchases";
 import SuppliersPage from "./pages/shop/Suppliers";
 import SettingsPage from "./pages/shop/Settings";
-import ExcelImportPage from "./pages/shop/ExcelImport";
+// ExcelImport removed - handled in Products bulk add
 import TransactionsPage from "./pages/shop/Transactions";
 import StaffsPage from "./pages/shop/Staffs";
 import SmsEmailPage from "./pages/shop/SmsEmail";
