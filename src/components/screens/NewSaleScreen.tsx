@@ -270,8 +270,7 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
       const piecesPerBox = p?.piecesPerBox || 4;
       const sqftPerPiece = piecesPerBox > 0 ? (p?.sqftPerBox || 0) / piecesPerBox : 0;
       const sqftQty = (ctn * (p?.sqftPerBox || 0)) + (r.piece * sqftPerPiece);
-      const pricePerPiece = piecesPerBox > 0 ? r.rate / piecesPerBox : 0;
-      const itemTotal = (ctn * r.rate) + (r.piece * pricePerPiece);
+      const itemTotal = sqftQty * r.rate;
       return { productId: r.productId, name: p?.name || 'Custom Item', detail: p ? `${p.size} · ${p.finish}` : '', qty: ctn, price: r.rate, stock: p?.stock ?? 999, carton: ctn, piece: r.piece, sqftQty, category: p?.category || '', itemType: 'Sale' as const };
     });
     if (!items.length) { toast.error(t('addAtLeastOneItem')); return null; }

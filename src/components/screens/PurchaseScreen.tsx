@@ -129,8 +129,13 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
     setItems(prev => prev.map(item => {
       if (item.id !== id) return item;
       const updated = { ...item, [field]: value };
-      // Recalculate subTotal
-      updated.subTotal = (updated.carton + (updated.piece / (products.find(p => p.id === item.productId)?.piecesPerBox || 4))) * updated.buyRate;
+      // Recalculate sqftQty and subTotal based on SQFT rate
+      const product = products.find(p => p.id === item.productId);
+      const sqftPerBox = product?.sqftPerBox || 0;
+      const piecesPerBox = product?.piecesPerBox || 4;
+      const sqftPerPiece = piecesPerBox > 0 ? sqftPerBox / piecesPerBox : 0;
+      updated.sqftQty = (updated.carton * sqftPerBox) + (updated.piece * sqftPerPiece);
+      updated.subTotal = updated.sqftQty * updated.buyRate;
       return updated;
     }));
   };
