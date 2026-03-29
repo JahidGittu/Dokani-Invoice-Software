@@ -177,18 +177,20 @@ export default function SupplierScreen({ suppliers, onAddSupplier, onDeleteSuppl
                   {formatCurrency(s.totalDue || 0)}
                 </TableCell>
                 <TableCell className="text-center">
-                  <div className="flex items-center justify-center gap-2">
+                  <div className="flex items-center justify-center gap-3">
                     <button
-                      className="text-pos-secondary hover:underline text-xs font-medium"
+                      className="text-pos-secondary hover:text-pos-secondary/80 transition-colors"
                       onClick={() => {/* TODO: edit */}}
+                      title="Edit"
                     >
-                      Edit
+                      <Pencil size={16} />
                     </button>
                     <button
                       onClick={() => setShowDeleteConfirm(s.id)}
-                      className="text-pos-error hover:underline text-xs font-medium"
+                      className="text-pos-error hover:text-pos-error/80 transition-colors"
+                      title={t('delete')}
                     >
-                      {t('delete')}
+                      <Trash2 size={16} />
                     </button>
                   </div>
                 </TableCell>
