@@ -36,6 +36,7 @@ export function useSupabaseProducts() {
       width: (p as any).width || '',
       reorderLimit: Number((p as any).reorder_limit) || 0,
       imageUrl: (p as any).image_url || '',
+      createdAt: p.created_at || '',
     })));
     setLoading(false);
   }, [user]);

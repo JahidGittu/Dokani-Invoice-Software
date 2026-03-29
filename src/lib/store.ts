@@ -20,6 +20,7 @@ export interface Product {
   width?: string;
   reorderLimit?: number;
   imageUrl?: string;
+  createdAt?: string;
 }
 
 export interface CartItem {
