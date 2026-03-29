@@ -438,12 +438,20 @@ tbody tr:nth-child(even){background:#fafafa}
 
   const handlePrintSale = async (sale: SaleRecord) => {
     const html = await generatePrintHTML(sale);
-    const w = window.open('', '_blank', 'width=800,height=1000');
-    if (!w) { toast.error(t('popupBlocked')); return; }
-    w.document.write(html);
-    w.document.close();
-    w.focus();
-    setTimeout(() => w.print(), 500);
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.top = '-10000px';
+    iframe.style.left = '-10000px';
+    iframe.style.width = '210mm';
+    iframe.style.height = '297mm';
+    document.body.appendChild(iframe);
+    const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+    if (!iframeDoc) { toast.error(t('popupBlocked')); document.body.removeChild(iframe); return; }
+    iframeDoc.open(); iframeDoc.write(html); iframeDoc.close();
+    setTimeout(() => {
+      iframe.contentWindow?.print();
+      setTimeout(() => document.body.removeChild(iframe), 1000);
+    }, 500);
   };
 
   const handleThermalPrint = (sale: SaleRecord) => {
