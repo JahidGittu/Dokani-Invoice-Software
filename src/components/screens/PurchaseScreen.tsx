@@ -107,6 +107,8 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
       toast.error('Already added');
       return;
     }
+    const sqftPerBox = product.sqftPerBox || 0;
+    const rate = product.buyRate || 0;
     setItems(prev => [...prev, {
       id: Date.now(),
       productId: product.id,
@@ -115,9 +117,9 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
       stock: product.stock,
       carton: 1,
       piece: 0,
-      sqftQty: 0,
-      buyRate: product.buyRate || 0,
-      subTotal: product.buyRate || 0,
+      sqftQty: sqftPerBox,
+      buyRate: rate,
+      subTotal: sqftPerBox * rate,
     }]);
     setProductSearch('');
     searchRef.current?.focus();
