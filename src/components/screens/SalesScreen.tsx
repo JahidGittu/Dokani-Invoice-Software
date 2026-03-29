@@ -212,23 +212,38 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
       toast.error('Already added');
       return;
     }
-    const c = carton ?? 1;
-    const pc = piece ?? 0;
     const sr = rate ?? product.pricePerBox;
-    const autoSqft = sqft || (isSqftUnit(product.unit) ? calcSqftQty(product, c, pc) : 0);
-    const sub = calcSubTotal(product, c, pc, sr);
-    setItems(prev => [...prev, {
-      id: Date.now(), productId: product.id, barcode: product.barcode || product.batch || '',
-      name: product.name, stock: product.stock, itemType: 'Sale',
-      carton: c, piece: pc, sqftQty: autoSqft, salesRate: sr, subTotal: sub,
-    }]);
+    if (isSqftUnit(product.unit)) {
+      const c = carton ?? 1;
+      const pc = piece ?? 0;
+      const autoSqft = sqft || calcSqftQty(product, c, pc);
+      const sub = calcSubTotal(product, c, pc, sr);
+      setItems(prev => [...prev, {
+        id: Date.now(), productId: product.id, barcode: product.barcode || product.batch || '',
+        name: product.name, stock: product.stock, itemType: 'Sale',
+        carton: c, piece: pc, sqftQty: autoSqft, salesRate: sr, subTotal: sub,
+      }]);
+    } else {
+      // Non-SQFT: qty-based
+      const qty = piece ?? 1;
+      const sub = qty * sr;
+      setItems(prev => [...prev, {
+        id: Date.now(), productId: product.id, barcode: product.barcode || product.batch || '',
+        name: product.name, stock: product.stock, itemType: 'Sale',
+        carton: 0, piece: qty, sqftQty: qty, salesRate: sr, subTotal: sub,
+      }]);
+    }
   };
 
   const manualAddProduct = () => {
     if (!selectedProductId) { toast.error('Search & select a product first'); return; }
     const product = products.find(p => p.id === selectedProductId);
     if (!product) return;
-    addProductToItems(product, manualCarton, manualPiece, manualSqft, parseFloat(manualRate) || product.pricePerBox);
+    if (isSqftUnit(product.unit)) {
+      addProductToItems(product, manualCarton, manualPiece, manualSqft, parseFloat(manualRate) || product.pricePerBox);
+    } else {
+      addProductToItems(product, 0, manualPiece || 1, 0, parseFloat(manualRate) || product.pricePerBox);
+    }
     setSelectedProductId(null);
     setProductSearch('');
     setManualCarton(0); setManualPiece(0); setManualSqft(0); setManualRate('');
