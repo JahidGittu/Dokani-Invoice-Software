@@ -564,29 +564,29 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
             </div>
 
             {/* Manual entry: Carton, Piece, Sqft/Qty, Sales Rate, Add */}
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="flex items-center border border-pos-surface-container rounded-lg overflow-hidden">
-                <span className="text-[10px] font-bold text-pos-on-surface-variant uppercase bg-pos-surface-low px-3 py-3 shrink-0">Carton</span>
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center border-2 border-pos-surface-container rounded-lg overflow-hidden">
+                <span className="text-xs font-bold text-pos-on-surface-variant uppercase bg-pos-surface-high px-4 py-3.5 shrink-0 tracking-wide">Carton</span>
                 <input type="number" min={0} value={manualCarton} onChange={e => handleManualCartonChange(parseInt(e.target.value) || 0)}
-                  className="w-16 bg-pos-surface-lowest text-sm text-center outline-none py-3 px-1" />
+                  className="w-20 bg-pos-surface-lowest text-base text-center outline-none py-3.5 px-2 font-semibold" />
               </div>
-              <div className="flex items-center border border-pos-surface-container rounded-lg overflow-hidden">
-                <span className="text-[10px] font-bold text-pos-on-surface-variant uppercase bg-pos-surface-low px-3 py-3 shrink-0">Piece</span>
+              <div className="flex items-center border-2 border-pos-surface-container rounded-lg overflow-hidden">
+                <span className="text-xs font-bold text-pos-on-surface-variant uppercase bg-pos-surface-high px-4 py-3.5 shrink-0 tracking-wide">Piece</span>
                 <input type="number" min={0} value={manualPiece} onChange={e => handleManualPieceChange(parseInt(e.target.value) || 0)}
-                  className="w-16 bg-pos-surface-lowest text-sm text-center outline-none py-3 px-1" />
+                  className="w-20 bg-pos-surface-lowest text-base text-center outline-none py-3.5 px-2 font-semibold" />
               </div>
-              <div className="flex items-center border border-pos-surface-container rounded-lg overflow-hidden flex-1 min-w-[130px]">
-                <span className="text-[10px] font-bold text-pos-on-surface-variant uppercase bg-pos-surface-low px-3 py-3 shrink-0">Sqft./Qty.</span>
+              <div className="flex items-center border-2 border-pos-surface-container rounded-lg overflow-hidden flex-1 min-w-[160px]">
+                <span className="text-xs font-bold text-pos-on-surface-variant uppercase bg-pos-surface-high px-4 py-3.5 shrink-0 tracking-wide">Sqft./Qty.</span>
                 <input type="number" min={0} value={manualSqft} onChange={e => handleManualSqftChange(parseFloat(e.target.value) || 0)}
-                  className="w-full bg-pos-surface-lowest text-sm text-center outline-none py-3 px-1" />
+                  className="w-full bg-pos-surface-lowest text-base text-center outline-none py-3.5 px-2 font-semibold" />
               </div>
-              <div className="flex items-center border border-pos-surface-container rounded-lg overflow-hidden">
-                <span className="text-[10px] font-bold text-pos-on-surface-variant uppercase bg-pos-surface-low px-3 py-3 shrink-0">Sales Rate</span>
+              <div className="flex items-center border-2 border-pos-surface-container rounded-lg overflow-hidden">
+                <span className="text-xs font-bold text-pos-on-surface-variant uppercase bg-pos-surface-high px-4 py-3.5 shrink-0 tracking-wide">Sales Rate</span>
                 <input type="number" value={manualRate} onChange={e => setManualRate(e.target.value)} placeholder="৳"
-                  className="w-24 bg-pos-surface-lowest text-sm text-center outline-none py-3 px-1" />
+                  className="w-28 bg-pos-surface-lowest text-base text-center outline-none py-3.5 px-2 font-semibold" />
               </div>
               <button onClick={manualAddProduct}
-                className="px-6 py-2.5 bg-pos-error text-white rounded-lg font-bold text-sm hover:bg-pos-error/90 transition-colors">
+                className="px-8 py-3.5 bg-pos-error text-white rounded-lg font-bold text-base hover:bg-pos-error/90 transition-colors tracking-wide">
                 Add
               </button>
             </div>
