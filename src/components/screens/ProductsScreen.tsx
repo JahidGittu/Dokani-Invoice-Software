@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import JsBarcode from "jsbarcode";
 import { TILE_SIZE_OPTIONS, getAutoPackaging } from "@/lib/tile-packaging";
+import { calcSqftPerBoxFromStrings, isSqftUnit } from "@/lib/calc-utils";
 
 interface ProductsScreenProps {
   products: Product[];
