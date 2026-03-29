@@ -339,6 +339,10 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
     // Stock deduction: total pieces
     onSaleComplete(sale, items.map(i => {
       const p = products.find(x => x.id === i.productId);
+      if (p && !isSqftUnit(p.unit)) {
+        // Non-SQFT: qty = piece directly
+        return { productId: i.productId, qty: Math.max(1, i.piece) };
+      }
       const piecesPerBox = p?.piecesPerBox || 4;
       const totalPieces = cartonPieceToTotalPieces(i.carton, i.piece, piecesPerBox);
       return { productId: i.productId, qty: Math.max(1, totalPieces) };
