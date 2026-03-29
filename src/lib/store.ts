@@ -327,8 +327,8 @@ export function useSuppliers() {
 
   useEffect(() => { saveJSON('tilepos_suppliers', suppliers); }, [suppliers]);
 
-  const addSupplier = useCallback((name: string, phone: string, address: string) => {
-    const s: Supplier = { id: crypto.randomUUID(), name, phone, address, totalDue: 0 };
+  const addSupplier = useCallback((name: string, phone: string, address: string, contactPerson?: string) => {
+    const s: Supplier = { id: crypto.randomUUID(), name, contactPerson: contactPerson || '', phone, address, totalDue: 0 };
     setSuppliers(prev => [...prev, s]);
     return s;
   }, []);
