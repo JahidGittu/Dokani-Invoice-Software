@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback, useRef } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useI18n } from "@/lib/i18n";
-import { formatCurrency, getNextPurchaseNumber, type Product, type Supplier, type PurchaseRecord, type PurchaseItem } from "@/lib/store";
+import { formatCurrency, getNextPurchaseNumber, type Product, type Supplier, type PurchaseRecord, type PurchaseItem, type CompanySettings } from "@/lib/store";
 import { calcSqftQty, calcCartonPieceFromSqft, calcSubTotal, isSqftUnit } from "@/lib/calc-utils";
 import ComboInput from "@/components/ComboInput";
 import { toast } from "sonner";
@@ -14,6 +14,7 @@ interface PurchaseScreenProps {
   onDeletePurchase: (id: string) => void;
   onAddStock: (items: { productId: string; qty: number }[]) => void;
   onUpdateSupplierDue: (name: string, dueAmount: number) => void;
+  settings?: CompanySettings;
 }
 
 const PAGE_SIZES = [10, 25, 50, 100];
