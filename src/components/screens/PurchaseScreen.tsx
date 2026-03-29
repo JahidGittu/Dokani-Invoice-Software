@@ -12,6 +12,7 @@ interface PurchaseScreenProps {
   purchases: PurchaseRecord[];
   onAddPurchase: (p: PurchaseRecord) => void;
   onDeletePurchase: (id: string) => void;
+  onUpdatePurchase: (p: PurchaseRecord) => void;
   onAddStock: (items: { productId: string; qty: number }[]) => void;
   onUpdateSupplierDue: (name: string, dueAmount: number) => void;
   settings?: CompanySettings;
