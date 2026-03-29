@@ -266,8 +266,15 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
         } else if (field === 'carton' || field === 'piece') {
           updated.sqftQty = calcSqftQty(product, updated.carton, updated.piece);
         }
+        updated.subTotal = calcSubTotal(product, updated.carton, updated.piece, updated.salesRate);
+      } else {
+        // Non-SQFT: piece = qty, simple calc
+        if (field === 'piece') {
+          updated.sqftQty = Number(value); // keep in sync for data consistency
+          updated.carton = 0;
+        }
+        updated.subTotal = updated.piece * updated.salesRate;
       }
-      updated.subTotal = calcSubTotal(product, updated.carton, updated.piece, updated.salesRate);
       return updated;
     }));
   };
