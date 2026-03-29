@@ -238,10 +238,10 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
 
             {/* Product search */}
             <div className="relative">
-              <input ref={searchRef} value={productSearch} onChange={e => setProductSearch(e.target.value)}
-                className="w-full bg-pos-surface-lowest border-2 border-pos-secondary/30 rounded-xl text-sm py-3 pl-11 pr-4 outline-none focus:border-pos-secondary transition-colors"
-                placeholder="Search the Product..." />
               <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-pos-on-surface-variant">search</span>
+              <input ref={searchRef} value={productSearch} onChange={e => setProductSearch(e.target.value)}
+                className="w-full bg-[hsl(0,80%,92%)] border-2 border-pos-secondary/30 rounded-xl text-sm py-3 pl-11 pr-4 outline-none focus:border-pos-secondary transition-colors placeholder:text-pos-on-surface-variant/70"
+                placeholder="Search the Product..." />
             </div>
 
             {/* All products table with checkbox */}
