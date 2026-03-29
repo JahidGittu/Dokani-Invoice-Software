@@ -12,7 +12,7 @@ interface SupplierScreenProps {
 
 export default function SupplierScreen({ suppliers, onAddSupplier, onDeleteSupplier }: SupplierScreenProps) {
   const { t } = useI18n();
-  const [view, setView] = useState<'list' | 'add'>('list');
+  const [view, setView] = useState<'list' | 'add'>('add');
   const [name, setName] = useState('');
   const [contactPerson, setContactPerson] = useState('');
   const [phone, setPhone] = useState('');
