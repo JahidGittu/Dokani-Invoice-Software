@@ -256,9 +256,12 @@ export function useSupabaseSales() {
     if (saleToDelete && saleToDelete.items.length > 0) {
       for (const item of saleToDelete.items) {
         if (item.productId) {
-          const qty = item.carton ?? item.qty ?? 0;
-          if (qty > 0) {
-            await supabase.rpc('add_stock', { p_product_id: item.productId, p_qty: qty });
+          // Find product to get piecesPerBox for proper piece-based restore
+          const { data: prod } = await supabase.from('products').select('pieces_per_box').eq('id', item.productId).maybeSingle();
+          const piecesPerBox = prod?.pieces_per_box || 4;
+          const totalPieces = cartonPieceToTotalPieces(item.carton ?? 0, item.piece ?? 0, piecesPerBox);
+          if (totalPieces > 0) {
+            await supabase.rpc('add_stock', { p_product_id: item.productId, p_qty: totalPieces });
           }
         }
       }
