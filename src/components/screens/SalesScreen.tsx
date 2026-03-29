@@ -156,21 +156,26 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
     }
   };
   const handleManualPieceChange = (val: number) => {
+    setManualPiece(val);
     if (selectedProduct && isSqftUnit(selectedProduct.unit)) {
-      // If carton is 0 and user enters total pieces, auto-split into carton + remaining pieces
-      if (manualCarton === 0 && val > 0) {
-        const piecesPerBox = selectedProduct.piecesPerBox || 4;
-        const autoCarton = Math.floor(val / piecesPerBox);
-        const remainingPiece = val % piecesPerBox;
+      // Calculate sqft from total pieces (carton + this piece value)
+      const piecesPerBox = selectedProduct.piecesPerBox || 4;
+      const totalPieces = (manualCarton * piecesPerBox) + val;
+      const sqftPerPiece = (selectedProduct.sqftPerBox || 0) / piecesPerBox;
+      setManualSqft(parseFloat((totalPieces * sqftPerPiece).toFixed(3)));
+    }
+  };
+  // Auto-split piece into carton+piece on blur
+  const handlePieceBlur = () => {
+    if (selectedProduct && isSqftUnit(selectedProduct.unit) && manualCarton === 0 && manualPiece > 0) {
+      const piecesPerBox = selectedProduct.piecesPerBox || 4;
+      if (manualPiece >= piecesPerBox) {
+        const autoCarton = Math.floor(manualPiece / piecesPerBox);
+        const remainingPiece = manualPiece % piecesPerBox;
         setManualCarton(autoCarton);
         setManualPiece(remainingPiece);
         setManualSqft(parseFloat(calcSqftQty(selectedProduct, autoCarton, remainingPiece).toFixed(3)));
-      } else {
-        setManualPiece(val);
-        setManualSqft(parseFloat(calcSqftQty(selectedProduct, manualCarton, val).toFixed(3)));
       }
-    } else {
-      setManualPiece(val);
     }
   };
   const handleManualSqftChange = (val: number) => {
