@@ -146,7 +146,9 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
 
   const selectedProduct = selectedProductId ? products.find(p => p.id === selectedProductId) : null;
 
-  // Bi-directional calc for manual entry
+  const isSelectedSqft = selectedProduct ? isSqftUnit(selectedProduct.unit) : true;
+
+  // Bi-directional calc for manual entry (SQFT only)
   const handleManualCartonChange = (val: number) => {
     setManualCarton(val);
     if (selectedProduct && isSqftUnit(selectedProduct.unit)) {
@@ -166,6 +168,12 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
       setManualCarton(carton);
       setManualPiece(piece);
     }
+  };
+  // For non-SQFT: manual qty
+  const handleManualQtyChange = (val: number) => {
+    setManualPiece(val); // store qty in piece field for non-SQFT
+    setManualCarton(0);
+    setManualSqft(val);
   };
 
   // Recent customers (last 5 by created_at)
@@ -204,23 +212,38 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
       toast.error('Already added');
       return;
     }
-    const c = carton ?? 1;
-    const pc = piece ?? 0;
     const sr = rate ?? product.pricePerBox;
-    const autoSqft = sqft || (isSqftUnit(product.unit) ? calcSqftQty(product, c, pc) : 0);
-    const sub = calcSubTotal(product, c, pc, sr);
-    setItems(prev => [...prev, {
-      id: Date.now(), productId: product.id, barcode: product.barcode || product.batch || '',
-      name: product.name, stock: product.stock, itemType: 'Sale',
-      carton: c, piece: pc, sqftQty: autoSqft, salesRate: sr, subTotal: sub,
-    }]);
+    if (isSqftUnit(product.unit)) {
+      const c = carton ?? 1;
+      const pc = piece ?? 0;
+      const autoSqft = sqft || calcSqftQty(product, c, pc);
+      const sub = calcSubTotal(product, c, pc, sr);
+      setItems(prev => [...prev, {
+        id: Date.now(), productId: product.id, barcode: product.barcode || product.batch || '',
+        name: product.name, stock: product.stock, itemType: 'Sale',
+        carton: c, piece: pc, sqftQty: autoSqft, salesRate: sr, subTotal: sub,
+      }]);
+    } else {
+      // Non-SQFT: qty-based
+      const qty = piece ?? 1;
+      const sub = qty * sr;
+      setItems(prev => [...prev, {
+        id: Date.now(), productId: product.id, barcode: product.barcode || product.batch || '',
+        name: product.name, stock: product.stock, itemType: 'Sale',
+        carton: 0, piece: qty, sqftQty: qty, salesRate: sr, subTotal: sub,
+      }]);
+    }
   };
 
   const manualAddProduct = () => {
     if (!selectedProductId) { toast.error('Search & select a product first'); return; }
     const product = products.find(p => p.id === selectedProductId);
     if (!product) return;
-    addProductToItems(product, manualCarton, manualPiece, manualSqft, parseFloat(manualRate) || product.pricePerBox);
+    if (isSqftUnit(product.unit)) {
+      addProductToItems(product, manualCarton, manualPiece, manualSqft, parseFloat(manualRate) || product.pricePerBox);
+    } else {
+      addProductToItems(product, 0, manualPiece || 1, 0, parseFloat(manualRate) || product.pricePerBox);
+    }
     setSelectedProductId(null);
     setProductSearch('');
     setManualCarton(0); setManualPiece(0); setManualSqft(0); setManualRate('');
@@ -243,8 +266,15 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
         } else if (field === 'carton' || field === 'piece') {
           updated.sqftQty = calcSqftQty(product, updated.carton, updated.piece);
         }
+        updated.subTotal = calcSubTotal(product, updated.carton, updated.piece, updated.salesRate);
+      } else {
+        // Non-SQFT: piece = qty, simple calc
+        if (field === 'piece') {
+          updated.sqftQty = Number(value); // keep in sync for data consistency
+          updated.carton = 0;
+        }
+        updated.subTotal = updated.piece * updated.salesRate;
       }
-      updated.subTotal = calcSubTotal(product, updated.carton, updated.piece, updated.salesRate);
       return updated;
     }));
   };
@@ -309,6 +339,10 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
     // Stock deduction: total pieces
     onSaleComplete(sale, items.map(i => {
       const p = products.find(x => x.id === i.productId);
+      if (p && !isSqftUnit(p.unit)) {
+        // Non-SQFT: qty = piece directly
+        return { productId: i.productId, qty: Math.max(1, i.piece) };
+      }
       const piecesPerBox = p?.piecesPerBox || 4;
       const totalPieces = cartonPieceToTotalPieces(i.carton, i.piece, piecesPerBox);
       return { productId: i.productId, qty: Math.max(1, totalPieces) };
@@ -549,8 +583,8 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
                         setManualCarton(0); setManualPiece(0); setManualSqft(0);
                       }}
                         className="w-full text-left px-3 py-2 text-xs hover:bg-accent transition-colors flex justify-between items-center">
-                        <span className="font-medium">{p.name} <span className="text-muted-foreground">({p.size})</span></span>
-                        <span className="text-muted-foreground text-[10px]">Stock: {formatStockDisplay(p.stock, p.piecesPerBox || 4)}</span>
+                        <span className="font-medium">{p.name} {p.size && <span className="text-muted-foreground">({p.size})</span>}</span>
+                        <span className="text-muted-foreground text-[10px]">Stock: {isSqftUnit(p.unit) ? formatStockDisplay(p.stock, p.piecesPerBox || 4) : `${p.stock} ${p.unit || 'Pcs'}`}</span>
                       </button>
                     )) : (
                       <div className="px-3 py-3 text-xs text-muted-foreground text-center">No products found</div>
@@ -559,29 +593,40 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
                 )}
               </div>
               <div className="w-28 bg-pos-surface-high border border-pos-surface-container rounded-xl py-3 px-2 text-center font-bold text-xs text-pos-on-surface">
-                {selectedProduct ? formatStockDisplay(selectedProduct.stock, selectedProduct.piecesPerBox || 4) : 'Stock'}
+                {selectedProduct ? (isSqftUnit(selectedProduct.unit) ? formatStockDisplay(selectedProduct.stock, selectedProduct.piecesPerBox || 4) : `${selectedProduct.stock} ${selectedProduct.unit || 'Pcs'}`) : 'Stock'}
               </div>
             </div>
 
-            {/* Manual entry: Carton, Piece, Sqft/Qty, Sales Rate, Add */}
+            {/* Manual entry: conditional by unit type */}
             <div className="flex flex-wrap items-center gap-3">
+              {isSelectedSqft ? (
+                <>
+                  <div className="flex items-center border-2 border-pos-surface-container rounded-lg overflow-hidden">
+                    <span className="text-xs font-bold text-pos-on-surface-variant uppercase bg-pos-surface-high px-4 py-3.5 shrink-0 tracking-wide">Carton</span>
+                    <input type="number" min={0} value={manualCarton} onChange={e => handleManualCartonChange(parseInt(e.target.value) || 0)}
+                      className="w-20 bg-pos-surface-lowest text-base text-center outline-none py-3.5 px-2 font-semibold" />
+                  </div>
+                  <div className="flex items-center border-2 border-pos-surface-container rounded-lg overflow-hidden">
+                    <span className="text-xs font-bold text-pos-on-surface-variant uppercase bg-pos-surface-high px-4 py-3.5 shrink-0 tracking-wide">Piece</span>
+                    <input type="number" min={0} value={manualPiece} onChange={e => handleManualPieceChange(parseInt(e.target.value) || 0)}
+                      className="w-20 bg-pos-surface-lowest text-base text-center outline-none py-3.5 px-2 font-semibold" />
+                  </div>
+                  <div className="flex items-center border-2 border-pos-surface-container rounded-lg overflow-hidden flex-1 min-w-[160px]">
+                    <span className="text-xs font-bold text-pos-on-surface-variant uppercase bg-pos-surface-high px-4 py-3.5 shrink-0 tracking-wide">Sqft.</span>
+                    <input type="number" min={0} value={manualSqft} onChange={e => handleManualSqftChange(parseFloat(e.target.value) || 0)}
+                      className="w-full bg-pos-surface-lowest text-base text-center outline-none py-3.5 px-2 font-semibold" />
+                  </div>
+                </>
+              ) : (
+                <div className="flex items-center border-2 border-pos-surface-container rounded-lg overflow-hidden">
+                  <span className="text-xs font-bold text-pos-on-surface-variant uppercase bg-pos-surface-high px-4 py-3.5 shrink-0 tracking-wide">Qty</span>
+                  <input type="number" min={1} value={manualPiece || ''} onChange={e => handleManualQtyChange(parseInt(e.target.value) || 0)}
+                    className="w-24 bg-pos-surface-lowest text-base text-center outline-none py-3.5 px-2 font-semibold" placeholder="0" />
+                  <span className="text-xs text-muted-foreground px-3 bg-pos-surface-high py-3.5">{selectedProduct?.unit || 'Pcs'}</span>
+                </div>
+              )}
               <div className="flex items-center border-2 border-pos-surface-container rounded-lg overflow-hidden">
-                <span className="text-xs font-bold text-pos-on-surface-variant uppercase bg-pos-surface-high px-4 py-3.5 shrink-0 tracking-wide">Carton</span>
-                <input type="number" min={0} value={manualCarton} onChange={e => handleManualCartonChange(parseInt(e.target.value) || 0)}
-                  className="w-20 bg-pos-surface-lowest text-base text-center outline-none py-3.5 px-2 font-semibold" />
-              </div>
-              <div className="flex items-center border-2 border-pos-surface-container rounded-lg overflow-hidden">
-                <span className="text-xs font-bold text-pos-on-surface-variant uppercase bg-pos-surface-high px-4 py-3.5 shrink-0 tracking-wide">Piece</span>
-                <input type="number" min={0} value={manualPiece} onChange={e => handleManualPieceChange(parseInt(e.target.value) || 0)}
-                  className="w-20 bg-pos-surface-lowest text-base text-center outline-none py-3.5 px-2 font-semibold" />
-              </div>
-              <div className="flex items-center border-2 border-pos-surface-container rounded-lg overflow-hidden flex-1 min-w-[160px]">
-                <span className="text-xs font-bold text-pos-on-surface-variant uppercase bg-pos-surface-high px-4 py-3.5 shrink-0 tracking-wide">Sqft./Qty.</span>
-                <input type="number" min={0} value={manualSqft} onChange={e => handleManualSqftChange(parseFloat(e.target.value) || 0)}
-                  className="w-full bg-pos-surface-lowest text-base text-center outline-none py-3.5 px-2 font-semibold" />
-              </div>
-              <div className="flex items-center border-2 border-pos-surface-container rounded-lg overflow-hidden">
-                <span className="text-xs font-bold text-pos-on-surface-variant uppercase bg-pos-surface-high px-4 py-3.5 shrink-0 tracking-wide">Sales Rate</span>
+                <span className="text-xs font-bold text-pos-on-surface-variant uppercase bg-pos-surface-high px-4 py-3.5 shrink-0 tracking-wide">Rate</span>
                 <input type="number" value={manualRate} onChange={e => setManualRate(e.target.value)} placeholder="৳"
                   className="w-28 bg-pos-surface-lowest text-base text-center outline-none py-3.5 px-2 font-semibold" />
               </div>
@@ -594,22 +639,24 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
             {/* Cart table — only added items */}
             <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container overflow-hidden">
               <div className="overflow-x-auto max-h-[350px] overflow-y-auto">
-                <table className="w-full min-w-[700px]">
+                <table className="w-full min-w-[600px]">
                   <thead className="sticky top-0 z-10">
                     <tr className="text-[10px] font-bold text-white uppercase tracking-wider bg-[hsl(230,45%,35%)]">
                       <th className="px-2 py-2.5 w-8"><span className="material-symbols-outlined text-sm">delete</span></th>
                       <th className="px-3 py-2.5">Type</th>
-                      <th className="px-3 py-2.5">Barcode</th>
                       <th className="px-3 py-2.5">Description</th>
-                      <th className="px-3 py-2.5 text-center">Carton</th>
+                      <th className="px-3 py-2.5 text-center">Qty / Carton</th>
                       <th className="px-3 py-2.5 text-center">Piece</th>
                       <th className="px-3 py-2.5 text-center">Sqft./Qty.</th>
-                      <th className="px-3 py-2.5 text-right">Sales Rate</th>
+                      <th className="px-3 py-2.5 text-right">Rate</th>
                       <th className="px-3 py-2.5 text-right">Sub Total</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-pos-surface-container">
-                    {items.map(item => (
+                    {items.map(item => {
+                      const itemProduct = products.find(p => p.id === item.productId);
+                      const itemIsSqft = itemProduct ? isSqftUnit(itemProduct.unit) : true;
+                      return (
                       <tr key={item.id} className="hover:bg-muted/30">
                         <td className="px-2 py-2 text-center">
                           <input type="checkbox" checked onChange={() => removeItem(item.id)}
@@ -621,24 +668,40 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
                             <option>Sale</option><option>Return</option>
                           </select>
                         </td>
-                        <td className="px-3 py-2 text-sm font-mono">{item.barcode || '—'}</td>
-                        <td className="px-3 py-2 text-sm font-medium">{item.name}</td>
-                        <td className="px-1 py-1">
-                          <input type="number" min={0} value={item.carton} onChange={e => updateItem(item.id, 'carton', parseInt(e.target.value) || 0)}
-                            className="w-16 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-center outline-none focus:border-pos-secondary mx-auto block" />
+                        <td className="px-3 py-2 text-sm font-medium">
+                          {item.name}
+                          {!itemIsSqft && <span className="text-[10px] ml-1 text-muted-foreground">({itemProduct?.unit})</span>}
                         </td>
-                        <td className="px-1 py-1">
-                          <input type="number" min={0} value={item.piece} onChange={e => updateItem(item.id, 'piece', parseInt(e.target.value) || 0)}
-                            className="w-14 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-center outline-none focus:border-pos-secondary mx-auto block" />
-                        </td>
-                        <td className="px-3 py-2 text-center text-sm">{item.sqftQty > 0 ? item.sqftQty.toFixed(3) : '0'}</td>
+                        {itemIsSqft ? (
+                          <>
+                            <td className="px-1 py-1">
+                              <input type="number" min={0} value={item.carton} onChange={e => updateItem(item.id, 'carton', parseInt(e.target.value) || 0)}
+                                className="w-16 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-center outline-none focus:border-pos-secondary mx-auto block" />
+                            </td>
+                            <td className="px-1 py-1">
+                              <input type="number" min={0} value={item.piece} onChange={e => updateItem(item.id, 'piece', parseInt(e.target.value) || 0)}
+                                className="w-14 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-center outline-none focus:border-pos-secondary mx-auto block" />
+                            </td>
+                            <td className="px-3 py-2 text-center text-sm">{item.sqftQty > 0 ? item.sqftQty.toFixed(3) : '0'}</td>
+                          </>
+                        ) : (
+                          <>
+                            <td className="px-1 py-1">
+                              <input type="number" min={1} value={item.piece} onChange={e => updateItem(item.id, 'piece', parseInt(e.target.value) || 0)}
+                                className="w-16 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-center outline-none focus:border-pos-secondary mx-auto block" />
+                            </td>
+                            <td className="px-3 py-2 text-center text-sm text-muted-foreground">—</td>
+                            <td className="px-3 py-2 text-center text-sm text-muted-foreground">—</td>
+                          </>
+                        )}
                         <td className="px-1 py-1">
                           <input type="number" value={item.salesRate} onChange={e => updateItem(item.id, 'salesRate', parseFloat(e.target.value) || 0)}
                             className="w-20 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-right outline-none focus:border-pos-secondary ml-auto block" />
                         </td>
                         <td className="px-3 py-2 text-right font-bold text-sm">{formatCurrency(item.subTotal)}</td>
                       </tr>
-                    ))}
+                      );
+                    })}
                     {items.length === 0 && (
                       <tr><td colSpan={9} className="px-8 py-12 text-center text-sm text-pos-on-surface-variant">
                         <span className="material-symbols-outlined text-3xl mb-2 block opacity-30">search</span>
