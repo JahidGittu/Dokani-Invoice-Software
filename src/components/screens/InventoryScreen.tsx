@@ -3,6 +3,7 @@ import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { type Product } from "@/lib/store";
+import { formatStockDisplay, totalPiecesToCartonPiece } from "@/lib/calc-utils";
 
 interface InventoryLog {
   id: string;
