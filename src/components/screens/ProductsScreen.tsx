@@ -237,12 +237,13 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
       setUploading(false);
     }
 
+    const autoSqftPerBox = calcSqftPerBox(editForm);
     onUpdateProduct(editProduct.id, {
       name: editForm.name.trim(), category: editForm.category, brand: editForm.brand,
       size: editForm.size || (editForm.height && editForm.width ? `${editForm.height}×${editForm.width}` : ''),
       finish: editForm.finish, unit: editForm.unit, height: editForm.height, width: editForm.width,
       piecesPerBox: parseInt(editForm.piecesPerBox) || 4, buyRate: parseFloat(editForm.buyRate) || 0,
-      pricePerBox: parseFloat(editForm.pricePerBox) || 0, sqftPerBox: parseFloat(editForm.sqftPerBox) || 0,
+      pricePerBox: parseFloat(editForm.pricePerBox) || 0, sqftPerBox: autoSqftPerBox,
       stock: parseInt(editForm.stock) || 0, reorderLimit: parseInt(editForm.reorderLimit) || 0,
       batch: editForm.batch || editForm.barcode, barcode: editForm.barcode, imageUrl,
     });
