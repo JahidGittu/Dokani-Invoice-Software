@@ -403,7 +403,7 @@ tbody tr:nth-child(even){background:#fafafa}
 <thead><tr><th>SN</th><th>TYPE</th><th>CARTON/PIECE</th><th>CATEGORY</th><th>PRODUCT NAME</th><th class="r">SQFT./QTY.</th><th class="r">PRICE</th><th class="r">SUB TOTAL</th></tr></thead>
 <tbody>${sale.items.map((item, idx) => {
   const p = products.find(x => x.id === item.productId);
-  return `<tr><td>${idx+1}</td><td>Sale</td><td>${item.carton ?? item.qty} Carton ${item.piece ?? 0} Piece</td><td>${item.category || p?.category || '-'}</td><td class="b">${item.name}${p ? ` (Size: ${p.size})` : ''}</td><td class="r">${Number(item.sqftQty ?? (item.qty * (p?.sqftPerBox || 1))).toFixed(2)}</td><td class="r">${item.price}</td><td class="r b">${item.price * item.qty}</td></tr>`;
+  return `<tr><td>${idx+1}</td><td>Sale</td><td>${item.carton ?? item.qty} Carton ${item.piece ?? 0} Piece</td><td>${item.category || p?.category || '-'}</td><td class="b">${item.name}${p ? ` (Size: ${p.size})` : ''}</td><td class="r">${Number(item.sqftQty ?? (item.qty * (p?.sqftPerBox || 1))).toFixed(2)}</td><td class="r">${item.price}</td><td class="r b">${Math.round((item.sqftQty && item.sqftQty > 0 ? item.sqftQty : item.qty) * item.price)}</td></tr>`;
 }).join('')}</tbody>
 </table>
 <div class="bottom">
