@@ -174,35 +174,22 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
       if (r.id !== id) return r;
       const updated = { ...r, [field]: value };
       const product = products.find(p => p.id === updated.productId);
-      const piecesPerBox = product?.piecesPerBox || 4;
-      const sqftPerBox = product?.sqftPerBox || 0;
-      const sqftPerPiece = piecesPerBox > 0 ? sqftPerBox / piecesPerBox : 0;
 
-      if (field === 'sqftInput') {
-        // User entered sqft → auto-calculate cartons and pieces
-        const totalSqft = parseFloat(String(value)) || 0;
-        if (sqftPerBox > 0 && totalSqft > 0) {
-          const totalBoxes = totalSqft / sqftPerBox;
-          updated.carton = Math.floor(totalBoxes);
-          const remainingSqft = totalSqft - (updated.carton * sqftPerBox);
-          updated.piece = sqftPerPiece > 0 ? Math.round(remainingSqft / sqftPerPiece) : 0;
-          // If pieces equal a full box, convert
-          if (updated.piece >= piecesPerBox) {
-            updated.carton += 1;
-            updated.piece = 0;
-          }
-        } else {
-          updated.carton = 0;
-          updated.piece = 0;
+      if (product && isSqftUnit(product.unit)) {
+        if (field === 'sqftInput') {
+          const totalSqft = parseFloat(String(value)) || 0;
+          const { carton, piece } = calcCartonPieceFromSqft(product, totalSqft);
+          updated.carton = carton;
+          updated.piece = piece;
+          updated.qty = carton;
+        } else if (field === 'carton' || field === 'piece') {
+          const sqft = calcSqftQty(product, updated.carton, updated.piece);
+          updated.sqftInput = sqft > 0 ? sqft.toFixed(1) : '';
+          updated.qty = updated.carton;
         }
-        updated.qty = updated.carton;
-      } else if (field === 'carton' || field === 'piece') {
-        // User changed carton/piece → update sqft display
-        const ctn = field === 'carton' ? (Number(value) || 0) : updated.carton;
-        const pc = field === 'piece' ? (Number(value) || 0) : updated.piece;
-        const totalSqft = (ctn * sqftPerBox) + (pc * sqftPerPiece);
-        updated.sqftInput = totalSqft > 0 ? totalSqft.toFixed(1) : '';
-        updated.qty = ctn;
+      } else if (product) {
+        // Non-SQFT: just track carton as qty
+        if (field === 'carton') updated.qty = Number(value) || 0;
       }
       return updated;
     }));
