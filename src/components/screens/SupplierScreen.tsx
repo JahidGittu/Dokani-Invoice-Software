@@ -133,7 +133,7 @@ export default function SupplierScreen({ suppliers, onAddSupplier, onDeleteSuppl
               onClick={handleAdd}
               className="px-6 py-2.5 bg-[hsl(125,60%,35%)] hover:bg-[hsl(125,60%,30%)] text-white rounded-lg font-semibold text-sm transition-colors"
             >
-              Save
+              Add Supplier
             </button>
             <button
               onClick={resetForm}
