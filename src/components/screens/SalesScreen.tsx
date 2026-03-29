@@ -156,21 +156,26 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
     }
   };
   const handleManualPieceChange = (val: number) => {
+    setManualPiece(val);
     if (selectedProduct && isSqftUnit(selectedProduct.unit)) {
-      // If carton is 0 and user enters total pieces, auto-split into carton + remaining pieces
-      if (manualCarton === 0 && val > 0) {
-        const piecesPerBox = selectedProduct.piecesPerBox || 4;
-        const autoCarton = Math.floor(val / piecesPerBox);
-        const remainingPiece = val % piecesPerBox;
+      // Calculate sqft from total pieces (carton + this piece value)
+      const piecesPerBox = selectedProduct.piecesPerBox || 4;
+      const totalPieces = (manualCarton * piecesPerBox) + val;
+      const sqftPerPiece = (selectedProduct.sqftPerBox || 0) / piecesPerBox;
+      setManualSqft(parseFloat((totalPieces * sqftPerPiece).toFixed(3)));
+    }
+  };
+  // Auto-split piece into carton+piece on blur
+  const handlePieceBlur = () => {
+    if (selectedProduct && isSqftUnit(selectedProduct.unit) && manualCarton === 0 && manualPiece > 0) {
+      const piecesPerBox = selectedProduct.piecesPerBox || 4;
+      if (manualPiece >= piecesPerBox) {
+        const autoCarton = Math.floor(manualPiece / piecesPerBox);
+        const remainingPiece = manualPiece % piecesPerBox;
         setManualCarton(autoCarton);
         setManualPiece(remainingPiece);
         setManualSqft(parseFloat(calcSqftQty(selectedProduct, autoCarton, remainingPiece).toFixed(3)));
-      } else {
-        setManualPiece(val);
-        setManualSqft(parseFloat(calcSqftQty(selectedProduct, manualCarton, val).toFixed(3)));
       }
-    } else {
-      setManualPiece(val);
     }
   };
   const handleManualSqftChange = (val: number) => {
@@ -718,6 +723,7 @@ tbody tr:nth-child(even){background:#fafafa}
                   <div className="flex items-center border-2 border-pos-surface-container rounded-lg overflow-hidden">
                     <span className="text-xs font-bold text-pos-on-surface-variant uppercase bg-pos-surface-high px-4 py-3.5 shrink-0 tracking-wide">Piece</span>
                     <input type="number" min={0} value={manualPiece} onChange={e => handleManualPieceChange(parseInt(e.target.value) || 0)}
+                      onBlur={handlePieceBlur}
                       className="w-20 bg-pos-surface-lowest text-base text-center outline-none py-3.5 px-2 font-semibold" />
                   </div>
                   <div className="flex items-center border-2 border-pos-surface-container rounded-lg overflow-hidden flex-1 min-w-[160px]">
