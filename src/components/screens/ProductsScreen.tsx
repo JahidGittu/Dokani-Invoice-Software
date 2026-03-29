@@ -412,7 +412,7 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
         {/* Row 3: Stock, Reorder, Image */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           <div>
-            <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">Opening Stock</label>
+            <label className="block text-xs font-semibold text-pos-on-surface-variant mb-1.5">Opening Stock (Carton)</label>
             <input type="number" value={f.stock} onChange={e => update('stock', e.target.value)} className={formInputCls} placeholder="0" />
           </div>
           <div>
