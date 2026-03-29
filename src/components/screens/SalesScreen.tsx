@@ -140,14 +140,13 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
     const sr = rate ?? product.pricePerBox;
     const piecesPerBox = product.piecesPerBox || 4;
     const sqftPerBox = product.sqftPerBox || 0;
-    const pricePerPiece = piecesPerBox > 0 ? sr / piecesPerBox : 0;
+    const sqftPerPiece = piecesPerBox > 0 ? sqftPerBox / piecesPerBox : 0;
     // Auto-calculate sqft from carton + piece
     let autoSqft = sqft ?? 0;
     if (sqftPerBox > 0 && piecesPerBox > 0 && autoSqft === 0) {
-      const sqftPerPiece = sqftPerBox / piecesPerBox;
       autoSqft = (c * sqftPerBox) + (pc * sqftPerPiece);
     }
-    const sub = (c * sr) + (pc * pricePerPiece);
+    const sub = autoSqft * sr;
     setItems(prev => [...prev, {
       id: Date.now(), productId: product.id, barcode: product.barcode || product.batch || '',
       name: product.name, stock: product.stock, itemType: 'Sale',
