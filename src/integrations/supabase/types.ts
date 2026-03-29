@@ -699,6 +699,7 @@ export type Database = {
       suppliers: {
         Row: {
           address: string
+          contact_person: string
           created_at: string
           id: string
           name: string
@@ -709,6 +710,7 @@ export type Database = {
         }
         Insert: {
           address?: string
+          contact_person?: string
           created_at?: string
           id?: string
           name: string
@@ -719,6 +721,7 @@ export type Database = {
         }
         Update: {
           address?: string
+          contact_person?: string
           created_at?: string
           id?: string
           name?: string
