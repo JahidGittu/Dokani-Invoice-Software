@@ -583,8 +583,8 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
                         setManualCarton(0); setManualPiece(0); setManualSqft(0);
                       }}
                         className="w-full text-left px-3 py-2 text-xs hover:bg-accent transition-colors flex justify-between items-center">
-                        <span className="font-medium">{p.name} <span className="text-muted-foreground">({p.size})</span></span>
-                        <span className="text-muted-foreground text-[10px]">Stock: {formatStockDisplay(p.stock, p.piecesPerBox || 4)}</span>
+                        <span className="font-medium">{p.name} {p.size && <span className="text-muted-foreground">({p.size})</span>}</span>
+                        <span className="text-muted-foreground text-[10px]">Stock: {isSqftUnit(p.unit) ? formatStockDisplay(p.stock, p.piecesPerBox || 4) : `${p.stock} ${p.unit || 'Pcs'}`}</span>
                       </button>
                     )) : (
                       <div className="px-3 py-3 text-xs text-muted-foreground text-center">No products found</div>
