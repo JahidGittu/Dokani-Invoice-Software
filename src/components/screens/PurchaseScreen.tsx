@@ -229,6 +229,10 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
     // Stock addition: total pieces
     onAddStock(items.map(i => {
       const p = products.find(x => x.id === i.productId);
+      if (p && !isSqftUnit(p.unit)) {
+        // Non-SQFT: qty = piece directly
+        return { productId: i.productId, qty: Math.max(1, i.piece) };
+      }
       const piecesPerBox = p?.piecesPerBox || 4;
       const totalPieces = cartonPieceToTotalPieces(i.carton, i.piece, piecesPerBox);
       return { productId: i.productId, qty: Math.max(1, totalPieces) };
