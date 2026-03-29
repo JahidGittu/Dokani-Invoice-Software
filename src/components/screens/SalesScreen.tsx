@@ -53,7 +53,7 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
   const { t } = useI18n();
 
   // ── View toggle ──
-  const [view, setView] = useState<'history' | 'add'>('history');
+  const [view, setView] = useState<'history' | 'add'>('add');
 
   // ══════ HISTORY VIEW STATE ══════
   const [search, setSearch] = useState('');
