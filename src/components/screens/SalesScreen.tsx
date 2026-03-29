@@ -314,41 +314,7 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
     setView('history');
   };
 
-  const handleSave = () => {
-    if (!items.length) { toast.error('কমপক্ষে একটি প্রোডাক্ট যোগ করুন'); return; }
-    if (!paidAmount && saleStatus !== 'Credit') { toast.error('Paid amount দিন!'); return; }
 
-    const inv = getNextInvoiceNumber(settings.invPrefix);
-    const now = new Date(saleDate);
-    const autoStatus = paidVal >= payable ? 'paid' : paidVal > 0 ? 'pending' : 'credit';
-
-    const saleItems = items.map(i => {
-      const p = products.find(x => x.id === i.productId);
-      return {
-        productId: i.productId, name: i.name, detail: p ? `${p.size} · ${p.finish}` : '',
-        qty: i.carton, price: i.salesRate, carton: i.carton, piece: i.piece,
-        sqftQty: i.sqftQty, category: p?.category || '', itemType: 'Sale' as const,
-      };
-    });
-
-    const sale: SaleRecord = {
-      id: crypto.randomUUID(), invoice: inv, customer: customerName || t('walkInCustomer'),
-      phone, address, items: saleItems, subtotal: total, discount: discountVal,
-      discountType, total: payable, paymentMethod: paymentMode.toLowerCase(),
-      notes: remark, status: autoStatus as SaleRecord['status'],
-      date: now.toISOString(), time: now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
-      paid: paidVal, due: dueVal, delivery: deliveryVal, returnAmount: returnVal,
-      lessAmount: lessVal, balance: balanceVal, labour: labourVal,
-      previousDues: prevDues, soldBy: settings.userName || '',
-    };
-
-    onSaleComplete(sale, items.map(i => ({ productId: i.productId, qty: i.carton })));
-    if (customerName && !customers.find(c => c.name === customerName)) {
-      onAutoAddCustomer(customerName, phone, address);
-    }
-    toast.success(`Sale saved: ${inv}`);
-    setView('history');
-  };
 
   const reopenInvoice = (s: SaleRecord) => { setViewSale(s); setShowInvoice(true); };
   const confirmDelete = () => {
