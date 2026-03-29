@@ -647,7 +647,7 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
                         <button onClick={() => setViewId(p.id)} className="w-7 h-7 rounded bg-[hsl(125,60%,35%)] text-white flex items-center justify-center" title="Print Preview">
                           <span className="material-symbols-outlined text-sm">print</span>
                         </button>
-                        <button className="w-7 h-7 rounded bg-pos-secondary text-white flex items-center justify-center" title="Edit">
+                        <button onClick={() => openEditModal(p)} className="w-7 h-7 rounded bg-pos-secondary text-white flex items-center justify-center" title="Edit">
                           <span className="material-symbols-outlined text-sm">edit</span>
                         </button>
                         <button onClick={() => setShowDeleteConfirm(p.id)} className="w-7 h-7 rounded bg-pos-error text-white flex items-center justify-center" title="Delete">
