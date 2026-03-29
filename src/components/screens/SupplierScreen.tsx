@@ -99,65 +99,68 @@ export default function SupplierScreen({ suppliers, onAddSupplier, onDeleteSuppl
   useMemo(() => setPage(1), [search]);
 
   const handlePrint = () => {
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) return;
+    const style = document.createElement('style');
+    style.id = 'supplier-print-styles';
+    style.textContent = `
+      @media print {
+        body > *:not(#supplier-print-area) { display: none !important; }
+        #supplier-print-area { display: block !important; position: fixed; top: 0; left: 0; width: 100%; z-index: 99999; background: white; }
+        #supplier-print-area * { color: #333 !important; }
+        #supplier-print-area .print-header { text-align: center; margin-bottom: 24px; border-bottom: 2px solid #333; padding-bottom: 16px; }
+        #supplier-print-area .print-header h1 { margin: 0; font-size: 22px; font-weight: bold; }
+        #supplier-print-area .print-header p { margin: 4px 0 0; font-size: 13px; color: #666 !important; }
+        #supplier-print-area .print-header h2 { margin: 16px 0 0; font-size: 16px; text-transform: uppercase; letter-spacing: 2px; }
+        #supplier-print-area table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        #supplier-print-area th { background: #3f51b5 !important; color: white !important; padding: 8px 10px; text-align: left; font-weight: 600; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        #supplier-print-area td { border: 1px solid #ccc; padding: 6px 10px; }
+        #supplier-print-area tr:nth-child(even) { background: #f5f5f5 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        #supplier-print-area .print-footer { margin-top: 20px; font-size: 11px; color: #999 !important; text-align: center; }
+      }
+    `;
+    document.head.appendChild(style);
 
-    const rows = filteredSuppliers.map((s, idx) => `
-      <tr>
-        <td style="border:1px solid #ccc;padding:6px 10px;text-align:center;">${idx + 1}</td>
-        <td style="border:1px solid #ccc;padding:6px 10px;">${s.name}</td>
-        <td style="border:1px solid #ccc;padding:6px 10px;">${s.contactPerson || '—'}</td>
-        <td style="border:1px solid #ccc;padding:6px 10px;">${s.address || '—'}</td>
-        <td style="border:1px solid #ccc;padding:6px 10px;">${s.phone || '—'}</td>
-        <td style="border:1px solid #ccc;padding:6px 10px;text-align:right;">${formatCurrency(s.totalDue || 0)}</td>
-      </tr>
-    `).join('');
-
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Supplier List</title>
-        <style>
-          body { font-family: Arial, sans-serif; padding: 20px; color: #333; }
-          .header { text-align: center; margin-bottom: 24px; border-bottom: 2px solid #333; padding-bottom: 16px; }
-          .header h1 { margin: 0; font-size: 22px; }
-          .header p { margin: 4px 0 0; font-size: 13px; color: #666; }
-          .header h2 { margin: 16px 0 0; font-size: 16px; text-transform: uppercase; letter-spacing: 2px; }
-          table { width: 100%; border-collapse: collapse; font-size: 13px; }
-          th { background: #3f51b5; color: white; padding: 8px 10px; text-align: left; font-weight: 600; }
-          th:first-child { text-align: center; }
-          th:last-child { text-align: right; }
-          tr:nth-child(even) { background: #f5f5f5; }
-          .footer { margin-top: 20px; font-size: 11px; color: #999; text-align: center; }
-          @media print { body { padding: 0; } }
-        </style>
-      </head>
-      <body>
-        <div class="header">
+    const printDiv = document.createElement('div');
+    printDiv.id = 'supplier-print-area';
+    printDiv.style.display = 'none';
+    printDiv.innerHTML = `
+      <div style="padding:20px;font-family:Arial,sans-serif;">
+        <div class="print-header">
           <h1>${shopName || 'My Shop'}</h1>
           <p>${shopAddress || ''}</p>
           <h2>Supplier List</h2>
         </div>
         <table>
-          <thead>
+          <thead><tr>
+            <th style="text-align:center;">#</th>
+            <th>Supplier</th>
+            <th>Contact Person</th>
+            <th>Address</th>
+            <th>Mobile</th>
+            <th style="text-align:right;">Balance</th>
+          </tr></thead>
+          <tbody>${filteredSuppliers.map((s, idx) => `
             <tr>
-              <th style="text-align:center;">#</th>
-              <th>Supplier</th>
-              <th>Contact Person</th>
-              <th>Address</th>
-              <th>Mobile</th>
-              <th style="text-align:right;">Balance</th>
-            </tr>
-          </thead>
-          <tbody>${rows}</tbody>
+              <td style="text-align:center;">${idx + 1}</td>
+              <td>${s.name}</td>
+              <td>${s.contactPerson || '—'}</td>
+              <td>${s.address || '—'}</td>
+              <td>${s.phone || '—'}</td>
+              <td style="text-align:right;">${formatCurrency(s.totalDue || 0)}</td>
+            </tr>`).join('')}
+          </tbody>
         </table>
-        <div class="footer">Printed on ${new Date().toLocaleDateString('en-GB')} • Total Suppliers: ${filteredSuppliers.length}</div>
-        <script>window.print(); window.onafterprint = () => window.close();</script>
-      </body>
-      </html>
-    `);
-    printWindow.document.close();
+        <div class="print-footer">Printed on ${new Date().toLocaleDateString('en-GB')} • Total Suppliers: ${filteredSuppliers.length}</div>
+      </div>
+    `;
+    document.body.appendChild(printDiv);
+
+    window.print();
+
+    // Cleanup after print
+    setTimeout(() => {
+      document.body.removeChild(printDiv);
+      document.head.removeChild(style);
+    }, 500);
   };
 
   const SortIcon = ({ col }: { col: SortKey }) => (
