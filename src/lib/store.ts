@@ -144,8 +144,8 @@ const defaultCustomers: Customer[] = [
 
 const defaultSales: SaleRecord[] = [];
 const defaultSuppliers: Supplier[] = [
-  { id: '1', name: 'Akij Ceramics', phone: '01811223344', address: 'Dhaka', totalDue: 0 },
-  { id: '2', name: 'RAK Bangladesh', phone: '01922112233', address: 'Gazipur', totalDue: 6000 },
+  { id: '1', name: 'Akij Ceramics', contactPerson: '', phone: '01811223344', address: 'Dhaka', totalDue: 0 },
+  { id: '2', name: 'RAK Bangladesh', contactPerson: '', phone: '01922112233', address: 'Gazipur', totalDue: 6000 },
 ];
 const defaultPurchases: PurchaseRecord[] = [];
 
