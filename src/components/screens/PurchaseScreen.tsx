@@ -141,20 +141,22 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
       return;
     }
     const rate = product.buyRate || 0;
-    const initSqft = isSqftUnit(product.unit) ? calcSqftQty(product, 1, 0) : 0;
-    const initSubTotal = calcSubTotal(product, 1, 0, rate);
-    setItems(prev => [...prev, {
-      id: Date.now(),
-      productId: product.id,
-      barcode: product.barcode || product.batch || '',
-      name: product.name,
-      stock: product.stock,
-      carton: 1,
-      piece: 0,
-      sqftQty: initSqft,
-      buyRate: rate,
-      subTotal: initSubTotal,
-    }]);
+    if (isSqftUnit(product.unit)) {
+      const initSqft = calcSqftQty(product, 1, 0);
+      const initSubTotal = calcSubTotal(product, 1, 0, rate);
+      setItems(prev => [...prev, {
+        id: Date.now(), productId: product.id, barcode: product.barcode || product.batch || '',
+        name: product.name, stock: product.stock, carton: 1, piece: 0,
+        sqftQty: initSqft, buyRate: rate, subTotal: initSubTotal,
+      }]);
+    } else {
+      // Non-SQFT: simple qty × rate
+      setItems(prev => [...prev, {
+        id: Date.now(), productId: product.id, barcode: product.barcode || product.batch || '',
+        name: product.name, stock: product.stock, carton: 0, piece: 1,
+        sqftQty: 1, buyRate: rate, subTotal: rate,
+      }]);
+    }
     setProductSearch('');
     searchRef.current?.focus();
   };
