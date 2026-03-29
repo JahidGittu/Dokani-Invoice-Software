@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useI18n } from "@/lib/i18n";
 import { formatCurrency, getLowStockProducts, type Product, type Customer, type SaleRecord, type Supplier, type PurchaseRecord } from "@/lib/store";
+import { formatStockDisplay } from "@/lib/calc-utils";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 interface DashboardScreenProps {
