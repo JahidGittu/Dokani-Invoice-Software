@@ -64,7 +64,7 @@ export default function InventoryScreen({ products }: InventoryScreenProps) {
         </div>
         <div className="bg-pos-surface-lowest rounded-xl p-5 border border-pos-surface-container">
           <div className="text-xs font-bold text-pos-on-surface-variant uppercase mb-2">{t('totalStock')}</div>
-          <div className="text-2xl font-black text-pos-on-surface">{products.reduce((s, p) => s + p.stock, 0).toLocaleString()} {t('boxes')}</div>
+          <div className="text-2xl font-black text-pos-on-surface">{products.reduce((s, p) => s + p.stock, 0).toLocaleString()} Pcs</div>
         </div>
         <div className="bg-pos-surface-lowest rounded-xl p-5 border border-pos-surface-container">
           <div className="text-xs font-bold text-pos-on-surface-variant uppercase mb-2">{t('lowStockItems')}</div>
