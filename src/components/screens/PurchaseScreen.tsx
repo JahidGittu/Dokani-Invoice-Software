@@ -50,7 +50,19 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
   const [sortField, setSortField] = useState<SortField>('date');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
 
-  // ══════ ADD PURCHASE STATE ══════
+  // ══════ EDIT MODAL STATE ══════
+  const [editPurchase, setEditPurchase] = useState<PurchaseRecord | null>(null);
+  const [editDate, setEditDate] = useState('');
+  const [editInvoice, setEditInvoice] = useState('');
+  const [editSupplier, setEditSupplier] = useState('');
+  const [editItems, setEditItems] = useState<PurchaseItemRow[]>([]);
+  const [editDiscount, setEditDiscount] = useState('');
+  const [editDelivery, setEditDelivery] = useState('');
+  const [editPaid, setEditPaid] = useState('');
+  const [editRemark, setEditRemark] = useState('');
+  const [editProductSearch, setEditProductSearch] = useState('');
+  const debouncedEditSearch = useDebounce(editProductSearch, 200);
+
   const [purchaseDate, setPurchaseDate] = useState(new Date().toISOString().split('T')[0]);
   const [invoiceNo, setInvoiceNo] = useState('');
   const [supplierName, setSupplierName] = useState('');
