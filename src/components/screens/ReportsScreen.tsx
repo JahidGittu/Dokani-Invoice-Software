@@ -51,7 +51,10 @@ export default function ReportsScreen({ sales = [], products = [], customers = [
     let totalCost = 0;
     filteredSales.forEach(s => s.items.forEach(item => {
       const p = products.find(pr => pr.id === item.productId);
-      totalCost += (p?.buyRate || 0) * item.qty;
+      if (!p) return;
+      // For SQFT products, cost = buyRate * sqftQty; for others, cost = buyRate * qty
+      const effectiveQty = isSqftUnit(p.unit) ? (item.sqftQty ?? item.qty) : item.qty;
+      totalCost += (p.buyRate || 0) * effectiveQty;
     }));
     const totalProfit = totalRevenue - totalCost;
     const dueCustomers = customers.filter(c => (c.totalDue || 0) > 0).sort((a, b) => (b.totalDue || 0) - (a.totalDue || 0));
