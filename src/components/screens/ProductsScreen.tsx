@@ -148,6 +148,16 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
 
   const isSqft = (unit: string) => unit === 'SQFT';
 
+  // Auto-calculate sqftPerBox from height (cm) × width (cm) × piecesPerBox / 929.0304
+  const calcSqftPerBox = (f: AddFormData): number => {
+    if (!isSqft(f.unit)) return 0;
+    const h = parseFloat(f.height) || 0;
+    const w = parseFloat(f.width) || 0;
+    const pcs = parseInt(f.piecesPerBox) || 0;
+    if (h > 0 && w > 0 && pcs > 0) return parseFloat(((h * w * pcs) / 929.0304).toFixed(2));
+    return parseFloat(f.sqftPerBox) || 0;
+  };
+
   const validateForm = (f: AddFormData): string | null => {
     if (!f.name.trim()) return 'Product Name is required';
     if (!f.buyRate && !f.pricePerBox) return 'Buy Rate or Sales Rate is required';
