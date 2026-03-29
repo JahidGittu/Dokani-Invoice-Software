@@ -274,7 +274,13 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
       date: now.toISOString(), time: now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
       paid: paidVal, due: dueVal, delivery: deliveryVal, labour: labourVal, returnAmount: returnVal, lessAmount: lessVal, balance: balanceVal,
     };
-    return { sale, deductions: items.filter(i => i.productId).map(i => ({ productId: i.productId, qty: i.qty })) };
+    // Stock deduction: include pieces as fractional cartons (ceil)
+    return { sale, deductions: items.filter(i => i.productId).map(i => {
+      const p = products.find(x => x.id === i.productId);
+      const piecesPerBox = p?.piecesPerBox || 4;
+      const totalBoxes = i.carton + (i.piece > 0 ? Math.ceil(i.piece / piecesPerBox) : 0);
+      return { productId: i.productId, qty: Math.max(totalBoxes > 0 ? totalBoxes : i.qty, 1) };
+    }) };
   };
 
   const commitSale = (sale: SaleRecord, deductions: { productId: string; qty: number }[]) => {
