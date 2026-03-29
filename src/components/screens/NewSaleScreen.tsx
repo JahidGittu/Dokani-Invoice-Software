@@ -228,11 +228,7 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
 
   const subtotal = rows.reduce((sum, r) => {
     const product = products.find(p => p.id === r.productId);
-    const sqftPerBox = product?.sqftPerBox || 0;
-    const piecesPerBox = product?.piecesPerBox || 4;
-    const sqftPerPiece = piecesPerBox > 0 ? sqftPerBox / piecesPerBox : 0;
-    const totalSqft = (r.carton * sqftPerBox) + (r.piece * sqftPerPiece);
-    return sum + (totalSqft * r.rate);
+    return sum + calcSubTotal(product, r.carton, r.piece, r.rate);
   }, 0);
   const discountVal = calcDiscount(subtotal, parseFloat(discount) || 0, discountType);
   const returnVal = parseFloat(returnAmt) || 0;
