@@ -343,18 +343,23 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
     return (
       <section className="p-4 sm:p-6 max-w-[1600px] mx-auto space-y-4">
         {/* Header */}
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <div>
             <div className="flex items-center gap-1.5 text-sm mb-1">
               <span className="text-pos-secondary font-semibold">Purchase</span>
-              <span className="text-pos-error font-semibold">›</span>
-              <span className="text-pos-error font-semibold">Add Purchase</span>
+              <span className="text-pos-on-surface-variant">›</span>
+              <span className="text-pos-secondary font-medium">Add Purchase</span>
             </div>
-            <h2 className="text-2xl font-bold text-pos-on-surface tracking-tight">Add Purchase</h2>
+            <h2 className="text-2xl font-bold text-pos-on-surface tracking-tight">Purchase</h2>
           </div>
-          <button onClick={() => setView('history')} className="px-5 py-2.5 bg-pos-surface-container text-pos-on-surface-variant rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-pos-surface-high transition-colors border border-pos-surface-container">
-            <span className="material-symbols-outlined text-lg">folder_open</span>Purchase History
-          </button>
+          <div className="flex gap-1 bg-pos-surface-container rounded-lg p-1">
+            <button onClick={openAddPurchase} className={`px-4 py-2 rounded-md text-sm font-semibold flex items-center gap-1.5 transition-colors ${view === 'add' ? 'bg-pos-secondary text-white shadow' : 'text-pos-on-surface-variant hover:bg-pos-surface-high'}`}>
+              <span className="material-symbols-outlined text-base">add</span>Add Purchase
+            </button>
+            <button onClick={() => setView('history')} className={`px-4 py-2 rounded-md text-sm font-semibold flex items-center gap-1.5 transition-colors ${view === 'history' ? 'bg-pos-secondary text-white shadow' : 'text-pos-on-surface-variant hover:bg-pos-surface-high'}`}>
+              <span className="material-symbols-outlined text-base">folder_open</span>Purchase History
+            </button>
+          </div>
         </div>
 
         <div className="flex gap-4 flex-col lg:flex-row">
