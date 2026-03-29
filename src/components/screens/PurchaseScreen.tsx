@@ -103,7 +103,7 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
     }
     // Show only products added in the last 7 days
     const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-    return products.filter(p => new Date(p.createdAt || p.updatedAt || 0).getTime() >= sevenDaysAgo);
+    return products.filter(p => new Date(p.createdAt || 0).getTime() >= sevenDaysAgo);
   }, [products, debouncedProductSearch]);
 
   const addProductToItems = (product: Product) => {
