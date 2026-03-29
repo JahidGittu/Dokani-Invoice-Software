@@ -21,7 +21,7 @@ export default function TransactionsScreen({ sales, purchases }: TransactionsScr
         date: s.date,
         type: 'income',
         description: `Sale to ${s.customer}`,
-        amount: s.paid ?? s.total,
+        amount: s.total,
         method: s.paymentMethod,
         reference: s.invoice,
       });
@@ -33,7 +33,7 @@ export default function TransactionsScreen({ sales, purchases }: TransactionsScr
         date: p.date,
         type: 'expense',
         description: `Purchase from ${p.supplierName}`,
-        amount: p.paid ?? p.total,
+        amount: p.total,
         method: 'Cash',
         reference: p.invoice || p.id.slice(0, 8),
       });
