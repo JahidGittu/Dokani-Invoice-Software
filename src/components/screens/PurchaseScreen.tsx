@@ -406,7 +406,7 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
                       <button key={p.id} type="button" onClick={() => { addProductToItems(p); setProductSearch(''); }}
                         className="w-full text-left px-3 py-2 text-sm hover:bg-accent transition-colors flex items-center justify-between gap-2 border-b border-border/50 last:border-0">
                         <span className="font-medium">{p.name}</span>
-                        <span className="text-xs text-muted-foreground shrink-0">{p.barcode || p.batch || ''} | Stock: {p.stock}</span>
+                        <span className="text-xs text-muted-foreground shrink-0">{p.barcode || p.batch || ''} | Stock: {formatStockDisplay(p.stock, p.piecesPerBox || 4)}</span>
                       </button>
                     ))}
                   </div>
