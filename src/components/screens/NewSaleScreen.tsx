@@ -698,8 +698,7 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
                   const piecesPerBox = product?.piecesPerBox || 4;
                   const sqftPerPiece = piecesPerBox > 0 ? (product?.sqftPerBox || 0) / piecesPerBox : 0;
                   const sqftQty = (row.carton * (product?.sqftPerBox || 0)) + (row.piece * sqftPerPiece);
-                  const pricePerPiece = piecesPerBox > 0 ? row.rate / piecesPerBox : 0;
-                  const rowTotal = (row.carton * row.rate) + (row.piece * pricePerPiece);
+                  const rowTotal = sqftQty * row.rate;
                   return (
                     <tr key={row.id} className="border-b border-border/50 hover:bg-muted/20 transition-colors align-top">
                       <td className="py-2 px-2 text-xs font-semibold text-muted-foreground">{idx + 1}</td>
