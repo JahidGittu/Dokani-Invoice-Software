@@ -459,13 +459,12 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
                   <thead className="sticky top-0 z-10">
                     <tr className="text-[10px] font-bold text-white uppercase tracking-wider bg-[hsl(230,45%,35%)]">
                       <th className="px-2 py-2.5 w-8"><span className="material-symbols-outlined text-sm">check_box</span></th>
-                      <th className="px-3 py-2.5">Barcode</th>
                       <th className="px-3 py-2.5">Product Name</th>
                       <th className="px-3 py-2.5 text-center">Stock</th>
-                      <th className="px-3 py-2.5 text-center">Carton</th>
+                      <th className="px-3 py-2.5 text-center">Qty / Carton</th>
                       <th className="px-3 py-2.5 text-center">Piece</th>
                       <th className="px-3 py-2.5 text-center">Sqft/Qty</th>
-                      <th className="px-3 py-2.5 text-right">Buy</th>
+                      <th className="px-3 py-2.5 text-right">Buy Rate</th>
                       <th className="px-3 py-2.5 text-right">Sub Total</th>
                     </tr>
                   </thead>
