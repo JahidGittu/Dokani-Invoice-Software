@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import type { Product, Customer, SaleRecord, SaleItem, CompanySettings, Supplier, PurchaseRecord, PurchaseItem } from './store';
+import { cartonPieceToTotalPieces } from './calc-utils';
 import { toast } from 'sonner';
 
 // ─── Products Hook (Supabase) ───
@@ -255,9 +256,12 @@ export function useSupabaseSales() {
     if (saleToDelete && saleToDelete.items.length > 0) {
       for (const item of saleToDelete.items) {
         if (item.productId) {
-          const qty = item.carton ?? item.qty ?? 0;
-          if (qty > 0) {
-            await supabase.rpc('add_stock', { p_product_id: item.productId, p_qty: qty });
+          // Find product to get piecesPerBox for proper piece-based restore
+          const { data: prod } = await supabase.from('products').select('pieces_per_box').eq('id', item.productId).maybeSingle();
+          const piecesPerBox = prod?.pieces_per_box || 4;
+          const totalPieces = cartonPieceToTotalPieces(item.carton ?? 0, item.piece ?? 0, piecesPerBox);
+          if (totalPieces > 0) {
+            await supabase.rpc('add_stock', { p_product_id: item.productId, p_qty: totalPieces });
           }
         }
       }
@@ -378,9 +382,23 @@ export function useSupabasePurchases() {
 
   const deletePurchase = useCallback(async (id: string) => {
     if (!user) return;
+    // Reverse stock addition: deduct the pieces that were added
+    const purchaseToDelete = purchases.find(p => p.id === id);
+    if (purchaseToDelete && purchaseToDelete.items.length > 0) {
+      for (const item of purchaseToDelete.items) {
+        if (item.productId) {
+          const { data: prod } = await supabase.from('products').select('pieces_per_box').eq('id', item.productId).maybeSingle();
+          const piecesPerBox = prod?.pieces_per_box || 4;
+          const totalPieces = cartonPieceToTotalPieces(item.carton ?? 0, item.piece ?? 0, piecesPerBox);
+          if (totalPieces > 0) {
+            await supabase.rpc('deduct_stock', { p_product_id: item.productId, p_qty: totalPieces });
+          }
+        }
+      }
+    }
     await supabase.from('purchases').delete().eq('id', id);
     fetchPurchases();
-  }, [user, fetchPurchases]);
+  }, [user, purchases, fetchPurchases]);
 
   const updatePurchase = useCallback(async (purchase: PurchaseRecord) => {
     if (!user) return;
