@@ -91,7 +91,7 @@ export default function InventoryScreen({ products }: InventoryScreenProps) {
                 <tr key={p.id} className="hover:bg-pos-surface-low transition-colors">
                   <td className="px-4 sm:px-8 py-4 font-semibold">{p.name}</td>
                   <td className="px-4 sm:px-8 py-4"><span className="px-2 py-0.5 bg-pos-secondary-container text-pos-on-secondary-container rounded text-xs font-bold">{p.size}</span></td>
-                  <td className="px-4 sm:px-8 py-4 font-bold">{p.stock} {t('boxes')}</td>
+                  <td className="px-4 sm:px-8 py-4 font-bold">{formatStockDisplay(p.stock, p.piecesPerBox || 4)}</td>
                   <td className="px-4 sm:px-8 py-4">
                     <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
                       p.stock <= 0 ? 'bg-pos-error text-white' :
