@@ -306,13 +306,12 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
       previousDues: prevDues, soldBy: salesMan || settings.userName || '',
     };
 
-    // Stock deduction: carton count (piece-only sales need at least 1 carton deduction)
+    // Stock deduction: total pieces
     onSaleComplete(sale, items.map(i => {
       const p = products.find(x => x.id === i.productId);
       const piecesPerBox = p?.piecesPerBox || 4;
-      // Total boxes to deduct = full cartons + ceiling of remaining pieces as fraction
-      const totalBoxes = i.carton + (i.piece > 0 ? Math.ceil(i.piece / piecesPerBox) : 0);
-      return { productId: i.productId, qty: Math.max(1, totalBoxes) };
+      const totalPieces = cartonPieceToTotalPieces(i.carton, i.piece, piecesPerBox);
+      return { productId: i.productId, qty: Math.max(1, totalPieces) };
     }));
     if (!isWalkingCustomer && finalCustomer !== t('walkInCustomer') && !customers.find(c => c.name === finalCustomer)) {
       onAutoAddCustomer(finalCustomer, finalPhone, finalAddress);

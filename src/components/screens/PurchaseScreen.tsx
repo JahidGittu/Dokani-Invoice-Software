@@ -217,12 +217,12 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
     };
 
     onAddPurchase(purchase);
-    // Stock addition: include pieces as fractional cartons (ceil)
+    // Stock addition: total pieces
     onAddStock(items.map(i => {
       const p = products.find(x => x.id === i.productId);
       const piecesPerBox = p?.piecesPerBox || 4;
-      const totalBoxes = i.carton + (i.piece > 0 ? Math.ceil(i.piece / piecesPerBox) : 0);
-      return { productId: i.productId, qty: Math.max(totalBoxes, 1) };
+      const totalPieces = cartonPieceToTotalPieces(i.carton, i.piece, piecesPerBox);
+      return { productId: i.productId, qty: Math.max(1, totalPieces) };
     }));
     if (dueVal > 0) onUpdateSupplierDue(supplierName, dueVal);
     toast.success('Purchase saved successfully');
