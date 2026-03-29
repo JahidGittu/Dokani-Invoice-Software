@@ -370,31 +370,112 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
     toast.success('CSV exported');
   };
 
-  // Print sale
+  // Print sale — uses exact same template as New Sale Entry
   const handlePrintSale = async (sale: SaleRecord) => {
-    const bizInfoLine = [settings.phone, settings.address].filter(Boolean).join(' · ');
     const qrDataURL = await generateQRDataURL(`${sale.invoice}-${sale.total}`);
     const qrImg = qrDataURL ? `<img src="${qrDataURL}" width="80" height="80" style="image-rendering:pixelated"/>` : '';
     const printDateStr = (() => { try { const d = new Date(sale.date); return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`; } catch { return sale.date; } })();
     const totalQty = sale.items.reduce((s, i) => s + (i.sqftQty ?? i.qty), 0);
     const dueInBill = sale.due ?? 0;
+    const prevDues = sale.previousDues ?? 0;
     const bal = sale.balance ?? dueInBill;
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${sale.invoice}</title>
-<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',Arial,sans-serif;color:#222;font-size:12px;background:#fff}.page{width:210mm;min-height:297mm;margin:0 auto;padding:14mm 16mm 10mm}.header{display:flex;align-items:flex-start;justify-content:space-between;padding-bottom:8px;border-bottom:2px solid #222;margin-bottom:6px}.header-left .logo-box{width:70px;height:70px;background:#005cc1;border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;font-weight:900;font-size:28px}.header-center{flex:1;text-align:center}.header-center .cn{font-size:28px;font-weight:900;line-height:1.1}.header-center .sub{font-size:11px;color:#555;margin-top:3px}.bill-title{text-align:center;font-size:20px;font-weight:900;margin:8px 0;letter-spacing:2px;text-decoration:underline;text-underline-offset:4px}.info-row{display:flex;justify-content:space-between;margin-bottom:10px;font-size:12px;line-height:1.6}.info-row .field{display:flex;gap:4px}.info-row .lbl{min-width:70px}.info-row .val{font-weight:700}table{width:100%;border-collapse:collapse;margin-bottom:8px}thead tr{background:#c0392b;color:#fff}th{font-size:10.5px;font-weight:700;text-transform:uppercase;padding:8px 6px;text-align:left;white-space:nowrap}th.r{text-align:right}td{padding:6px;font-size:11px;border-bottom:1px solid #ddd}td.r{text-align:right}td.b{font-weight:700}tbody tr:nth-child(even){background:#fafafa}.bottom{display:flex;justify-content:space-between;margin-top:6px;gap:20px}.sb{min-width:220px}.sr{display:flex;justify-content:space-between;padding:3px 0;font-size:12px}.sr .sv{font-weight:700;min-width:80px;text-align:right}.sr.pay{font-size:20px;font-weight:900;border-top:2px solid #222;border-bottom:2px solid #222;padding:6px 0;margin-top:4px}.sig-row{display:flex;justify-content:space-between;margin-top:55px;font-size:13px;font-weight:700}.sig-row .sig{border-top:1px solid #999;padding-top:6px;text-align:center;min-width:180px;color:#005cc1}.disclaimer{text-align:center;margin-top:18px;font-size:12px;color:#c0392b;font-weight:700;border-top:1px solid #eee;padding-top:6px}@media print{@page{size:A4;margin:0}.page{padding:10mm 14mm}}</style></head><body>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI','Noto Sans Bengali',Arial,sans-serif;color:#222;font-size:12px;background:#fff}
+.page{width:210mm;min-height:297mm;margin:0 auto;padding:14mm 16mm 10mm}
+.header{display:flex;align-items:flex-start;justify-content:space-between;padding-bottom:8px;border-bottom:2px solid #222;margin-bottom:6px}
+.header-left .logo-box{width:70px;height:70px;background:#005cc1;border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;font-weight:900;font-size:28px}
+.header-center{flex:1;text-align:center}
+.header-center .cn{font-size:28px;font-weight:900;line-height:1.1}
+.header-center .sub{font-size:11px;color:#555;margin-top:3px}
+.bill-title{text-align:center;font-size:20px;font-weight:900;margin:8px 0;letter-spacing:2px;text-decoration:underline;text-underline-offset:4px}
+.info-row{display:flex;justify-content:space-between;margin-bottom:10px;font-size:12px;line-height:1.6}
+.info-row .field{display:flex;gap:4px}
+.info-row .lbl{min-width:70px}
+.info-row .val{font-weight:700}
+table{width:100%;border-collapse:collapse;margin-bottom:8px}
+thead tr{background:#c0392b;color:#fff}
+th{font-size:10.5px;font-weight:700;text-transform:uppercase;padding:8px 6px;text-align:left;white-space:nowrap}
+th.r{text-align:right}
+td{padding:6px;font-size:11px;border-bottom:1px solid #ddd}
+td.r{text-align:right}td.b{font-weight:700}
+tbody tr:nth-child(even){background:#fafafa}
+.bottom{display:flex;justify-content:space-between;margin-top:6px;gap:20px}
+.due-box{border:2px solid #333;border-radius:4px;padding:8px 14px;font-size:11.5px;min-width:210px}
+.due-box .dr{display:flex;justify-content:space-between;margin-bottom:3px}
+.due-box .dv{font-weight:900;min-width:80px;text-align:right}
+.sb{min-width:220px}
+.sr{display:flex;justify-content:space-between;padding:3px 0;font-size:12px}
+.sr .sv{font-weight:700;min-width:80px;text-align:right}
+.sr.pay{font-size:20px;font-weight:900;border-top:2px solid #222;border-bottom:2px solid #222;padding:6px 0;margin-top:4px}
+.remark{font-size:11px;margin-top:8px;line-height:1.5}
+.remark .iw{color:#005cc1;font-weight:700}
+.sig-row{display:flex;justify-content:space-between;margin-top:55px;font-size:13px;font-weight:700}
+.sig-row .sig{border-top:1px solid #999;padding-top:6px;text-align:center;min-width:180px;color:#005cc1}
+.disclaimer{text-align:center;margin-top:18px;font-size:12px;color:#c0392b;font-weight:700;border-top:1px solid #eee;padding-top:6px}
+.fl{text-align:center;font-size:9px;color:#999;margin-top:6px}
+@media print{@page{size:A4;margin:0}.page{padding:10mm 14mm}}
+</style></head><body>
 <div class="page">
-<div class="header"><div class="header-left"><div class="logo-box">${settings.name.slice(0,3).toUpperCase()}</div></div><div class="header-center"><div class="cn">${settings.name.toUpperCase()}</div>${settings.address ? `<div class="sub">${settings.address}</div>` : ''}${settings.phone ? `<div class="sub">Phone# ${settings.phone}</div>` : ''}</div><div>${qrImg}</div></div>
+<div class="header">
+  <div class="header-left"><div class="logo-box">${settings.name.slice(0,3).toUpperCase()}</div></div>
+  <div class="header-center">
+    <div class="cn">${settings.name.toUpperCase()}</div>
+    ${settings.address ? `<div class="sub">${settings.address}</div>` : ''}
+    ${settings.phone ? `<div class="sub">Phone# ${settings.phone}</div>` : ''}
+    ${settings.email ? `<div class="sub">${settings.email}</div>` : ''}
+  </div>
+  <div>${qrImg}</div>
+</div>
 <div class="bill-title">BILL-INVOICE</div>
-<div class="info-row"><div><div class="field"><span class="lbl">Name</span><span>:</span><span class="val">${sale.customer}</span></div>${sale.address ? `<div class="field"><span class="lbl">Address</span><span>:</span><span class="val">${sale.address}</span></div>` : ''}${sale.phone ? `<div class="field"><span class="lbl">Mobile</span><span>:</span><span class="val">${sale.phone}</span></div>` : ''}</div><div style="text-align:right"><div class="field" style="justify-content:flex-end"><span class="lbl">Invoice#</span><span>:</span><span class="val">${sale.invoice}</span></div><div class="field" style="justify-content:flex-end"><span class="lbl">Date</span><span>:</span><span class="val">${printDateStr}</span></div>${sale.soldBy ? `<div class="field" style="justify-content:flex-end"><span class="lbl">Sold By</span><span>:</span><span class="val">${sale.soldBy}</span></div>` : ''}</div></div>
-<table><thead><tr><th>SN</th><th>TYPE</th><th>CARTON/PIECE</th><th>CATEGORY</th><th>PRODUCT NAME</th><th class="r">SQFT/QTY</th><th class="r">PRICE</th><th class="r">SUB TOTAL</th></tr></thead><tbody>${sale.items.map((item, idx) => {
+<div class="info-row">
+  <div>
+    <div class="field"><span class="lbl">Name</span><span>:</span><span class="val">${sale.customer}</span></div>
+    ${sale.address ? `<div class="field"><span class="lbl">Address</span><span>:</span><span class="val">${sale.address}</span></div>` : ''}
+    ${sale.phone ? `<div class="field"><span class="lbl">Mobile</span><span>:</span><span class="val">${sale.phone}</span></div>` : ''}
+  </div>
+  <div style="text-align:right">
+    <div class="field" style="justify-content:flex-end"><span class="lbl">Invoice#</span><span>:</span><span class="val">${sale.invoice}</span></div>
+    <div class="field" style="justify-content:flex-end"><span class="lbl">Date</span><span>:</span><span class="val">${printDateStr}</span></div>
+    <div class="field" style="justify-content:flex-end"><span class="lbl">Sold By</span><span>:</span><span class="val">${sale.soldBy || settings.userName || settings.name}</span></div>
+  </div>
+</div>
+<table>
+<thead><tr><th>SN</th><th>TYPE</th><th>CARTON/PIECE</th><th>CATEGORY</th><th>PRODUCT NAME</th><th class="r">SQFT./QTY.</th><th class="r">PRICE</th><th class="r">SUB TOTAL</th></tr></thead>
+<tbody>${sale.items.map((item, idx) => {
   const p = products.find(x => x.id === item.productId);
-  const cartonPiece = (item.carton ?? item.qty) + ' Carton ' + (item.piece ?? 0) + ' Piece';
-  return '<tr><td>' + (idx+1) + '</td><td>' + (item.itemType || 'Sale') + '</td><td>' + cartonPiece + '</td><td>' + (item.category || p?.category || '') + '</td><td class="b">' + item.name + (p?.size ? ' (Size: ' + p.size + ')' : '') + '</td><td class="r">' + Number(item.sqftQty ?? 0).toFixed(2) + '</td><td class="r">' + item.price + '</td><td class="r b">' + Math.round((item.sqftQty ?? item.qty) * item.price) + '</td></tr>';
-}).join('')}</tbody></table>
-<div class="bottom"><div><div style="font-size:11px;border:1px solid #999;padding:6px;margin-top:4px"><div>Due In This Bill: <strong>${sale.due ?? 0}/-</strong></div><div>Previous Dues: <strong>${sale.previousDues ?? 0}/-</strong></div><div>Balance: <strong>${(sale.due ?? 0) + (sale.previousDues ?? 0)}/-</strong></div></div><div style="font-size:11px;margin-top:6px"><strong>Remark:</strong> ${sale.notes || ''}</div><div style="font-size:11px"><strong>Total Quantity:</strong> ${totalQty}</div><div style="font-size:11px">In Word: <span style="color:#005cc1;font-weight:700">${numberToWords(sale.total)}</span></div></div><div class="sb"><div class="sr"><span>Total:</span><span class="sv">${sale.subtotal}</span></div>${(sale.labour ?? 0) > 0 ? `<div class="sr"><span>Labour:</span><span class="sv">${sale.labour}</span></div>` : ''}${sale.discount > 0 ? `<div class="sr"><span>Discount:</span><span class="sv">-${sale.discount}</span></div>` : ''}${(sale.delivery ?? 0) > 0 ? `<div class="sr"><span>Delivery:</span><span class="sv">+${sale.delivery}</span></div>` : ''}<div class="sr pay"><span>PAYABLE:</span><span class="sv">${sale.total}</span></div><div class="sr"><span>Paid:</span><span class="sv">${sale.paid ?? sale.total}</span></div>${(sale.due ?? 0) > 0 ? `<div class="sr" style="color:red"><span>Due:</span><span class="sv">${sale.due}</span></div>` : ''}</div></div>
+  return `<tr><td>${idx+1}</td><td>Sale</td><td>${item.carton ?? item.qty} Carton ${item.piece ?? 0} Piece</td><td>${item.category || p?.category || '-'}</td><td class="b">${item.name}${p ? ` (Size: ${p.size})` : ''}</td><td class="r">${Number(item.sqftQty ?? (item.qty * (p?.sqftPerBox || 1))).toFixed(2)}</td><td class="r">${item.price}</td><td class="r b">${Math.round((item.sqftQty && item.sqftQty > 0 ? item.sqftQty : item.qty) * item.price)}</td></tr>`;
+}).join('')}</tbody>
+</table>
+<div class="bottom">
+  <div>
+    <div class="due-box">
+      <div class="dr"><span>Due In This Bill:</span><span class="dv">${dueInBill}/-</span></div>
+      <div class="dr"><span>Previous Dues:</span><span class="dv">${prevDues}/-</span></div>
+      <div class="dr"><span>Balance:</span><span class="dv">${bal}/-</span></div>
+    </div>
+    <div class="remark">
+      <div><strong>Remark:</strong> ${sale.notes || ''}</div>
+      <div><strong>Total Quantity:</strong> ${totalQty}</div>
+      <div>In Word: <span class="iw">${numberToWords(sale.total)}</span></div>
+    </div>
+  </div>
+  <div class="sb">
+    <div class="sr"><span>Total:</span><span class="sv">${sale.subtotal}</span></div>
+    ${(sale.returnAmount ?? 0) > 0 ? `<div class="sr"><span>Return:</span><span class="sv">-${sale.returnAmount}</span></div>` : ''}
+    ${sale.discount > 0 ? `<div class="sr"><span>Discount:</span><span class="sv">-${sale.discount}</span></div>` : ''}
+    ${(sale.lessAmount ?? 0) > 0 ? `<div class="sr"><span>Less:</span><span class="sv">-${sale.lessAmount}</span></div>` : ''}
+    ${(sale.labour ?? 0) > 0 ? `<div class="sr"><span>Labour:</span><span class="sv">${sale.labour}</span></div>` : ''}
+    <div class="sr pay"><span>PAYABLE:</span><span class="sv">${sale.total}</span></div>
+    <div class="sr"><span>Paid:</span><span class="sv">${sale.paid ?? sale.total}</span></div>
+  </div>
+</div>
 <div class="sig-row"><div class="sig">Customer Signature</div><div class="sig">Authorized Signature</div></div>
 <div class="disclaimer">বিক্রিত মাল ১ মাসের মধ্যে ফেরত নেওয়া হয়।চায়না/ইন্ডিয়ান মাল ফেরত নেওয়া হয় না।</div>
+<div class="fl">SOFTWARE: ${settings.name} | Printing @: ${new Date().toLocaleString()}</div>
 </div></body></html>`;
-    // Print in same page using iframe
+    // Print using hidden iframe
     const iframe = document.createElement('iframe');
     iframe.style.position = 'fixed';
     iframe.style.top = '-10000px';
