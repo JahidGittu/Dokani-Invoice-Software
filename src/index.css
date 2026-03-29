@@ -163,4 +163,7 @@ input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
 
 @media print {
   .no-print { display: none !important; }
+  body > * { display: none !important; }
+  #purchase-invoice-print { display: block !important; position: fixed; inset: 0; z-index: 99999; background: white; }
+  #purchase-invoice-print * { color-adjust: exact; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
