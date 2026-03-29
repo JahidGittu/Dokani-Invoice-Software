@@ -71,6 +71,10 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
   const [customerName, setCustomerName] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
+  const [isWalkingCustomer, setIsWalkingCustomer] = useState(false);
+  const [walkingName, setWalkingName] = useState('');
+  const [walkingPhone, setWalkingPhone] = useState('');
+  const [walkingAddress, setWalkingAddress] = useState('');
   const [productSearch, setProductSearch] = useState('');
   const [items, setItems] = useState<SaleItemRow[]>([]);
   const [manualCarton, setManualCarton] = useState(0);
@@ -87,8 +91,17 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
   const [paidAmount, setPaidAmount] = useState('');
   const [remark, setRemark] = useState('');
   const [saleStatus, setSaleStatus] = useState('Complete');
+  const [deliveryStatus, setDeliveryStatus] = useState('Complete');
+  const [salesMan, setSalesMan] = useState('');
   const [paymentMode, setPaymentMode] = useState('Cash');
+  const [showAddCustomerModal, setShowAddCustomerModal] = useState(false);
+  const [newCustName, setNewCustName] = useState('');
+  const [newCustPhone, setNewCustPhone] = useState('');
+  const [newCustType, setNewCustType] = useState('General Customer');
+  const [newCustAddress, setNewCustAddress] = useState('');
+  const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
+  const customerDropdownRef = useRef<HTMLDivElement>(null);
 
   // ── Sort helpers ──
   const toggleSort = (field: SortField) => {
@@ -120,16 +133,71 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const paginated = useMemo(() => filtered.slice(page * pageSize, (page + 1) * pageSize), [filtered, page, pageSize]);
 
-  // ── Add Sale: product search (show all, filter on search) ──
+  // ── Add Sale: product search ──
   const debouncedProductSearch = useDebounce(productSearch, 200);
   const displayProducts = useMemo(() => {
-    if (!debouncedProductSearch) return products;
+    if (!debouncedProductSearch) return [];
     return products.filter(p =>
       p.name.toLowerCase().includes(debouncedProductSearch.toLowerCase()) ||
       (p.barcode || '').toLowerCase().includes(debouncedProductSearch.toLowerCase()) ||
       p.batch.toLowerCase().includes(debouncedProductSearch.toLowerCase())
     );
   }, [products, debouncedProductSearch]);
+
+  const selectedProduct = selectedProductId ? products.find(p => p.id === selectedProductId) : null;
+
+  // Bi-directional calc for manual entry
+  const handleManualCartonChange = (val: number) => {
+    setManualCarton(val);
+    if (selectedProduct && isSqftUnit(selectedProduct.unit)) {
+      setManualSqft(parseFloat(calcSqftQty(selectedProduct, val, manualPiece).toFixed(3)));
+    }
+  };
+  const handleManualPieceChange = (val: number) => {
+    setManualPiece(val);
+    if (selectedProduct && isSqftUnit(selectedProduct.unit)) {
+      setManualSqft(parseFloat(calcSqftQty(selectedProduct, manualCarton, val).toFixed(3)));
+    }
+  };
+  const handleManualSqftChange = (val: number) => {
+    setManualSqft(val);
+    if (selectedProduct && isSqftUnit(selectedProduct.unit)) {
+      const { carton, piece } = calcCartonPieceFromSqft(selectedProduct, val);
+      setManualCarton(carton);
+      setManualPiece(piece);
+    }
+  };
+
+  // Recent customers (last 5 by created_at)
+  const recentCustomers = useMemo(() => {
+    return [...customers].slice(0, 5);
+  }, [customers]);
+
+  const handleSelectCustomer = (name: string) => {
+    if (name === 'Walking Customer' || name === 'ওয়াকিং কাস্টমার') {
+      setIsWalkingCustomer(true);
+      setCustomerName(name);
+      setPhone(''); setAddress('');
+      setWalkingName(''); setWalkingPhone(''); setWalkingAddress('');
+    } else {
+      setIsWalkingCustomer(false);
+      setCustomerName(name);
+      const c = customers.find(x => x.name === name);
+      if (c) { setPhone(c.phone || ''); setAddress(c.address || ''); }
+    }
+    setShowCustomerDropdown(false);
+  };
+
+  const handleSaveNewCustomer = () => {
+    if (!newCustName.trim()) { toast.error('Customer name required'); return; }
+    onAutoAddCustomer(newCustName.trim(), newCustPhone, newCustAddress);
+    setCustomerName(newCustName.trim());
+    setPhone(newCustPhone); setAddress(newCustAddress);
+    setIsWalkingCustomer(false);
+    setShowAddCustomerModal(false);
+    setNewCustName(''); setNewCustPhone(''); setNewCustType('General Customer'); setNewCustAddress('');
+    toast.success('Customer added');
+  };
 
   const addProductToItems = (product: Product, carton?: number, piece?: number, sqft?: number, rate?: number) => {
     if (items.find(i => i.productId === product.id)) {
@@ -172,7 +240,7 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
           const { carton, piece } = calcCartonPieceFromSqft(product, Number(value));
           updated.carton = carton;
           updated.piece = piece;
-        } else {
+        } else if (field === 'carton' || field === 'piece') {
           updated.sqftQty = calcSqftQty(product, updated.carton, updated.piece);
         }
       }
@@ -191,18 +259,19 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
   const payable = Math.max(0, total - returnVal - discountVal - lessVal + deliveryVal + labourVal);
   const paidVal = parseFloat(paidAmount) || 0;
   const dueVal = Math.max(0, payable - paidVal);
-  // Previous dues from customer
-  const selectedCustomer = customers.find(c => c.name === customerName);
-  const prevDues = selectedCustomer?.totalDue || 0;
+  const selectedCustomerObj = customers.find(c => c.name === customerName);
+  const prevDues = selectedCustomerObj?.totalDue || 0;
   const balanceVal = dueVal + prevDues;
 
   const openAddSale = () => {
     setView('add');
     setSaleDate(new Date().toISOString().split('T')[0]);
     setCustomerName(''); setPhone(''); setAddress('');
+    setIsWalkingCustomer(false); setWalkingName(''); setWalkingPhone(''); setWalkingAddress('');
     setItems([]); setDiscount(''); setDelivery(''); setPaidAmount('');
-    setRemark(''); setSaleStatus('Complete'); setPaymentMode('Cash');
-    setReturnAmt(''); setLessAmt(''); setLabourCost('');
+    setRemark(''); setSaleStatus('Complete'); setDeliveryStatus('Complete');
+    setPaymentMode('Cash'); setReturnAmt(''); setLessAmt(''); setLabourCost('');
+    setSalesMan('');
   };
 
   const handleSave = () => {
@@ -213,33 +282,39 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
     const now = new Date(saleDate);
     const autoStatus = paidVal >= payable ? 'paid' : paidVal > 0 ? 'pending' : 'credit';
 
+    const finalCustomer = isWalkingCustomer ? (walkingName || t('walkInCustomer')) : (customerName || t('walkInCustomer'));
+    const finalPhone = isWalkingCustomer ? walkingPhone : phone;
+    const finalAddress = isWalkingCustomer ? walkingAddress : address;
+
     const saleItems = items.map(i => {
       const p = products.find(x => x.id === i.productId);
       return {
         productId: i.productId, name: i.name, detail: p ? `${p.size} · ${p.finish}` : '',
         qty: i.carton, price: i.salesRate, carton: i.carton, piece: i.piece,
-        sqftQty: i.sqftQty, category: p?.category || '', itemType: 'Sale' as const,
+        sqftQty: i.sqftQty, category: p?.category || '', itemType: i.itemType as 'Sale',
       };
     });
 
     const sale: SaleRecord = {
-      id: crypto.randomUUID(), invoice: inv, customer: customerName || t('walkInCustomer'),
-      phone, address, items: saleItems, subtotal: total, discount: discountVal,
+      id: crypto.randomUUID(), invoice: inv, customer: finalCustomer,
+      phone: finalPhone, address: finalAddress, items: saleItems, subtotal: total, discount: discountVal,
       discountType, total: payable, paymentMethod: paymentMode.toLowerCase(),
       notes: remark, status: autoStatus as SaleRecord['status'],
       date: now.toISOString(), time: now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
       paid: paidVal, due: dueVal, delivery: deliveryVal, returnAmount: returnVal,
       lessAmount: lessVal, balance: balanceVal, labour: labourVal,
-      previousDues: prevDues, soldBy: settings.userName || '',
+      previousDues: prevDues, soldBy: salesMan || settings.userName || '',
     };
 
     onSaleComplete(sale, items.map(i => ({ productId: i.productId, qty: i.carton })));
-    if (customerName && !customers.find(c => c.name === customerName)) {
-      onAutoAddCustomer(customerName, phone, address);
+    if (!isWalkingCustomer && finalCustomer !== t('walkInCustomer') && !customers.find(c => c.name === finalCustomer)) {
+      onAutoAddCustomer(finalCustomer, finalPhone, finalAddress);
     }
     toast.success(`Sale saved: ${inv}`);
     setView('history');
   };
+
+
 
   const reopenInvoice = (s: SaleRecord) => { setViewSale(s); setShowInvoice(true); };
   const confirmDelete = () => {
@@ -364,54 +439,86 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
   if (view === 'add') {
     return (
       <section className="p-4 sm:p-6 max-w-[1600px] mx-auto space-y-4">
-        {/* Header */}
+        {/* Header with toggle buttons */}
         <div className="flex justify-between items-center">
           <div>
-            <span className="text-xs text-pos-on-surface-variant uppercase tracking-widest block mb-1">Sales</span>
             <h2 className="text-2xl font-bold text-pos-on-surface tracking-tight">
               <span className="text-pos-secondary cursor-pointer hover:underline" onClick={() => setView('history')}>Sales</span>
-              <span className="mx-2 text-pos-on-surface-variant">›</span>Add Sales
+              <span className="mx-2 text-pos-on-surface-variant">›</span>
+              <span className="text-pos-error">Add Sales</span>
             </h2>
           </div>
-          <button onClick={() => setView('history')} className="px-5 py-2.5 bg-pos-secondary text-white rounded-lg font-semibold text-sm flex items-center gap-2 shadow-lg hover:-translate-y-0.5 transition-transform">
-            <span className="material-symbols-outlined text-lg">folder</span>Sales History
-          </button>
+          <div className="flex gap-1 bg-pos-surface-container rounded-lg p-1">
+            <button onClick={() => {}} className="px-4 py-2 rounded-md text-sm font-semibold flex items-center gap-1.5 bg-pos-secondary text-white shadow">
+              <span className="material-symbols-outlined text-base">add</span>Add Sales
+            </button>
+            <button onClick={() => setView('history')} className="px-4 py-2 rounded-md text-sm font-semibold flex items-center gap-1.5 text-pos-on-surface-variant hover:bg-pos-surface-high transition-colors">
+              <span className="material-symbols-outlined text-base">folder_open</span>Sales History
+            </button>
+          </div>
         </div>
 
         <div className="flex gap-4 flex-col lg:flex-row">
           {/* ── LEFT: Main form ── */}
-          <div className="flex-1 space-y-4">
-            {/* Top fields: Date + Customer */}
-            <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container p-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[10px] font-bold text-pos-on-surface-variant uppercase mb-1">Date</label>
+          <div className="flex-1 space-y-3">
+            {/* Row 1: Date + Customer Select + Add Customer btn */}
+            <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container p-3">
+              <div className="flex items-end gap-3">
+                <div className="shrink-0">
                   <input type="date" value={saleDate} onChange={e => setSaleDate(e.target.value)}
-                    className="w-full bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2.5 px-3 outline-none" />
+                    className="bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2.5 px-3 outline-none" />
                 </div>
-                <div>
-                  <label className="block text-[10px] font-bold text-pos-on-surface-variant uppercase mb-1">Customer</label>
-                  <ComboInput value={customerName} onChange={val => {
-                    setCustomerName(val);
-                    const c = customers.find(x => x.name === val);
-                    if (c) { setPhone(c.phone || ''); setAddress(c.address || ''); }
-                  }} options={customers.map(c => `${c.name} //// ${c.phone || ''} //// ${c.address || ''}`)} placeholder="Select Customer..."
-                    className="w-full bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2.5 px-3 outline-none" />
+                <div className="flex-1 relative" ref={customerDropdownRef}>
+                  <div className="relative">
+                    <select
+                      value={customerName}
+                      onChange={e => handleSelectCustomer(e.target.value)}
+                      onFocus={() => setShowCustomerDropdown(false)}
+                      className="w-full bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2.5 px-3 outline-none appearance-none cursor-pointer"
+                    >
+                      <option value="">Select Customer</option>
+                      <option value="Walking Customer">Walking Customer</option>
+                      {recentCustomers.map(c => (
+                        <option key={c.id} value={c.name}>{c.name} — {c.phone || 'No phone'}</option>
+                      ))}
+                      {customers.filter(c => !recentCustomers.find(r => r.id === c.id)).map(c => (
+                        <option key={c.id} value={c.name}>{c.name}</option>
+                      ))}
+                    </select>
+                    <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-pos-on-surface-variant pointer-events-none text-sm">expand_more</span>
+                  </div>
                 </div>
+                <button onClick={() => setShowAddCustomerModal(true)}
+                  className="shrink-0 w-10 h-10 bg-pos-secondary text-white rounded-lg flex items-center justify-center hover:bg-pos-secondary/90 transition-colors" title="Add Customer">
+                  <span className="material-symbols-outlined">person_add</span>
+                </button>
               </div>
             </div>
 
-            {/* Product search with dropdown */}
-            <div className="relative">
+            {/* Walking Customer inline fields */}
+            {isWalkingCustomer && (
+              <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container p-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <input value={walkingName} onChange={e => setWalkingName(e.target.value)}
+                    className="bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2 px-3 outline-none" placeholder="Customer Name" />
+                  <input value={walkingPhone} onChange={e => setWalkingPhone(e.target.value)}
+                    className="bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2 px-3 outline-none" placeholder="Mobile" />
+                  <input value={walkingAddress} onChange={e => setWalkingAddress(e.target.value)}
+                    className="bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2 px-3 outline-none" placeholder="Address" />
+                </div>
+              </div>
+            )}
+
+            {/* Product search + Stock */}
+            <div className="bg-[hsl(250,60%,55%)] rounded-xl p-3 space-y-2">
               <div className="flex gap-2 items-center">
                 <div className="relative flex-1">
                   <input ref={searchRef} value={productSearch} onChange={e => {
                     setProductSearch(e.target.value);
                     setSelectedProductId(null);
                   }}
-                    className="w-full bg-pos-surface-lowest border-2 border-pos-secondary/30 rounded-xl text-sm py-3 pl-11 pr-4 outline-none focus:border-pos-secondary transition-colors"
-                    placeholder="Search the Product..." />
-                  <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-pos-on-surface-variant">search</span>
+                    className="w-full bg-[hsl(45,100%,90%)] border-0 rounded-lg text-sm py-3 pl-4 pr-4 outline-none placeholder:text-[hsl(250,20%,50%)]"
+                    placeholder="Search the Product" />
                   {/* Search dropdown */}
                   {productSearch && !selectedProductId && (
                     <div className="absolute left-0 top-full mt-1 w-full bg-popover border border-border rounded-lg shadow-xl z-50 max-h-[200px] overflow-y-auto">
@@ -420,10 +527,11 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
                           setSelectedProductId(p.id);
                           setProductSearch(p.name);
                           setManualRate(String(p.pricePerBox));
+                          setManualCarton(0); setManualPiece(0); setManualSqft(0);
                         }}
                           className="w-full text-left px-3 py-2 text-xs hover:bg-accent transition-colors flex justify-between items-center">
-                          <span className="font-medium">{p.name}</span>
-                          <span className="text-muted-foreground text-[10px]">{p.barcode || p.batch || ''} · Stock: {p.stock}</span>
+                          <span className="font-medium">{p.name} <span className="text-muted-foreground">({p.size})</span></span>
+                          <span className="text-muted-foreground text-[10px]">Stock: {p.stock}</span>
                         </button>
                       )) : (
                         <div className="px-3 py-3 text-xs text-muted-foreground text-center">No products found</div>
@@ -431,46 +539,47 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
                     </div>
                   )}
                 </div>
-                <input type="number" value={pageSize} onChange={e => setPageSize(Number(e.target.value) || 10)}
-                  className="w-16 bg-pos-surface-lowest border border-pos-surface-container rounded-lg text-sm py-3 px-2 text-center outline-none" title="Entries" />
+                <div className="w-28 bg-[hsl(250,50%,45%)] rounded-lg py-3 px-3 text-center text-white font-bold text-sm">
+                  {selectedProduct ? selectedProduct.stock : 'Stock'}
+                </div>
+              </div>
+
+              {/* Manual entry: Carton, Piece, Sqft/Qty, Sales Rate, Add */}
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex items-center gap-1 bg-[hsl(45,100%,90%)] rounded-lg px-2 py-2">
+                  <span className="text-[10px] font-bold text-[hsl(250,40%,40%)] uppercase">Carton</span>
+                  <input type="number" min={0} value={manualCarton} onChange={e => handleManualCartonChange(parseInt(e.target.value) || 0)}
+                    className="w-14 bg-transparent text-sm text-center outline-none" />
+                </div>
+                <div className="flex items-center gap-1 bg-[hsl(45,100%,90%)] rounded-lg px-2 py-2">
+                  <span className="text-[10px] font-bold text-[hsl(250,40%,40%)] uppercase">Piece</span>
+                  <input type="number" min={0} value={manualPiece} onChange={e => handleManualPieceChange(parseInt(e.target.value) || 0)}
+                    className="w-14 bg-transparent text-sm text-center outline-none" />
+                </div>
+                <div className="flex items-center gap-1 bg-[hsl(45,100%,90%)] rounded-lg px-2 py-2 flex-1 min-w-[120px]">
+                  <span className="text-[10px] font-bold text-[hsl(250,40%,40%)] uppercase">Sqft./Qty.</span>
+                  <input type="number" min={0} value={manualSqft} onChange={e => handleManualSqftChange(parseFloat(e.target.value) || 0)}
+                    className="w-full bg-transparent text-sm text-center outline-none" />
+                </div>
+                <div className="flex items-center gap-1 bg-[hsl(45,100%,90%)] rounded-lg px-2 py-2">
+                  <span className="text-[10px] font-bold text-[hsl(250,40%,40%)] uppercase">Sales Rate</span>
+                  <input type="number" value={manualRate} onChange={e => setManualRate(e.target.value)} placeholder="Sales Rate"
+                    className="w-24 bg-transparent text-sm text-center outline-none" />
+                </div>
+                <button onClick={manualAddProduct}
+                  className="px-6 py-2.5 bg-pos-error text-white rounded-lg font-bold text-sm hover:bg-pos-error/90 transition-colors">
+                  Add
+                </button>
               </div>
             </div>
 
-            {/* Manual entry row: Carton, Piece, Sqft/Qty, Sales Rate, Add */}
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="flex items-center gap-1 bg-pos-surface-lowest border border-pos-surface-container rounded-lg px-2 py-2">
-                <span className="text-[10px] font-bold text-pos-on-surface-variant uppercase">Carton</span>
-                <input type="number" min={0} value={manualCarton} onChange={e => setManualCarton(parseInt(e.target.value) || 0)}
-                  className="w-14 bg-transparent text-sm text-center outline-none" />
-              </div>
-              <div className="flex items-center gap-1 bg-pos-surface-lowest border border-pos-surface-container rounded-lg px-2 py-2">
-                <span className="text-[10px] font-bold text-pos-on-surface-variant uppercase">Piece</span>
-                <input type="number" min={0} value={manualPiece} onChange={e => setManualPiece(parseInt(e.target.value) || 0)}
-                  className="w-14 bg-transparent text-sm text-center outline-none" />
-              </div>
-              <div className="flex items-center gap-1 bg-pos-surface-lowest border border-pos-surface-container rounded-lg px-2 py-2 flex-1 min-w-[120px]">
-                <span className="text-[10px] font-bold text-pos-on-surface-variant uppercase">Sqft./Qty.</span>
-                <input type="number" min={0} value={manualSqft} onChange={e => setManualSqft(parseFloat(e.target.value) || 0)}
-                  className="w-full bg-transparent text-sm text-center outline-none" />
-              </div>
-              <div className="flex items-center gap-1 bg-pos-surface-lowest border border-pos-surface-container rounded-lg px-2 py-2">
-                <span className="text-[10px] font-bold text-pos-on-surface-variant uppercase">Sales Rate</span>
-                <input type="number" value={manualRate} onChange={e => setManualRate(e.target.value)} placeholder="0"
-                  className="w-20 bg-transparent text-sm text-center outline-none" />
-              </div>
-              <button onClick={manualAddProduct}
-                className="px-6 py-2.5 bg-pos-error text-white rounded-lg font-bold text-sm hover:bg-pos-error/90 transition-colors">
-                Add
-              </button>
-            </div>
-
-            {/* All products table with checkbox */}
+            {/* Cart table — only added items */}
             <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container overflow-hidden">
-              <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
+              <div className="overflow-x-auto max-h-[350px] overflow-y-auto">
                 <table className="w-full min-w-[700px]">
                   <thead className="sticky top-0 z-10">
-                    <tr className="text-[10px] font-bold text-white uppercase tracking-wider bg-[hsl(230,45%,35%)]">
-                      <th className="px-2 py-2.5 w-8"><span className="material-symbols-outlined text-sm">check_box</span></th>
+                    <tr className="text-[10px] font-bold text-white uppercase tracking-wider bg-[hsl(250,60%,55%)]">
+                      <th className="px-2 py-2.5 w-8"><span className="material-symbols-outlined text-sm">delete</span></th>
                       <th className="px-3 py-2.5">Type</th>
                       <th className="px-3 py-2.5">Barcode</th>
                       <th className="px-3 py-2.5">Description</th>
@@ -482,81 +591,78 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-pos-surface-container">
-                    {displayProducts.map(p => {
-                      const item = items.find(i => i.productId === p.id);
-                      const isSelected = !!item;
-                      return (
-                        <tr key={p.id} className={`transition-colors ${isSelected ? 'bg-[hsl(45,100%,96%)] dark:bg-[hsl(45,20%,12%)]' : 'hover:bg-muted/30'}`}>
-                          <td className="px-2 py-2 text-center">
-                            <input type="checkbox" checked={isSelected}
-                              onChange={() => isSelected ? removeItem(item!.id) : addProductToItems(p)}
-                              className="w-4 h-4 rounded border-pos-surface-container accent-pos-secondary cursor-pointer" />
-                          </td>
-                          {isSelected ? (
-                            <>
-                              <td className="px-1 py-1">
-                                <select value={item!.itemType} onChange={e => updateItem(item!.id, 'itemType', e.target.value)}
-                                  className="bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-xs py-1.5 px-1 outline-none">
-                                  <option>Sale</option><option>Return</option>
-                                </select>
-                              </td>
-                              <td className="px-3 py-2 text-sm font-mono">{item!.barcode || '—'}</td>
-                              <td className="px-3 py-2 text-sm font-medium">{item!.name}</td>
-                              <td className="px-1 py-1">
-                                <input type="number" min={0} value={item!.carton} onChange={e => updateItem(item!.id, 'carton', parseInt(e.target.value) || 0)}
-                                  className="w-16 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-center outline-none focus:border-pos-secondary mx-auto block" />
-                              </td>
-                              <td className="px-1 py-1">
-                                <input type="number" min={0} value={item!.piece} onChange={e => updateItem(item!.id, 'piece', parseInt(e.target.value) || 0)}
-                                  className="w-14 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-center outline-none focus:border-pos-secondary mx-auto block" />
-                              </td>
-                              <td className="px-3 py-2 text-center text-sm">{item!.sqftQty > 0 ? item!.sqftQty.toFixed(3) : '0'}</td>
-                              <td className="px-1 py-1">
-                                <input type="number" value={item!.salesRate} onChange={e => updateItem(item!.id, 'salesRate', parseFloat(e.target.value) || 0)}
-                                  className="w-20 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-right outline-none focus:border-pos-secondary ml-auto block" />
-                              </td>
-                              <td className="px-3 py-2 text-right font-bold text-sm">{formatCurrency(item!.subTotal)}</td>
-                            </>
-                          ) : (
-                            <>
-                              <td className="px-3 py-2 text-sm text-muted-foreground">Sale</td>
-                              <td className="px-3 py-2 text-sm font-mono text-muted-foreground">{p.barcode || p.batch || '—'}</td>
-                              <td className="px-3 py-2 text-sm text-muted-foreground">{p.name}</td>
-                              <td className="px-3 py-2 text-center text-sm text-muted-foreground">0</td>
-                              <td className="px-3 py-2 text-center text-sm text-muted-foreground">0</td>
-                              <td className="px-3 py-2 text-center text-sm text-muted-foreground">0</td>
-                              <td className="px-3 py-2 text-right text-sm text-muted-foreground">{p.pricePerBox}</td>
-                              <td className="px-3 py-2 text-right text-sm text-muted-foreground">0.00</td>
-                            </>
-                          )}
-                        </tr>
-                      );
-                    })}
-                    {displayProducts.length === 0 && (
-                      <tr><td colSpan={9} className="px-8 py-8 text-center text-sm text-pos-on-surface-variant">No products found</td></tr>
+                    {items.map(item => (
+                      <tr key={item.id} className="bg-[hsl(45,100%,96%)] dark:bg-[hsl(45,20%,12%)]">
+                        <td className="px-2 py-2 text-center">
+                          <input type="checkbox" checked onChange={() => removeItem(item.id)}
+                            className="w-4 h-4 rounded border-pos-surface-container accent-pos-secondary cursor-pointer" />
+                        </td>
+                        <td className="px-1 py-1">
+                          <select value={item.itemType} onChange={e => updateItem(item.id, 'itemType', e.target.value)}
+                            className="bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-xs py-1.5 px-1 outline-none">
+                            <option>Sale</option><option>Return</option>
+                          </select>
+                        </td>
+                        <td className="px-3 py-2 text-sm font-mono">{item.barcode || '—'}</td>
+                        <td className="px-3 py-2 text-sm font-medium">{item.name}</td>
+                        <td className="px-1 py-1">
+                          <input type="number" min={0} value={item.carton} onChange={e => updateItem(item.id, 'carton', parseInt(e.target.value) || 0)}
+                            className="w-16 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-center outline-none focus:border-pos-secondary mx-auto block" />
+                        </td>
+                        <td className="px-1 py-1">
+                          <input type="number" min={0} value={item.piece} onChange={e => updateItem(item.id, 'piece', parseInt(e.target.value) || 0)}
+                            className="w-14 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-center outline-none focus:border-pos-secondary mx-auto block" />
+                        </td>
+                        <td className="px-3 py-2 text-center text-sm">{item.sqftQty > 0 ? item.sqftQty.toFixed(3) : '0'}</td>
+                        <td className="px-1 py-1">
+                          <input type="number" value={item.salesRate} onChange={e => updateItem(item.id, 'salesRate', parseFloat(e.target.value) || 0)}
+                            className="w-20 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-right outline-none focus:border-pos-secondary ml-auto block" />
+                        </td>
+                        <td className="px-3 py-2 text-right font-bold text-sm">{formatCurrency(item.subTotal)}</td>
+                      </tr>
+                    ))}
+                    {items.length === 0 && (
+                      <tr><td colSpan={9} className="px-8 py-12 text-center text-sm text-pos-on-surface-variant">
+                        Search and add products above
+                      </td></tr>
                     )}
                   </tbody>
                 </table>
               </div>
             </div>
 
-            {/* Bottom: Remark + Status + Send SMS */}
-            <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container p-4">
-              <div className="flex flex-wrap items-center gap-4">
-                <div className="flex items-center gap-2 flex-1 min-w-[200px]">
-                  <span className="text-xs font-bold text-pos-on-surface-variant uppercase shrink-0">Remark</span>
+            {/* Bottom: Remark, Status, Delivery, Sales Man, Send SMS */}
+            <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container p-3">
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2 flex-1 min-w-[150px]">
+                  <span className="text-[10px] font-bold text-[hsl(250,60%,55%)] uppercase shrink-0 bg-[hsl(250,40%,92%)] px-2 py-1 rounded">Remark</span>
                   <input value={remark} onChange={e => setRemark(e.target.value)}
-                    className="flex-1 bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2 px-3 outline-none" placeholder="Optional note..." />
+                    className="flex-1 bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2 px-3 outline-none" />
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-pos-on-surface-variant uppercase">Status</span>
+                  <span className="text-[10px] font-bold text-[hsl(250,60%,55%)] uppercase bg-[hsl(250,40%,92%)] px-2 py-1 rounded">Status</span>
                   <select value={saleStatus} onChange={e => setSaleStatus(e.target.value)}
                     className="bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2 px-3 outline-none">
                     <option>Complete</option><option>Pending</option><option>Credit</option>
                   </select>
                 </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold text-[hsl(250,60%,55%)] uppercase bg-[hsl(250,40%,92%)] px-2 py-1 rounded">Delivery</span>
+                  <select value={deliveryStatus} onChange={e => setDeliveryStatus(e.target.value)}
+                    className="bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2 px-3 outline-none">
+                    <option>Complete</option><option>Pending</option>
+                  </select>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold text-[hsl(250,60%,55%)] uppercase bg-[hsl(250,40%,92%)] px-2 py-1 rounded">Sales Man</span>
+                  <select value={salesMan} onChange={e => setSalesMan(e.target.value)}
+                    className="bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2 px-3 outline-none">
+                    <option value="">Select</option>
+                    <option>{settings.userName || 'Owner'}</option>
+                  </select>
+                </div>
                 <label className="flex items-center gap-1.5 text-xs cursor-pointer">
-                  <input type="checkbox" className="w-3.5 h-3.5 accent-pos-secondary" />
+                  <input type="checkbox" className="w-3.5 h-3.5 accent-pos-secondary" defaultChecked />
                   Send SMS
                 </label>
               </div>
@@ -566,83 +672,119 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
           {/* ── RIGHT: Summary sidebar ── */}
           <div className="w-full lg:w-[280px] shrink-0">
             <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container p-4 space-y-2.5 sticky top-4">
-              {/* Total */}
-              <div className="flex items-center justify-between border border-pos-surface-container rounded-lg px-3 py-2.5">
-                <span className="text-sm font-medium text-pos-on-surface-variant">Total</span>
-                <span className="text-lg font-black text-pos-secondary">{formatCurrency(total)}</span>
+              {/* TOTAL */}
+              <div className="flex items-center justify-between bg-[hsl(250,40%,92%)] rounded-lg px-3 py-2.5">
+                <span className="text-sm font-bold text-[hsl(250,60%,40%)] uppercase">Total</span>
+                <span className="text-lg font-black text-pos-secondary">{total > 0 ? formatCurrency(total) : ''}</span>
               </div>
-              {/* Return */}
-              <div className="flex items-center justify-between border border-pos-surface-container rounded-lg px-3 py-2">
-                <span className="text-sm text-pos-on-surface-variant">Return</span>
+              {/* RETURN */}
+              <div className="flex items-center justify-between bg-[hsl(250,40%,92%)] rounded-lg px-3 py-2">
+                <span className="text-sm font-bold text-[hsl(250,60%,40%)] uppercase">Return</span>
                 <input type="number" value={returnAmt} onChange={e => setReturnAmt(e.target.value)} placeholder="0"
                   className="w-20 bg-transparent text-sm text-right outline-none font-bold text-pos-error" />
               </div>
-              {/* Discount */}
-              <div className="flex items-center justify-between border border-pos-surface-container rounded-lg px-3 py-2">
-                <div className="flex items-center gap-1">
-                  <span className="text-sm text-pos-on-surface-variant">Discount</span>
-                  <select value={discountType} onChange={e => setDiscountType(e.target.value as 'flat' | 'percent')}
-                    className="bg-transparent text-[10px] outline-none">
-                    <option value="percent">%</option><option value="flat">৳</option>
-                  </select>
-                </div>
-                <div className="flex items-center gap-2">
+              {/* DIS.% + Less */}
+              <div className="flex items-center gap-2">
+                <div className="flex items-center flex-1 bg-[hsl(250,40%,92%)] rounded-lg px-3 py-2">
+                  <span className="text-sm font-bold text-[hsl(250,60%,40%)] uppercase mr-1">Dis.%</span>
                   <input type="number" value={discount} onChange={e => setDiscount(e.target.value)} placeholder="0"
-                    className="w-14 bg-transparent text-sm text-right outline-none" />
-                  <span className="text-xs font-bold text-pos-on-surface-variant">Less</span>
-                  <input type="number" value={lessAmt} onChange={e => setLessAmt(e.target.value)} placeholder="0"
-                    className="w-14 bg-transparent text-sm text-right outline-none" />
+                    className="w-full bg-transparent text-sm text-right outline-none" />
                 </div>
+                <button onClick={() => setDiscountType(discountType === 'percent' ? 'flat' : 'percent')}
+                  className="px-3 py-2 bg-pos-surface-high border border-pos-surface-container rounded-lg text-xs font-bold">
+                  {discountType === 'percent' ? 'Less' : '৳'}
+                </button>
               </div>
-              {/* Delivery */}
-              <div className="flex items-center justify-between border border-pos-surface-container rounded-lg px-3 py-2">
-                <span className="text-sm text-pos-on-surface-variant">Delivery</span>
-                <input type="number" value={delivery} onChange={e => setDelivery(e.target.value)} placeholder="0"
-                  className="w-20 bg-transparent text-sm text-right outline-none font-bold text-pos-secondary" />
-              </div>
-              {/* Labour */}
-              <div className="flex items-center justify-between border border-pos-surface-container rounded-lg px-3 py-2">
-                <span className="text-sm text-pos-on-surface-variant">Labour</span>
-                <input type="number" value={labourCost} onChange={e => setLabourCost(e.target.value)} placeholder="0"
-                  className="w-20 bg-transparent text-sm text-right outline-none font-bold text-pos-secondary" />
-              </div>
-              {/* Payable */}
-              <div className="flex items-center justify-between border border-pos-surface-container rounded-lg px-3 py-2.5 bg-pos-surface-high">
-                <span className="text-sm font-bold text-pos-on-surface">Payable</span>
-                <span className="text-lg font-black text-pos-secondary">{formatCurrency(payable)}</span>
-              </div>
-              {/* Paid */}
-              <div className="flex items-center justify-between border border-pos-surface-container rounded-lg px-3 py-2">
-                <span className="text-sm font-bold text-pos-on-surface-variant">Paid</span>
-                <input type="number" value={paidAmount} onChange={e => setPaidAmount(e.target.value)} placeholder="0"
+              {/* LABOUR */}
+              <div className="flex items-center justify-between bg-[hsl(250,40%,92%)] rounded-lg px-3 py-2">
+                <span className="text-sm font-bold text-[hsl(250,60%,40%)] uppercase">Labour</span>
+                <input type="number" value={labourCost} onChange={e => setLabourCost(e.target.value)} placeholder=""
                   className="w-20 bg-transparent text-sm text-right outline-none font-bold" />
               </div>
-              {/* Due */}
-              <div className="flex items-center justify-between border border-pos-surface-container rounded-lg px-3 py-2.5">
-                <span className="text-sm font-bold text-pos-error">Due</span>
-                <span className={`text-lg font-black ${dueVal > 0 ? 'text-pos-error' : 'text-[hsl(125,60%,35%)]'}`}>{formatCurrency(dueVal)}</span>
+              {/* PAYABLE */}
+              <div className="flex items-center justify-between bg-[hsl(250,40%,92%)] rounded-lg px-3 py-2.5">
+                <span className="text-sm font-bold text-[hsl(250,60%,40%)] uppercase">Payable</span>
+                <span className="text-lg font-black text-pos-secondary">{payable > 0 ? formatCurrency(payable) : ''}</span>
               </div>
-              {/* Balance */}
-              <div className="flex items-center justify-between border border-pos-surface-container rounded-lg px-3 py-2.5">
-                <span className="text-sm font-bold text-pos-secondary">Balance</span>
-                <span className={`text-lg font-black ${balanceVal > 0 ? 'text-pos-error' : 'text-[hsl(125,60%,35%)]'}`}>{formatCurrency(balanceVal)}</span>
+              {/* PAID */}
+              <div className="flex items-center justify-between bg-[hsl(250,40%,92%)] rounded-lg px-3 py-2">
+                <span className="text-sm font-bold text-[hsl(250,60%,40%)] uppercase">Paid</span>
+                <input type="number" value={paidAmount} onChange={e => setPaidAmount(e.target.value)} placeholder=""
+                  className="w-20 bg-transparent text-sm text-right outline-none font-bold" />
               </div>
-              {/* Mode */}
-              <div className="flex items-center justify-between border border-pos-surface-container rounded-lg px-3 py-2">
-                <span className="text-sm text-pos-on-surface-variant">Mode</span>
+              {/* DUE */}
+              <div className="flex items-center justify-between bg-[hsl(250,40%,92%)] rounded-lg px-3 py-2.5">
+                <span className="text-sm font-bold text-[hsl(250,60%,40%)] uppercase">Due</span>
+                <span className={`text-lg font-black ${dueVal > 0 ? 'text-pos-error' : ''}`}>{dueVal > 0 ? formatCurrency(dueVal) : ''}</span>
+              </div>
+              {/* BALANCE */}
+              <div className="flex items-center justify-between bg-[hsl(250,40%,92%)] rounded-lg px-3 py-2.5">
+                <span className="text-sm font-bold text-[hsl(250,60%,40%)] uppercase">Balance</span>
+                <span className={`text-lg font-black ${balanceVal > 0 ? 'text-pos-error' : 'text-[hsl(125,60%,35%)]'}`}>{balanceVal > 0 ? formatCurrency(balanceVal) : ''}</span>
+              </div>
+              {/* MODE */}
+              <div className="flex items-center justify-between bg-[hsl(250,40%,92%)] rounded-lg px-3 py-2">
+                <span className="text-sm font-bold text-[hsl(250,60%,40%)] uppercase">Mode</span>
                 <select value={paymentMode} onChange={e => setPaymentMode(e.target.value)}
                   className="bg-transparent text-sm outline-none text-right">
                   <option>Cash</option><option>bKash</option><option>Nagad</option><option>Card</option><option>Credit</option>
                 </select>
               </div>
+              {/* Send SMS */}
+              <label className="flex items-center gap-2 text-sm cursor-pointer px-1 py-1">
+                <input type="checkbox" className="w-4 h-4 accent-pos-secondary" defaultChecked />
+                <span className="font-medium">Send SMS</span>
+              </label>
               {/* Save */}
               <button onClick={handleSave}
-                className="w-full py-3 bg-pos-error text-white rounded-lg font-bold text-base hover:bg-pos-error/90 transition-colors mt-2">
+                className="w-full py-3 bg-[hsl(125,60%,40%)] text-white rounded-lg font-bold text-base hover:bg-[hsl(125,60%,35%)] transition-colors mt-2">
                 Save
               </button>
             </div>
           </div>
         </div>
+
+        {/* Add Customer Modal */}
+        {showAddCustomerModal && (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[1000]" onClick={() => setShowAddCustomerModal(false)}>
+            <div className="bg-pos-surface-lowest rounded-xl w-[420px] shadow-2xl p-6" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-10 h-10 rounded-full bg-pos-secondary/10 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-pos-secondary">person_add</span>
+                </div>
+                <h3 className="text-lg font-bold">Add New Customer</h3>
+              </div>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs font-bold text-pos-on-surface-variant mb-1">Full Name *</label>
+                  <input value={newCustName} onChange={e => setNewCustName(e.target.value)}
+                    className="w-full bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2.5 px-3 outline-none" placeholder="Customer Name" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-pos-on-surface-variant mb-1">Mobile</label>
+                  <input value={newCustPhone} onChange={e => setNewCustPhone(e.target.value)}
+                    className="w-full bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2.5 px-3 outline-none" placeholder="01XXXXXXXXX" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-pos-on-surface-variant mb-1">Customer Type</label>
+                  <select value={newCustType} onChange={e => setNewCustType(e.target.value)}
+                    className="w-full bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2.5 px-3 outline-none">
+                    <option>General Customer</option><option>Retailer</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-pos-on-surface-variant mb-1">Address</label>
+                  <input value={newCustAddress} onChange={e => setNewCustAddress(e.target.value)}
+                    className="w-full bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2.5 px-3 outline-none" placeholder="Address" />
+                </div>
+              </div>
+              <div className="flex gap-3 mt-5">
+                <button onClick={() => setShowAddCustomerModal(false)} className="flex-1 py-2.5 bg-pos-surface-container text-pos-on-surface-variant rounded-lg font-semibold text-sm">Cancel</button>
+                <button onClick={handleSaveNewCustomer} className="flex-1 py-2.5 bg-pos-secondary text-white rounded-lg font-semibold text-sm">Save</button>
+              </div>
+            </div>
+          </div>
+        )}
       </section>
     );
   }
@@ -655,19 +797,23 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <span className="text-xs text-pos-on-surface-variant uppercase tracking-widest block mb-1">Sales</span>
           <h2 className="text-2xl font-bold text-pos-on-surface tracking-tight">
             <span className="text-pos-secondary">Sales</span>
             <span className="mx-2 text-pos-on-surface-variant">›</span>Sales History
           </h2>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
           <button onClick={exportCSV} className="px-4 py-2.5 bg-pos-surface-container text-pos-on-surface rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-pos-surface-high transition-colors">
             <span className="material-symbols-outlined text-lg">download</span>Export
           </button>
-          <button onClick={openAddSale} className="px-5 py-2.5 bg-pos-secondary text-white rounded-lg font-semibold text-sm flex items-center gap-2 shadow-lg hover:-translate-y-0.5 transition-transform">
-            <span className="material-symbols-outlined text-lg">add</span>Add Sales
-          </button>
+          <div className="flex gap-1 bg-pos-surface-container rounded-lg p-1">
+            <button onClick={openAddSale} className="px-4 py-2 rounded-md text-sm font-semibold flex items-center gap-1.5 text-pos-on-surface-variant hover:bg-pos-surface-high transition-colors">
+              <span className="material-symbols-outlined text-base">add</span>Add Sales
+            </button>
+            <button className="px-4 py-2 rounded-md text-sm font-semibold flex items-center gap-1.5 bg-pos-secondary text-white shadow">
+              <span className="material-symbols-outlined text-base">folder_open</span>Sales History
+            </button>
+          </div>
         </div>
       </div>
 
