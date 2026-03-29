@@ -689,7 +689,7 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
                 <tr className="text-[9px] font-bold text-white uppercase tracking-wider" style={{ background: 'hsl(var(--destructive))' }}>
                   <th className="py-2 px-2 text-left w-8">SN</th>
                   <th className="py-2 px-2 text-left w-10">Type</th>
-                  <th className="py-2 px-2 text-left w-28">Carton/Piece</th>
+                  <th className="py-2 px-2 text-left w-28">Qty</th>
                   <th className="py-2 px-2 text-left w-16">Category</th>
                   <th className="py-2 px-2 text-left">Product Name</th>
                   <th className="py-2 px-2 text-right w-20">Sqft/Qty</th>
@@ -702,22 +702,31 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
                 {rows.map((row, idx) => {
                   const product = products.find(p => p.id === row.productId);
                   const piecesPerBox = product?.piecesPerBox || 4;
-                  const sqftQty = product ? (isSqftUnit(product.unit) ? calcSqftQty(product, row.carton, row.piece) : row.carton + (row.piece / piecesPerBox)) : 0;
+                  const isSqft = product ? isSqftUnit(product.unit) : true;
+                  const sqftQty = product ? (isSqft ? calcSqftQty(product, row.carton, row.piece) : row.carton + (row.piece / piecesPerBox)) : 0;
                   const rowTotal = calcSubTotal(product, row.carton, row.piece, row.rate);
                   return (
                     <tr key={row.id} className="border-b border-border/50 hover:bg-muted/20 transition-colors align-top">
                       <td className="py-2 px-2 text-xs font-semibold text-muted-foreground">{idx + 1}</td>
                       <td className="py-2 px-2 text-[10px] text-muted-foreground">Sale</td>
                       <td className="py-2 px-2">
-                        <div className="flex items-center gap-0.5">
-                          <input type="number" min={0} value={row.carton || ''} onChange={e => updateRow(row.id, 'carton', parseInt(e.target.value) || 0)}
-                            className="w-10 bg-muted/30 border border-border rounded text-xs py-1 text-center outline-none focus:border-primary" placeholder="0" />
-                          <span className="text-[8px] text-muted-foreground">Ctn</span>
-                          <input type="number" min={0} value={row.piece || ''} onChange={e => updateRow(row.id, 'piece', parseInt(e.target.value) || 0)}
-                            className="w-10 bg-muted/30 border border-border rounded text-xs py-1 text-center outline-none focus:border-primary" placeholder="0" />
-                          <span className="text-[8px] text-muted-foreground">Pc</span>
-                        </div>
-                        {product && <div className="text-[8px] text-muted-foreground mt-0.5">{piecesPerBox} pcs/box</div>}
+                        {isSqft ? (
+                          <div className="flex items-center gap-0.5">
+                            <input type="number" min={0} value={row.carton || ''} onChange={e => updateRow(row.id, 'carton', parseInt(e.target.value) || 0)}
+                              className="w-10 bg-muted/30 border border-border rounded text-xs py-1 text-center outline-none focus:border-primary" placeholder="0" />
+                            <span className="text-[8px] text-muted-foreground">Ctn</span>
+                            <input type="number" min={0} value={row.piece || ''} onChange={e => updateRow(row.id, 'piece', parseInt(e.target.value) || 0)}
+                              className="w-10 bg-muted/30 border border-border rounded text-xs py-1 text-center outline-none focus:border-primary" placeholder="0" />
+                            <span className="text-[8px] text-muted-foreground">Pc</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-0.5">
+                            <input type="number" min={0} value={row.carton || ''} onChange={e => updateRow(row.id, 'carton', parseInt(e.target.value) || 0)}
+                              className="w-14 bg-muted/30 border border-border rounded text-xs py-1 text-center outline-none focus:border-primary" placeholder="0" />
+                            <span className="text-[8px] text-muted-foreground">{product?.unit || 'Pcs'}</span>
+                          </div>
+                        )}
+                        {product && isSqft && <div className="text-[8px] text-muted-foreground mt-0.5">{piecesPerBox} pcs/box</div>}
                       </td>
                       <td className="py-2 px-2 text-[10px] text-muted-foreground">{product?.category || '-'}</td>
                       <td className="py-2 px-2 relative">
@@ -733,14 +742,20 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
                         />
                       </td>
                       <td className="py-2 px-2">
-                        <input type="number" min={0} step="0.1" value={row.sqftInput} onChange={e => updateRow(row.id, 'sqftInput', e.target.value)}
-                          className="w-16 bg-[hsl(200,100%,96%)] border border-[hsl(200,60%,70%)] rounded text-xs py-1 text-center outline-none focus:border-primary" placeholder="sqft" />
-                        {sqftQty > 0 && <div className="text-[8px] text-muted-foreground text-center mt-0.5">{sqftQty.toFixed(1)} sqft</div>}
+                        {isSqft ? (
+                          <>
+                            <input type="number" min={0} step="0.1" value={row.sqftInput} onChange={e => updateRow(row.id, 'sqftInput', e.target.value)}
+                              className="w-16 bg-[hsl(200,100%,96%)] border border-[hsl(200,60%,70%)] rounded text-xs py-1 text-center outline-none focus:border-primary" placeholder="sqft" />
+                            {sqftQty > 0 && <div className="text-[8px] text-muted-foreground text-center mt-0.5">{sqftQty.toFixed(1)} sqft</div>}
+                          </>
+                        ) : (
+                          <div className="text-xs text-center font-semibold text-foreground">{sqftQty > 0 ? sqftQty : '-'}</div>
+                        )}
                       </td>
                       <td className="py-2 px-2">
                         <input type="number" value={row.rate || ''} onChange={e => updateRow(row.id, 'rate', parseFloat(e.target.value) || 0)}
                           className="w-16 bg-muted/30 border border-border rounded text-xs py-1 text-right outline-none focus:border-primary px-1" />
-                        {product && piecesPerBox > 0 && <div className="text-[8px] text-muted-foreground text-right mt-0.5">৳{Math.round(row.rate / piecesPerBox)}/pc</div>}
+                        {product && isSqft && piecesPerBox > 0 && <div className="text-[8px] text-muted-foreground text-right mt-0.5">৳{Math.round(row.rate / piecesPerBox)}/pc</div>}
                       </td>
                       <td className="py-2 px-2 text-right">
                         <span className="text-xs font-bold text-foreground">{formatCurrency(Math.round(rowTotal))}</span>
