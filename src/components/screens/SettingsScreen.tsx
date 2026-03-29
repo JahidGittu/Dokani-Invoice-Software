@@ -67,13 +67,23 @@ export default function SettingsScreen({ settings, onUpdateSettings }: SettingsS
     if (user) {
       try {
         if (clearChecks.sales) {
+          // Clear sale items
           const { data: userSales } = await supabase.from('sales').select('id').eq('user_id', user.id);
           if (userSales && userSales.length > 0) {
             const saleIds = userSales.map(s => s.id);
             await supabase.from('sale_items').delete().in('sale_id', saleIds);
           }
           await supabase.from('sales').delete().eq('user_id', user.id);
+          // Clear purchase items
+          const { data: userPurchases } = await supabase.from('purchases').select('id').eq('user_id', user.id);
+          if (userPurchases && userPurchases.length > 0) {
+            const purchaseIds = userPurchases.map(p => p.id);
+            await supabase.from('purchase_items').delete().in('purchase_id', purchaseIds);
+          }
           await supabase.from('purchases').delete().eq('user_id', user.id);
+          // Clear due payments & inventory logs
+          await supabase.from('due_payments').delete().eq('user_id', user.id);
+          await supabase.from('inventory_logs').delete().eq('user_id', user.id);
         }
         if (clearChecks.products) await supabase.from('products').delete().eq('user_id', user.id);
         if (clearChecks.customers) await supabase.from('customers').delete().eq('user_id', user.id);

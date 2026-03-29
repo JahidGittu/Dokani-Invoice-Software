@@ -20,7 +20,6 @@ const pathToScreen: Record<string, string> = {
   '/transactions': 'transactions',
   '/reports': 'reports',
   '/sms-email': 'sms-email',
-  '/excel': 'excel',
   '/settings': 'settings',
 };
 
@@ -37,7 +36,6 @@ const screenToPath: Record<string, string> = {
   'transactions': '/transactions',
   'reports': '/reports',
   'sms-email': '/sms-email',
-  'excel': '/excel',
   'settings': '/settings',
 };
 

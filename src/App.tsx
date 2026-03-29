@@ -24,7 +24,7 @@ import ReportsPage from "./pages/shop/Reports";
 import PurchasesPage from "./pages/shop/Purchases";
 import SuppliersPage from "./pages/shop/Suppliers";
 import SettingsPage from "./pages/shop/Settings";
-import ExcelImportPage from "./pages/shop/ExcelImport";
+// ExcelImport removed - handled in Products bulk add
 import TransactionsPage from "./pages/shop/Transactions";
 import StaffsPage from "./pages/shop/Staffs";
 import SmsEmailPage from "./pages/shop/SmsEmail";
@@ -67,7 +67,7 @@ const App = () => (
                 <Route path="transactions" element={<TransactionsPage />} />
                 <Route path="reports" element={<ReportsPage />} />
                 <Route path="sms-email" element={<SmsEmailPage />} />
-                <Route path="excel" element={<ExcelImportPage />} />
+                {/* Excel import removed - handled in Products bulk add */}
                 <Route path="settings" element={<SettingsPage />} />
               </Route>
 
