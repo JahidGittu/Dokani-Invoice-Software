@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { useI18n } from "@/lib/i18n";
 import { toast } from "sonner";
 import { formatCurrency, downloadCSV, type SaleRecord, type Product, type Customer, type Supplier, type PurchaseRecord } from "@/lib/store";
+import { isSqftUnit } from "@/lib/calc-utils";
 
 interface ReportsScreenProps {
   sales?: SaleRecord[];
