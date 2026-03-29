@@ -177,8 +177,15 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
         } else {
           updated.sqftQty = calcSqftQty(product, updated.carton, updated.piece);
         }
+        updated.subTotal = calcSubTotal(product, updated.carton, updated.piece, updated.buyRate);
+      } else {
+        // Non-SQFT: piece = qty
+        if (field === 'piece') {
+          updated.sqftQty = value;
+          updated.carton = 0;
+        }
+        updated.subTotal = updated.piece * updated.buyRate;
       }
-      updated.subTotal = calcSubTotal(product, updated.carton, updated.piece, updated.buyRate);
       return updated;
     }));
   };
