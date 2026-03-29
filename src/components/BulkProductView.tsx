@@ -152,7 +152,10 @@ export default function BulkProductView({ products, onAddProduct, onUpdateProduc
             piecesPerBox: parseInt(row.piecesPerBox) || 4,
             buyRate: parseFloat(row.buyRate) || 0,
             pricePerBox: parseFloat(row.pricePerBox) || 0,
-            sqftPerBox: 0, stock: parseInt(row.stock) || 0,
+            sqftPerBox: row.unit === 'SQFT' && parseFloat(row.height) > 0 && parseFloat(row.width) > 0
+              ? parseFloat(((parseFloat(row.height) * parseFloat(row.width) * (parseInt(row.piecesPerBox) || 4)) / 929.0304).toFixed(2))
+              : 0,
+            stock: parseInt(row.stock) || 0,
             reorderLimit: parseInt(row.reorderLimit) || 0,
             batch: row.barcode || '', barcode: row.barcode,
           });
@@ -171,6 +174,13 @@ export default function BulkProductView({ products, onAddProduct, onUpdateProduc
           if (row.reorderLimit.trim()) updates.reorderLimit = parseInt(row.reorderLimit);
           if (row.barcode.trim()) updates.barcode = row.barcode;
           if (row.unit.trim()) updates.unit = row.unit;
+          // Auto-calculate sqftPerBox on update
+          const h = parseFloat(row.height) || parseFloat(row.matchedProduct.height || '0');
+          const w = parseFloat(row.width) || parseFloat(row.matchedProduct.width || '0');
+          const pcs = parseInt(row.piecesPerBox) || row.matchedProduct.piecesPerBox || 4;
+          if (h > 0 && w > 0 && pcs > 0) {
+            updates.sqftPerBox = parseFloat(((h * w * pcs) / 929.0304).toFixed(2));
+          }
           onUpdateProduct(row.matchedProduct.id, updates);
           updateCount++;
         }
