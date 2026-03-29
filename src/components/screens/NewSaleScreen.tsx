@@ -117,7 +117,7 @@ function ProductPicker({
                 </div>
                 <div className="text-right shrink-0">
                   <div className="font-bold text-primary text-[11px]">৳{p.pricePerBox}</div>
-                  <div className={`text-[9px] ${p.stock <= 20 ? 'text-destructive' : 'text-muted-foreground'}`}>{p.stock} {t('boxes')}</div>
+                  <div className={`text-[9px] ${p.stock <= 20 ? 'text-destructive' : 'text-muted-foreground'}`}>{formatStockDisplay(p.stock, p.piecesPerBox || 4)}</div>
                 </div>
               </div>
             </button>
