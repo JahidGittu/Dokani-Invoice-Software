@@ -71,6 +71,10 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
   const [customerName, setCustomerName] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
+  const [isWalkingCustomer, setIsWalkingCustomer] = useState(false);
+  const [walkingName, setWalkingName] = useState('');
+  const [walkingPhone, setWalkingPhone] = useState('');
+  const [walkingAddress, setWalkingAddress] = useState('');
   const [productSearch, setProductSearch] = useState('');
   const [items, setItems] = useState<SaleItemRow[]>([]);
   const [manualCarton, setManualCarton] = useState(0);
@@ -87,8 +91,17 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
   const [paidAmount, setPaidAmount] = useState('');
   const [remark, setRemark] = useState('');
   const [saleStatus, setSaleStatus] = useState('Complete');
+  const [deliveryStatus, setDeliveryStatus] = useState('Complete');
+  const [salesMan, setSalesMan] = useState('');
   const [paymentMode, setPaymentMode] = useState('Cash');
+  const [showAddCustomerModal, setShowAddCustomerModal] = useState(false);
+  const [newCustName, setNewCustName] = useState('');
+  const [newCustPhone, setNewCustPhone] = useState('');
+  const [newCustType, setNewCustType] = useState('General Customer');
+  const [newCustAddress, setNewCustAddress] = useState('');
+  const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
+  const customerDropdownRef = useRef<HTMLDivElement>(null);
 
   // ── Sort helpers ──
   const toggleSort = (field: SortField) => {
