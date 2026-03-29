@@ -152,7 +152,10 @@ export default function BulkProductView({ products, onAddProduct, onUpdateProduc
             piecesPerBox: parseInt(row.piecesPerBox) || 4,
             buyRate: parseFloat(row.buyRate) || 0,
             pricePerBox: parseFloat(row.pricePerBox) || 0,
-            sqftPerBox: 0, stock: parseInt(row.stock) || 0,
+            sqftPerBox: row.unit === 'SQFT' && parseFloat(row.height) > 0 && parseFloat(row.width) > 0
+              ? parseFloat(((parseFloat(row.height) * parseFloat(row.width) * (parseInt(row.piecesPerBox) || 4)) / 929.0304).toFixed(2))
+              : 0,
+            stock: parseInt(row.stock) || 0,
             reorderLimit: parseInt(row.reorderLimit) || 0,
             batch: row.barcode || '', barcode: row.barcode,
           });

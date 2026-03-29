@@ -335,7 +335,7 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
       `${item.name}${item.detail ? ` (${item.detail})` : ''}`,
       String(Number(item.sqftQty ?? item.qty).toFixed(2)),
       String(item.price),
-      String(item.price * item.qty),
+      String(Math.round((item.sqftQty ?? item.qty) * item.price)),
     ]);
 
     doc.autoTable({
