@@ -251,10 +251,7 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
     const items = rows.filter(r => r.productId && (r.carton > 0 || r.piece > 0) && r.rate > 0).map(r => {
       const p = products.find(x => x.id === r.productId);
       const ctn = r.carton;
-      const piecesPerBox = p?.piecesPerBox || 4;
-      const sqftPerPiece = piecesPerBox > 0 ? (p?.sqftPerBox || 0) / piecesPerBox : 0;
-      const sqftQty = (ctn * (p?.sqftPerBox || 0)) + (r.piece * sqftPerPiece);
-      const itemTotal = sqftQty * r.rate;
+      const sqftQty = p ? (isSqftUnit(p.unit) ? calcSqftQty(p, ctn, r.piece) : ctn) : ctn;
       return { productId: r.productId, name: p?.name || 'Custom Item', detail: p ? `${p.size} · ${p.finish}` : '', qty: ctn, price: r.rate, stock: p?.stock ?? 999, carton: ctn, piece: r.piece, sqftQty, category: p?.category || '', itemType: 'Sale' as const };
     });
     if (!items.length) { toast.error(t('addAtLeastOneItem')); return null; }
