@@ -94,12 +94,16 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
   // ── Add Purchase helpers ──
   const debouncedProductSearch = useDebounce(productSearch, 200);
   const displayProducts = useMemo(() => {
-    if (!debouncedProductSearch) return products;
-    return products.filter(p =>
-      p.name.toLowerCase().includes(debouncedProductSearch.toLowerCase()) ||
-      (p.barcode || '').toLowerCase().includes(debouncedProductSearch.toLowerCase()) ||
-      p.batch.toLowerCase().includes(debouncedProductSearch.toLowerCase())
-    );
+    if (debouncedProductSearch) {
+      return products.filter(p =>
+        p.name.toLowerCase().includes(debouncedProductSearch.toLowerCase()) ||
+        (p.barcode || '').toLowerCase().includes(debouncedProductSearch.toLowerCase()) ||
+        p.batch.toLowerCase().includes(debouncedProductSearch.toLowerCase())
+      );
+    }
+    // Show only products added in the last 7 days
+    const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    return products.filter(p => new Date(p.createdAt || p.updatedAt || 0).getTime() >= sevenDaysAgo);
   }, [products, debouncedProductSearch]);
 
   const addProductToItems = (product: Product) => {
