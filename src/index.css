@@ -163,7 +163,18 @@ input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
 
 @media print {
   .no-print { display: none !important; }
-  body > * { display: none !important; }
-  #purchase-invoice-print { display: block !important; position: fixed; inset: 0; z-index: 99999; background: white; }
-  #purchase-invoice-print * { color-adjust: exact; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body * { visibility: hidden; }
+  #purchase-invoice-print, #purchase-invoice-print * { visibility: visible !important; }
+  #purchase-invoice-print {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    background: white !important;
+    padding: 20px !important;
+    overflow: visible !important;
+    color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
 }
