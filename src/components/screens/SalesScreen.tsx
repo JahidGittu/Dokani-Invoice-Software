@@ -146,7 +146,9 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
 
   const selectedProduct = selectedProductId ? products.find(p => p.id === selectedProductId) : null;
 
-  // Bi-directional calc for manual entry
+  const isSelectedSqft = selectedProduct ? isSqftUnit(selectedProduct.unit) : true;
+
+  // Bi-directional calc for manual entry (SQFT only)
   const handleManualCartonChange = (val: number) => {
     setManualCarton(val);
     if (selectedProduct && isSqftUnit(selectedProduct.unit)) {
@@ -166,6 +168,12 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
       setManualCarton(carton);
       setManualPiece(piece);
     }
+  };
+  // For non-SQFT: manual qty
+  const handleManualQtyChange = (val: number) => {
+    setManualPiece(val); // store qty in piece field for non-SQFT
+    setManualCarton(0);
+    setManualSqft(val);
   };
 
   // Recent customers (last 5 by created_at)
