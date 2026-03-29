@@ -396,7 +396,7 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
       `${item.carton ?? item.qty} Carton ${item.piece ?? 0} Piece`,
       item.category || '-', `${item.name}${item.detail ? ` (${item.detail})` : ''}`,
       String(Number(item.sqftQty ?? item.qty).toFixed(2)), String(item.price),
-      String(Math.round((item.carton ?? item.qty) * item.price)),
+      String(Math.round((item.sqftQty && item.sqftQty > 0 ? item.sqftQty : (item.carton ?? item.qty)) * item.price)),
     ]);
     doc.autoTable({ startY: y, head: [['SN', 'TYPE', 'CARTON/PIECE', 'CATEGORY', 'PRODUCT NAME', 'SQFT./QTY.', 'PRICE', 'SUB TOTAL']], body: tableData, theme: 'grid', margin: { left: 15, right: 15 }, styles: { fontSize: 8, cellPadding: 2.5, textColor: [34, 34, 34] }, headStyles: { fillColor: [192, 57, 43], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 7.5 }, columnStyles: { 0: { cellWidth: 10, halign: 'center' }, 1: { cellWidth: 14 }, 2: { cellWidth: 30 }, 3: { cellWidth: 20 }, 4: { cellWidth: 42 }, 5: { cellWidth: 22, halign: 'right' }, 6: { cellWidth: 18, halign: 'right' }, 7: { cellWidth: 24, halign: 'right', fontStyle: 'bold' } } });
     y = doc.lastAutoTable.finalY + 6;
