@@ -494,64 +494,80 @@ tbody tr:nth-child(even){background:#fafafa}
 
   const generatePDF = async (sale: SaleRecord) => {
     const doc = new jsPDF({ unit: 'mm', format: 'a4' });
-    const pw = 210; let y = 18;
-    // Logo
-    doc.setFillColor(0, 92, 193); doc.roundedRect(15, y - 2, 16, 16, 2, 2, 'F');
-    doc.setTextColor(255); doc.setFontSize(10); doc.setFont('helvetica', 'bold');
-    doc.text(settings.name.slice(0, 3).toUpperCase(), 23, y + 8, { align: 'center' });
-    // Company
-    doc.setTextColor(34); doc.setFontSize(18); doc.text(settings.name.toUpperCase(), pw / 2, y + 4, { align: 'center' });
-    if (settings.address) { doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.text(settings.address, pw / 2, y + 10, { align: 'center' }); }
-    if (settings.phone) { doc.setFontSize(8); doc.text(`Phone# ${settings.phone}`, pw / 2, y + 14, { align: 'center' }); }
-    try { const qrUrl = await QRCode.toDataURL(`${sale.invoice}-${sale.total}`, { width: 80, margin: 1 }); doc.addImage(qrUrl, 'PNG', pw - 33, y - 2, 18, 18); } catch {}
-    y += 20; doc.setDrawColor(34); doc.setLineWidth(0.6); doc.line(15, y, pw - 15, y); y += 8;
-    // BILL-INVOICE
-    doc.setTextColor(34); doc.setFontSize(14); doc.setFont('helvetica', 'bold'); doc.text('BILL-INVOICE', pw / 2, y, { align: 'center' }); y += 8;
-    // Customer info
-    const dateStr = (() => { try { const d = new Date(sale.date); return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`; } catch { return sale.date; } })();
-    doc.setFontSize(10); doc.setFont('helvetica', 'normal');
-    doc.text(`Name      :  ${sale.customer}`, 15, y); doc.text(`Invoice#  :  ${sale.invoice}`, pw - 15, y, { align: 'right' }); y += 5;
-    if (sale.address) doc.text(`Address   :  ${sale.address}`, 15, y);
-    doc.text(`Date      :  ${dateStr}`, pw - 15, y, { align: 'right' }); y += 5;
-    if (sale.phone) doc.text(`Mobile    :  ${sale.phone}`, 15, y);
-    if (sale.soldBy) doc.text(`Sold By   :  ${sale.soldBy}`, pw - 15, y, { align: 'right' }); y += 7;
-    // Items table
-    const tableData = sale.items.map((item, idx) => [
-      String(idx + 1), item.itemType || 'Sale',
-      `${item.carton ?? item.qty} Carton ${item.piece ?? 0} Piece`,
-      item.category || '-', `${item.name}${item.detail ? ` (${item.detail})` : ''}`,
-      String(Number(item.sqftQty ?? item.qty).toFixed(2)), String(item.price),
-      String(Math.round((item.sqftQty && item.sqftQty > 0 ? item.sqftQty : (item.carton ?? item.qty)) * item.price)),
-    ]);
-    doc.autoTable({ startY: y, head: [['SN', 'TYPE', 'CARTON/PIECE', 'CATEGORY', 'PRODUCT NAME', 'SQFT./QTY.', 'PRICE', 'SUB TOTAL']], body: tableData, theme: 'grid', margin: { left: 15, right: 15 }, styles: { fontSize: 8, cellPadding: 2.5, textColor: [34, 34, 34] }, headStyles: { fillColor: [192, 57, 43], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 7.5 }, columnStyles: { 0: { cellWidth: 10, halign: 'center' }, 1: { cellWidth: 14 }, 2: { cellWidth: 30 }, 3: { cellWidth: 20 }, 4: { cellWidth: 42 }, 5: { cellWidth: 22, halign: 'right' }, 6: { cellWidth: 18, halign: 'right' }, 7: { cellWidth: 24, halign: 'right', fontStyle: 'bold' } } });
-    y = doc.lastAutoTable.finalY + 6;
-    const dueInBill = sale.due ?? 0; const prevDues = sale.previousDues ?? 0; const balance = sale.balance ?? dueInBill;
-    // Due box
-    doc.setDrawColor(51); doc.setLineWidth(0.5); doc.rect(15, y, 60, 22);
-    doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(34);
-    doc.text('Due In This Bill:', 17, y + 5); doc.setFont('helvetica', 'bold'); doc.text(`${dueInBill}/-`, 73, y + 5, { align: 'right' });
-    doc.setFont('helvetica', 'normal'); doc.text('Previous Dues:', 17, y + 11); doc.setFont('helvetica', 'bold'); doc.text(`${prevDues}/-`, 73, y + 11, { align: 'right' });
-    doc.setFont('helvetica', 'normal'); doc.text('Balance:', 17, y + 17); doc.setFont('helvetica', 'bold'); doc.text(`${balance}/-`, 73, y + 17, { align: 'right' });
-    // Summary right
-    const sx = 140; doc.setFont('helvetica', 'normal'); doc.setFontSize(10);
-    doc.text('Total:', sx, y + 5); doc.setFont('helvetica', 'bold'); doc.text(String(sale.subtotal), pw - 15, y + 5, { align: 'right' });
-    let sy = y + 11;
-    if ((sale.labour ?? 0) > 0) { doc.setFont('helvetica', 'normal'); doc.text('Labour:', sx, sy); doc.setFont('helvetica', 'bold'); doc.text(String(sale.labour), pw - 15, sy, { align: 'right' }); sy += 6; }
-    doc.setDrawColor(34); doc.setLineWidth(0.8); doc.line(sx - 2, sy, pw - 15, sy); sy += 2;
-    doc.setFontSize(14); doc.setFont('helvetica', 'bold'); doc.text('PAYABLE:', sx, sy + 5); doc.text(String(sale.total), pw - 15, sy + 5, { align: 'right' }); sy += 10;
-    doc.setFontSize(10); doc.text('Paid:', sx, sy); doc.text(String(sale.paid ?? sale.total), pw - 15, sy, { align: 'right' });
-    // Remark
-    const totalQty = sale.items.reduce((s, i) => s + (i.sqftQty ?? i.qty), 0);
-    const ry = y + 26; doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.text('Remark:', 15, ry); doc.setFont('helvetica', 'normal'); doc.text(sale.notes || '', 35, ry);
-    doc.setFont('helvetica', 'bold'); doc.text(`Total Quantity: ${totalQty}`, 15, ry + 5);
-    doc.text('In Word: ', 15, ry + 10); doc.setTextColor(0, 92, 193); doc.text(numberToWords(sale.total), 33, ry + 10); doc.setTextColor(34);
-    // Signatures
-    const sigY = ry + 30; doc.setDrawColor(150); doc.setLineWidth(0.3); doc.line(20, sigY, 75, sigY); doc.line(pw - 75, sigY, pw - 20, sigY);
-    doc.setFontSize(10); doc.setTextColor(0, 92, 193); doc.setFont('helvetica', 'bold');
-    doc.text('Customer Signature', 47, sigY + 5, { align: 'center' }); doc.text('Authorized Signature', pw - 47, sigY + 5, { align: 'center' });
-    // Disclaimer
-    doc.setTextColor(192, 57, 43); doc.setFontSize(9);
-    doc.text('Goods once sold are not returnable. Chinese/Indian products are non-refundable.', pw / 2, sigY + 16, { align: 'center' });
+    const pw = 210;
+    let y = 20;
+    const bizInfoLine = [settings.phone, settings.address].filter(Boolean).join(' · ');
+    const dateStr = (() => { try { const d = new Date(sale.date); return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }); } catch { return sale.date; } })();
+    const timeStr = sale.time || '';
+
+    doc.setFillColor(0, 92, 193);
+    doc.roundedRect(15, y - 4, 12, 12, 2, 2, 'F');
+    doc.setTextColor(255); doc.setFontSize(8); doc.setFont('helvetica', 'bold');
+    doc.text(settings.name.slice(0, 2).toUpperCase(), 21, y + 3, { align: 'center' });
+    doc.setTextColor(45, 52, 53); doc.setFontSize(16); doc.text(settings.name, 30, y + 1);
+    if (bizInfoLine) { doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.text(bizInfoLine, 30, y + 6); }
+
+    // QR Code
+    try {
+      const qrUrl = await QRCode.toDataURL(`${sale.invoice}-${sale.total}`, { width: 80, margin: 1 });
+      doc.addImage(qrUrl, 'PNG', pw - 33, y - 4, 16, 16);
+    } catch {}
+
+    doc.setFontSize(8); doc.setTextColor(90, 96, 97);
+    doc.text('INVOICE / CHALLAN', pw - 15, y + 16, { align: 'right' });
+    doc.setFontSize(12); doc.setTextColor(0, 92, 193); doc.setFont('helvetica', 'bold');
+    doc.text(sale.invoice, pw - 15, y + 22, { align: 'right' });
+    doc.setFontSize(8); doc.setTextColor(90, 96, 97); doc.setFont('helvetica', 'normal');
+    doc.text(`${dateStr} · ${timeStr}`, pw - 15, y + 27, { align: 'right' });
+
+    y += 16;
+    doc.setDrawColor(0, 92, 193); doc.setLineWidth(0.8); doc.line(15, y, pw - 15, y);
+    y += 8;
+
+    doc.setFillColor(245, 247, 248); doc.roundedRect(15, y - 3, pw - 30, 14, 2, 2, 'F');
+    doc.setFontSize(7); doc.setTextColor(90, 96, 97); doc.text('CUSTOMER', 18, y + 1);
+    doc.setFontSize(9); doc.setTextColor(45, 52, 53); doc.setFont('helvetica', 'bold');
+    doc.text(sale.customer, 18, y + 6);
+    if (sale.phone) { doc.setFontSize(7); doc.setTextColor(90, 96, 97); doc.text('PHONE', 80, y + 1); doc.setFontSize(9); doc.setTextColor(45, 52, 53); doc.text(sale.phone, 80, y + 6); }
+    doc.setFontSize(7); doc.setTextColor(90, 96, 97); doc.text('PAYMENT', 140, y + 1);
+    doc.setFontSize(9); doc.setTextColor(45, 52, 53); doc.text(sale.paymentMethod.toUpperCase(), 140, y + 6);
+    doc.setFont('helvetica', 'normal'); y += 16;
+
+    if (sale.notes) { doc.setFontSize(8); doc.setTextColor(90, 96, 97); doc.text(`Notes: ${sale.notes}`, 15, y); y += 6; }
+
+    const tableData = sale.items.map(item => [`${item.name}\n${item.detail || ''}`, String(item.qty), formatCurrency(item.price), formatCurrency(item.price * item.qty)]);
+    doc.autoTable({
+      startY: y, head: [['Product', 'Qty', 'Rate', 'Total']], body: tableData, theme: 'striped',
+      margin: { left: 15, right: 15 }, styles: { fontSize: 9, cellPadding: 3 },
+      headStyles: { fontStyle: 'bold', fontSize: 8, textColor: [90, 96, 97], fillColor: [245, 247, 248] },
+      alternateRowStyles: { fillColor: [250, 251, 252] },
+      columnStyles: { 0: { cellWidth: 80 }, 1: { cellWidth: 20, halign: 'center' }, 2: { cellWidth: 30, halign: 'right' }, 3: { cellWidth: 35, halign: 'right' } },
+    });
+    y = doc.lastAutoTable.finalY + 8;
+
+    const totalsX = 140;
+    doc.setFontSize(9); doc.setTextColor(90, 96, 97); doc.text('Subtotal', totalsX, y);
+    doc.setTextColor(45, 52, 53); doc.text(formatCurrency(sale.subtotal), pw - 15, y, { align: 'right' }); y += 5;
+    if (sale.discount > 0) { doc.setTextColor(159, 64, 61); doc.text('Discount', totalsX, y); doc.text(`-${formatCurrency(sale.discount)}`, pw - 15, y, { align: 'right' }); y += 5; }
+    if ((sale.delivery ?? 0) > 0) { doc.setTextColor(90, 96, 97); doc.text('Delivery', totalsX, y); doc.setTextColor(45, 52, 53); doc.text(`+${formatCurrency(sale.delivery!)}`, pw - 15, y, { align: 'right' }); y += 5; }
+    if ((sale.labour ?? 0) > 0) { doc.setTextColor(90, 96, 97); doc.text('Labour', totalsX, y); doc.setTextColor(45, 52, 53); doc.text(`+${formatCurrency(sale.labour!)}`, pw - 15, y, { align: 'right' }); y += 5; }
+    doc.setDrawColor(45, 52, 53); doc.setLineWidth(0.5); doc.line(totalsX - 5, y, pw - 15, y); y += 6;
+    doc.setFontSize(14); doc.setFont('helvetica', 'bold'); doc.text('TOTAL', totalsX, y);
+    doc.setTextColor(0, 92, 193); doc.text(formatCurrency(sale.total), pw - 15, y, { align: 'right' }); y += 6;
+    doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(0, 97, 32); doc.text('Paid', totalsX, y);
+    doc.text(formatCurrency(sale.paid ?? sale.total), pw - 15, y, { align: 'right' }); y += 5;
+    if ((sale.due ?? 0) > 0) { doc.setTextColor(159, 64, 61); doc.text('Due', totalsX, y); doc.text(formatCurrency(sale.due!), pw - 15, y, { align: 'right' }); y += 5; }
+    doc.setFontSize(8); doc.setTextColor(45, 52, 53); doc.setFont('helvetica', 'normal');
+    doc.text(`Status: ${sale.status.toUpperCase()}`, totalsX, y); y += 12;
+
+    doc.setDrawColor(240, 242, 243); doc.line(15, y, pw - 15, y); y += 6;
+    doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.text('Terms & Conditions', 15, y);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(90, 96, 97); y += 4;
+    doc.text('• Goods once delivered cannot be returned.', 15, y); y += 3.5;
+    doc.text('• Prices subject to change without notice.', 15, y); y += 3.5;
+    doc.text('• Credit payment due within 30 days.', 15, y); y += 8;
+    doc.setFontSize(8); doc.setTextColor(90, 96, 97);
+    doc.text(`Thank you for shopping at ${settings.name}!`, pw / 2, y, { align: 'center' });
     doc.save(`${sale.invoice}.pdf`);
     toast.success('PDF Downloaded');
   };
