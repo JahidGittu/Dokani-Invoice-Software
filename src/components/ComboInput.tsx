@@ -19,9 +19,14 @@ export default function ComboInput({ value, onChange, options, onAddNew, placeho
 
   useEffect(() => { setInputVal(value); }, [value]);
 
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      if (
+        ref.current && !ref.current.contains(e.target as Node) &&
+        dropdownRef.current && !dropdownRef.current.contains(e.target as Node)
+      ) setOpen(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -59,6 +64,7 @@ export default function ComboInput({ value, onChange, options, onAddNew, placeho
 
   const dropdown = open && (filtered.length > 0 || isNew) ? createPortal(
     <div
+      ref={dropdownRef}
       style={{
         position: 'fixed',
         left: dropPos.left,
