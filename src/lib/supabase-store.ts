@@ -275,17 +275,17 @@ export function useSupabaseSuppliers() {
     const { data, error } = await supabase.from('suppliers').select('*').order('created_at', { ascending: false });
     if (error) { console.error('Fetch suppliers error:', error); return; }
     setSuppliers((data || []).map((s: any) => ({
-      id: s.id, name: s.name, phone: s.phone, address: s.address,
+      id: s.id, name: s.name, contactPerson: s.contact_person || '', phone: s.phone, address: s.address,
       totalDue: Number(s.total_due) || 0,
     })));
   }, [user]);
 
   useEffect(() => { fetchSuppliers(); }, [fetchSuppliers]);
 
-  const addSupplier = useCallback(async (name: string, phone: string, address: string) => {
+  const addSupplier = useCallback(async (name: string, phone: string, address: string, contactPerson?: string) => {
     if (!user) return;
     const { error } = await supabase.from('suppliers').insert({
-      user_id: user.id, name, phone, address, total_due: 0,
+      user_id: user.id, name, phone, address, contact_person: contactPerson || '', total_due: 0,
     } as any);
     if (error) { toast.error('Failed to add supplier'); return; }
     fetchSuppliers();

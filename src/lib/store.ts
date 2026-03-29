@@ -84,6 +84,7 @@ export interface Customer {
 export interface Supplier {
   id: string;
   name: string;
+  contactPerson: string;
   phone: string;
   address: string;
   totalDue: number;
@@ -143,8 +144,8 @@ const defaultCustomers: Customer[] = [
 
 const defaultSales: SaleRecord[] = [];
 const defaultSuppliers: Supplier[] = [
-  { id: '1', name: 'Akij Ceramics', phone: '01811223344', address: 'Dhaka', totalDue: 0 },
-  { id: '2', name: 'RAK Bangladesh', phone: '01922112233', address: 'Gazipur', totalDue: 6000 },
+  { id: '1', name: 'Akij Ceramics', contactPerson: '', phone: '01811223344', address: 'Dhaka', totalDue: 0 },
+  { id: '2', name: 'RAK Bangladesh', contactPerson: '', phone: '01922112233', address: 'Gazipur', totalDue: 6000 },
 ];
 const defaultPurchases: PurchaseRecord[] = [];
 
@@ -326,8 +327,8 @@ export function useSuppliers() {
 
   useEffect(() => { saveJSON('tilepos_suppliers', suppliers); }, [suppliers]);
 
-  const addSupplier = useCallback((name: string, phone: string, address: string) => {
-    const s: Supplier = { id: crypto.randomUUID(), name, phone, address, totalDue: 0 };
+  const addSupplier = useCallback((name: string, phone: string, address: string, contactPerson?: string) => {
+    const s: Supplier = { id: crypto.randomUUID(), name, contactPerson: contactPerson || '', phone, address, totalDue: 0 };
     setSuppliers(prev => [...prev, s]);
     return s;
   }, []);

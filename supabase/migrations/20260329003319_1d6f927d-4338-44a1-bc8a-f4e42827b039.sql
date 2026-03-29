@@ -1,0 +1,1 @@
+ALTER TABLE public.suppliers ADD COLUMN contact_person text NOT NULL DEFAULT '';
