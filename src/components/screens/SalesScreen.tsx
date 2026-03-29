@@ -864,7 +864,7 @@ tbody tr:nth-child(even){background:#fafafa}
           <div className="w-full lg:w-[300px] shrink-0">
             <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container p-4 space-y-3 sticky top-4">
               {/* TOTAL */}
-              <div className="flex items-center border border-pos-surface-container rounded-lg overflow-hidden">
+              <div className="flex items-center border border-pos-surface-container rounded-lg">
                 <span className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase">Total</span>
                 <span className="flex-1 text-right text-lg font-black text-pos-on-surface px-3">{formatCurrency(total)}</span>
               </div>
