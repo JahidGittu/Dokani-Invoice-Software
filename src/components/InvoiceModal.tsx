@@ -165,7 +165,7 @@ tbody tr:nth-child(even){background:#fafafa}
     const carton = item.carton ?? item.qty;
     const piece = item.piece ?? 0;
     const sqftQty = item.sqftQty ?? item.qty;
-    const subTotal = (item.sqftQty ?? item.qty) * item.price;
+    const subTotal = calcItemTotal(item.sqftQty, item.qty, item.price);
     return `<tr>
       <td>${idx + 1}</td>
       <td>Sale</td>
