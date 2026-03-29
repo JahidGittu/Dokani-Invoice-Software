@@ -797,19 +797,23 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <span className="text-xs text-pos-on-surface-variant uppercase tracking-widest block mb-1">Sales</span>
           <h2 className="text-2xl font-bold text-pos-on-surface tracking-tight">
             <span className="text-pos-secondary">Sales</span>
             <span className="mx-2 text-pos-on-surface-variant">›</span>Sales History
           </h2>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
           <button onClick={exportCSV} className="px-4 py-2.5 bg-pos-surface-container text-pos-on-surface rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-pos-surface-high transition-colors">
             <span className="material-symbols-outlined text-lg">download</span>Export
           </button>
-          <button onClick={openAddSale} className="px-5 py-2.5 bg-pos-secondary text-white rounded-lg font-semibold text-sm flex items-center gap-2 shadow-lg hover:-translate-y-0.5 transition-transform">
-            <span className="material-symbols-outlined text-lg">add</span>Add Sales
-          </button>
+          <div className="flex gap-1 bg-pos-surface-container rounded-lg p-1">
+            <button onClick={openAddSale} className="px-4 py-2 rounded-md text-sm font-semibold flex items-center gap-1.5 text-pos-on-surface-variant hover:bg-pos-surface-high transition-colors">
+              <span className="material-symbols-outlined text-base">add</span>Add Sales
+            </button>
+            <button className="px-4 py-2 rounded-md text-sm font-semibold flex items-center gap-1.5 bg-pos-secondary text-white shadow">
+              <span className="material-symbols-outlined text-base">folder_open</span>Sales History
+            </button>
+          </div>
         </div>
       </div>
 
