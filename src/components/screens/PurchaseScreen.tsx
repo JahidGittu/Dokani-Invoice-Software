@@ -230,6 +230,103 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
 
   const viewPurchase = purchases.find(p => p.id === viewId);
 
+  // ══════ EDIT HELPERS ══════
+  const openEditModal = (p: PurchaseRecord) => {
+    setEditPurchase(p);
+    setEditDate(new Date(p.date).toISOString().split('T')[0]);
+    setEditInvoice(p.invoice);
+    setEditSupplier(p.supplierName);
+    setEditDiscount(p.discount > 0 ? String(p.discount) : '');
+    setEditDelivery(p.delivery > 0 ? String(p.delivery) : '');
+    setEditPaid(p.paid > 0 ? String(p.paid) : '');
+    setEditRemark(p.remark || '');
+    setEditProductSearch('');
+    setEditItems(p.items.map((item, idx) => ({
+      id: Date.now() + idx,
+      productId: item.productId,
+      barcode: item.barcode,
+      name: item.name,
+      stock: products.find(pr => pr.id === item.productId)?.stock || 0,
+      carton: item.carton,
+      piece: item.piece,
+      sqftQty: item.sqftQty,
+      buyRate: item.buyRate,
+      subTotal: item.subTotal,
+    })));
+  };
+
+  const editSearchResults = useMemo(() => {
+    if (!debouncedEditSearch) return [];
+    return products.filter(p =>
+      !editItems.find(i => i.productId === p.id) && (
+        p.name.toLowerCase().includes(debouncedEditSearch.toLowerCase()) ||
+        (p.barcode || '').toLowerCase().includes(debouncedEditSearch.toLowerCase())
+      )
+    );
+  }, [products, debouncedEditSearch, editItems]);
+
+  const addEditProduct = (product: Product) => {
+    if (editItems.find(i => i.productId === product.id)) return;
+    const rate = product.buyRate || 0;
+    const initSqft = isSqftUnit(product.unit) ? calcSqftQty(product, 1, 0) : 0;
+    const initSubTotal = calcSubTotal(product, 1, 0, rate);
+    setEditItems(prev => [...prev, {
+      id: Date.now(), productId: product.id, barcode: product.barcode || product.batch || '',
+      name: product.name, stock: product.stock, carton: 1, piece: 0,
+      sqftQty: initSqft, buyRate: rate, subTotal: initSubTotal,
+    }]);
+    setEditProductSearch('');
+  };
+
+  const updateEditItem = (id: number, field: keyof PurchaseItemRow, value: number) => {
+    setEditItems(prev => prev.map(item => {
+      if (item.id !== id) return item;
+      const updated = { ...item, [field]: value };
+      const product = products.find(p => p.id === item.productId);
+      if (!product) return updated;
+      if (isSqftUnit(product.unit)) {
+        if (field === 'sqftQty') {
+          const { carton, piece } = calcCartonPieceFromSqft(product, value);
+          updated.carton = carton; updated.piece = piece; updated.sqftQty = value;
+        } else {
+          updated.sqftQty = calcSqftQty(product, updated.carton, updated.piece);
+        }
+      }
+      updated.subTotal = calcSubTotal(product, updated.carton, updated.piece, updated.buyRate);
+      return updated;
+    }));
+  };
+
+  const editTotal = editItems.reduce((s, i) => s + i.subTotal, 0);
+  const editDiscountVal = parseFloat(editDiscount) || 0;
+  const editDeliveryVal = parseFloat(editDelivery) || 0;
+  const editPayable = Math.max(0, editTotal - editDiscountVal + editDeliveryVal);
+  const editPaidVal = parseFloat(editPaid) || 0;
+  const editDueVal = Math.max(0, editPayable - editPaidVal);
+
+  const handleEditSave = () => {
+    if (!editPurchase) return;
+    if (!editSupplier.trim()) { toast.error('Supplier সিলেক্ট করুন'); return; }
+    if (!editItems.length) { toast.error('কমপক্ষে একটি প্রোডাক্ট যোগ করুন'); return; }
+
+    const updated: PurchaseRecord = {
+      ...editPurchase,
+      invoice: editInvoice,
+      supplierName: editSupplier,
+      date: new Date(editDate).toISOString(),
+      items: editItems.map(i => ({
+        productId: i.productId, name: i.name, barcode: i.barcode,
+        carton: i.carton, piece: i.piece, sqftQty: i.sqftQty,
+        buyRate: i.buyRate, subTotal: i.subTotal,
+      })),
+      total: editTotal, discount: editDiscountVal, delivery: editDeliveryVal,
+      payable: editPayable, paid: editPaidVal, due: editDueVal, remark: editRemark,
+    };
+    onUpdatePurchase(updated);
+    toast.success('Purchase updated');
+    setEditPurchase(null);
+  };
+
   const SortHeader = ({ field, children, align }: { field: SortField; children: React.ReactNode; align?: string }) => (
     <th className={`px-4 py-3 cursor-pointer select-none hover:bg-pos-surface-container transition-colors ${align || ''}`} onClick={() => toggleSort(field)}>
       <span className="inline-flex items-center gap-1">
