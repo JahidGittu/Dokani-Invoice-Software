@@ -67,7 +67,7 @@ const App = () => (
                 <Route path="transactions" element={<TransactionsPage />} />
                 <Route path="reports" element={<ReportsPage />} />
                 <Route path="sms-email" element={<SmsEmailPage />} />
-                <Route path="excel" element={<ExcelImportPage />} />
+                {/* Excel import removed - handled in Products bulk add */}
                 <Route path="settings" element={<SettingsPage />} />
               </Route>
 
