@@ -593,7 +593,7 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
                 )}
               </div>
               <div className="w-28 bg-pos-surface-high border border-pos-surface-container rounded-xl py-3 px-2 text-center font-bold text-xs text-pos-on-surface">
-                {selectedProduct ? formatStockDisplay(selectedProduct.stock, selectedProduct.piecesPerBox || 4) : 'Stock'}
+                {selectedProduct ? (isSqftUnit(selectedProduct.unit) ? formatStockDisplay(selectedProduct.stock, selectedProduct.piecesPerBox || 4) : `${selectedProduct.stock} ${selectedProduct.unit || 'Pcs'}`) : 'Stock'}
               </div>
             </div>
 
