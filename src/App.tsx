@@ -54,7 +54,7 @@ const App = () => (
               <Route element={<ProtectedRoute><ShopLayout /></ProtectedRoute>}>
                 <Route index element={<DashboardPage />} />
                 <Route path="dashboard" element={<DashboardPage />} />
-                <Route path="new-sale" element={<NewSalePage />} />
+                <Route path="new-sale" element={<SalesPage />} />
                 <Route path="products" element={<ProductsPage />} />
                 <Route path="purchases" element={<PurchasesPage />} />
                 <Route path="sales" element={<SalesPage />} />
