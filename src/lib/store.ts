@@ -84,6 +84,7 @@ export interface Customer {
 export interface Supplier {
   id: string;
   name: string;
+  contactPerson: string;
   phone: string;
   address: string;
   totalDue: number;
