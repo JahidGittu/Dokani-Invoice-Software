@@ -156,9 +156,21 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
     }
   };
   const handleManualPieceChange = (val: number) => {
-    setManualPiece(val);
     if (selectedProduct && isSqftUnit(selectedProduct.unit)) {
-      setManualSqft(parseFloat(calcSqftQty(selectedProduct, manualCarton, val).toFixed(3)));
+      // If carton is 0 and user enters total pieces, auto-split into carton + remaining pieces
+      if (manualCarton === 0 && val > 0) {
+        const piecesPerBox = selectedProduct.piecesPerBox || 4;
+        const autoCarton = Math.floor(val / piecesPerBox);
+        const remainingPiece = val % piecesPerBox;
+        setManualCarton(autoCarton);
+        setManualPiece(remainingPiece);
+        setManualSqft(parseFloat(calcSqftQty(selectedProduct, autoCarton, remainingPiece).toFixed(3)));
+      } else {
+        setManualPiece(val);
+        setManualSqft(parseFloat(calcSqftQty(selectedProduct, manualCarton, val).toFixed(3)));
+      }
+    } else {
+      setManualPiece(val);
     }
   };
   const handleManualSqftChange = (val: number) => {
