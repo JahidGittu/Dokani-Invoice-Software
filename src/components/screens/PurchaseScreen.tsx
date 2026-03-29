@@ -200,11 +200,15 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
-            <span className="text-xs text-pos-on-surface-variant uppercase tracking-widest block mb-1">Purchase</span>
+            <div className="flex items-center gap-1.5 text-sm mb-1">
+              <span className="text-pos-secondary font-semibold">Purchase</span>
+              <span className="text-pos-error font-semibold">›</span>
+              <span className="text-pos-error font-semibold">Add Purchase</span>
+            </div>
             <h2 className="text-2xl font-bold text-pos-on-surface tracking-tight">Add Purchase</h2>
           </div>
-          <button onClick={() => setView('history')} className="px-5 py-2.5 bg-pos-secondary text-white rounded-lg font-semibold text-sm flex items-center gap-2 shadow-lg hover:-translate-y-0.5 transition-transform">
-            <span className="material-symbols-outlined text-lg">history</span>Purchase History
+          <button onClick={() => setView('history')} className="px-5 py-2.5 bg-pos-surface-container text-pos-on-surface-variant rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-pos-surface-high transition-colors border border-pos-surface-container">
+            <span className="material-symbols-outlined text-lg">folder_open</span>Purchase History
           </button>
         </div>
 
@@ -234,10 +238,10 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
 
             {/* Product search */}
             <div className="relative">
-              <input ref={searchRef} value={productSearch} onChange={e => setProductSearch(e.target.value)}
-                className="w-full bg-pos-surface-lowest border-2 border-pos-secondary/30 rounded-xl text-sm py-3 pl-11 pr-4 outline-none focus:border-pos-secondary transition-colors"
-                placeholder="Search the Product..." />
               <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-pos-on-surface-variant">search</span>
+              <input ref={searchRef} value={productSearch} onChange={e => setProductSearch(e.target.value)}
+                className="w-full bg-[hsl(0,80%,92%)] border-2 border-pos-secondary/30 rounded-xl text-sm py-3 pl-11 pr-4 outline-none focus:border-pos-secondary transition-colors placeholder:text-pos-on-surface-variant/70"
+                placeholder="Search the Product..." />
             </div>
 
             {/* All products table with checkbox */}
@@ -323,52 +327,52 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
           </div>
 
           {/* ── RIGHT: Summary sidebar ── */}
-          <div className="w-full lg:w-[280px] shrink-0">
+          <div className="w-full lg:w-[300px] shrink-0">
             <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container p-4 space-y-3 sticky top-4">
-              {/* Total */}
-              <div className="flex items-center justify-between border border-pos-surface-container rounded-lg px-3 py-2.5">
-                <span className="text-sm font-medium text-pos-on-surface-variant">Total</span>
-                <span className="text-lg font-black text-pos-secondary">{formatCurrency(total)}</span>
+              {/* TOTAL */}
+              <div className="flex items-center border border-pos-surface-container rounded-lg overflow-hidden">
+                <span className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase">Total</span>
+                <span className="flex-1 text-right text-lg font-black text-pos-on-surface px-3">{formatCurrency(total)}</span>
               </div>
 
-              {/* Discount */}
+              {/* DIS. */}
               <div className="flex items-center border border-pos-surface-container rounded-lg overflow-hidden">
-                <span className="text-xs font-bold text-pos-on-surface-variant px-3 py-2.5 bg-pos-surface-low shrink-0 w-20">Discount</span>
+                <span className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase">Dis.</span>
                 <input type="number" value={discount} onChange={e => setDiscount(e.target.value)} placeholder="0"
-                  className="flex-1 text-sm py-2.5 px-3 outline-none bg-transparent text-right" />
+                  className="flex-1 text-sm py-3 px-3 outline-none bg-transparent text-right" />
               </div>
 
-              {/* Delivery */}
+              {/* LABOUR */}
               <div className="flex items-center border border-pos-surface-container rounded-lg overflow-hidden">
-                <span className="text-xs font-bold text-pos-on-surface-variant px-3 py-2.5 bg-pos-surface-low shrink-0 w-20">Delivery</span>
+                <span className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase">Labour</span>
                 <input type="number" value={delivery} onChange={e => setDelivery(e.target.value)} placeholder="0"
-                  className="flex-1 text-sm py-2.5 px-3 outline-none bg-transparent text-right" />
+                  className="flex-1 text-sm py-3 px-3 outline-none bg-transparent text-right" />
               </div>
 
-              {/* Payable */}
-              <div className="flex items-center justify-between border-2 border-pos-secondary/30 rounded-lg px-3 py-2.5 bg-pos-secondary/5">
-                <span className="text-sm font-bold">Payable</span>
-                <span className="text-lg font-black text-pos-secondary">{formatCurrency(payable)}</span>
+              {/* PAYABLE */}
+              <div className="flex items-center border-2 border-pos-secondary rounded-lg overflow-hidden bg-pos-secondary/5">
+                <span className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase">Payable</span>
+                <span className="flex-1 text-right text-lg font-black text-pos-secondary px-3">{formatCurrency(payable)}</span>
               </div>
 
-              {/* Paid */}
+              {/* PAID */}
               <div className="flex items-center border border-pos-surface-container rounded-lg overflow-hidden">
-                <span className="text-xs font-bold text-pos-on-surface-variant px-3 py-2.5 bg-pos-surface-low shrink-0 w-20">Paid</span>
+                <span className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase">Paid</span>
                 <input type="number" value={paid} onChange={e => setPaid(e.target.value)} placeholder="0"
-                  className="flex-1 text-sm py-2.5 px-3 outline-none bg-transparent text-right font-bold" />
+                  className="flex-1 text-sm py-3 px-3 outline-none bg-transparent text-right font-bold" />
               </div>
 
-              {/* Due */}
-              <div className="flex items-center justify-between border border-pos-surface-container rounded-lg px-3 py-2.5">
-                <span className="text-sm font-bold">Due</span>
-                <span className={`text-lg font-black ${dueVal > 0 ? 'text-destructive' : 'text-[hsl(125,60%,35%)]'}`}>{formatCurrency(dueVal)}</span>
-              </div>
-
-              {/* Account */}
+              {/* DUE */}
               <div className="flex items-center border border-pos-surface-container rounded-lg overflow-hidden">
-                <span className="text-xs font-bold text-pos-on-surface-variant px-3 py-2.5 bg-pos-surface-low shrink-0 w-20">Account</span>
+                <span className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase">Due</span>
+                <span className={`flex-1 text-right text-lg font-black px-3 ${dueVal > 0 ? 'text-destructive' : 'text-[hsl(125,60%,35%)]'}`}>{formatCurrency(dueVal)}</span>
+              </div>
+
+              {/* ACCOUNT */}
+              <div className="flex items-center border border-pos-surface-container rounded-lg overflow-hidden">
+                <span className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase">Account</span>
                 <select value={account} onChange={e => setAccount(e.target.value)}
-                  className="flex-1 text-sm py-2.5 px-3 outline-none bg-transparent">
+                  className="flex-1 text-sm py-3 px-3 outline-none bg-transparent">
                   <option>Cash</option>
                   <option>Bank</option>
                   <option>bKash</option>
@@ -378,7 +382,7 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
 
               {/* Save button */}
               <button onClick={handleSave}
-                className="w-full py-3 bg-pos-error hover:bg-pos-error/90 text-white rounded-lg font-bold text-base transition-colors mt-2">
+                className="w-full py-3 bg-pos-secondary hover:bg-pos-secondary/90 text-white rounded-xl font-bold text-base transition-colors mt-2 shadow-lg">
                 Save
               </button>
             </div>
@@ -396,7 +400,11 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
-          <span className="text-xs text-pos-on-surface-variant uppercase tracking-widest block mb-1">Purchase</span>
+          <div className="flex items-center gap-1.5 text-sm mb-1">
+            <span className="text-pos-secondary font-semibold">Purchase</span>
+            <span className="text-pos-on-surface-variant">›</span>
+            <span className="text-pos-secondary font-medium">History</span>
+          </div>
           <h2 className="text-2xl sm:text-4xl font-bold text-pos-on-surface leading-tight tracking-tighter">Purchase History</h2>
         </div>
         <button onClick={openAddPurchase} className="px-5 py-2.5 bg-gradient-to-b from-pos-secondary to-pos-secondary-dim text-white rounded-lg font-semibold text-sm flex items-center gap-2 shadow-lg hover:-translate-y-0.5 transition-transform">
