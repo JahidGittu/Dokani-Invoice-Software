@@ -493,8 +493,10 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
 <div class="center" style="font-size:9px;margin-top:4px">Thank you! Visit again.</div>
 </body></html>`);
     w.document.close();
-    w.focus();
-    setTimeout(() => w.print(), 400);
+    setTimeout(() => {
+      w.print();
+      setTimeout(() => document.body.removeChild(iframe), 1000);
+    }, 400);
   };
 
   const generatePDF = async (sale: SaleRecord) => {

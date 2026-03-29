@@ -250,9 +250,21 @@ export function useSupabaseSales() {
 
   const deleteSale = useCallback(async (id: string) => {
     if (!user) return;
+    // Get sale items to restore stock before deleting
+    const saleToDelete = sales.find(s => s.id === id);
+    if (saleToDelete && saleToDelete.items.length > 0) {
+      for (const item of saleToDelete.items) {
+        if (item.productId) {
+          const qty = item.carton ?? item.qty ?? 0;
+          if (qty > 0) {
+            await supabase.rpc('add_stock', { p_product_id: item.productId, p_qty: qty });
+          }
+        }
+      }
+    }
     await supabase.from('sales').delete().eq('id', id);
     fetchSales();
-  }, [user, fetchSales]);
+  }, [user, sales, fetchSales]);
 
   const updateSaleDue = useCallback(async (id: string, paid: number, due: number) => {
     if (!user) return;
