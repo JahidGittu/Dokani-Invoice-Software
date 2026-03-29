@@ -290,7 +290,7 @@ export default function DashboardScreen({ onNavigate, products, customers, sales
                     <div className="h-1 flex-1 bg-pos-surface-container rounded-full overflow-hidden">
                       <div className="h-full bg-pos-error rounded-full" style={{ width: `${Math.min(100, (item.stock / 50) * 100)}%` }} />
                     </div>
-                    <span className="text-[9px] text-pos-error font-bold">{item.stock}</span>
+                    <span className="text-[9px] text-pos-error font-bold">{formatStockDisplay(item.stock, item.piecesPerBox || 4)}</span>
                   </div>
                 </div>
               </div>
