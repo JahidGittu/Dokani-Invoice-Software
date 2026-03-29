@@ -571,25 +571,36 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
               </div>
             </div>
 
-            {/* Manual entry: Carton, Piece, Sqft/Qty, Sales Rate, Add */}
+            {/* Manual entry: conditional by unit type */}
             <div className="flex flex-wrap items-center gap-3">
+              {isSelectedSqft ? (
+                <>
+                  <div className="flex items-center border-2 border-pos-surface-container rounded-lg overflow-hidden">
+                    <span className="text-xs font-bold text-pos-on-surface-variant uppercase bg-pos-surface-high px-4 py-3.5 shrink-0 tracking-wide">Carton</span>
+                    <input type="number" min={0} value={manualCarton} onChange={e => handleManualCartonChange(parseInt(e.target.value) || 0)}
+                      className="w-20 bg-pos-surface-lowest text-base text-center outline-none py-3.5 px-2 font-semibold" />
+                  </div>
+                  <div className="flex items-center border-2 border-pos-surface-container rounded-lg overflow-hidden">
+                    <span className="text-xs font-bold text-pos-on-surface-variant uppercase bg-pos-surface-high px-4 py-3.5 shrink-0 tracking-wide">Piece</span>
+                    <input type="number" min={0} value={manualPiece} onChange={e => handleManualPieceChange(parseInt(e.target.value) || 0)}
+                      className="w-20 bg-pos-surface-lowest text-base text-center outline-none py-3.5 px-2 font-semibold" />
+                  </div>
+                  <div className="flex items-center border-2 border-pos-surface-container rounded-lg overflow-hidden flex-1 min-w-[160px]">
+                    <span className="text-xs font-bold text-pos-on-surface-variant uppercase bg-pos-surface-high px-4 py-3.5 shrink-0 tracking-wide">Sqft.</span>
+                    <input type="number" min={0} value={manualSqft} onChange={e => handleManualSqftChange(parseFloat(e.target.value) || 0)}
+                      className="w-full bg-pos-surface-lowest text-base text-center outline-none py-3.5 px-2 font-semibold" />
+                  </div>
+                </>
+              ) : (
+                <div className="flex items-center border-2 border-pos-surface-container rounded-lg overflow-hidden">
+                  <span className="text-xs font-bold text-pos-on-surface-variant uppercase bg-pos-surface-high px-4 py-3.5 shrink-0 tracking-wide">Qty</span>
+                  <input type="number" min={1} value={manualPiece || ''} onChange={e => handleManualQtyChange(parseInt(e.target.value) || 0)}
+                    className="w-24 bg-pos-surface-lowest text-base text-center outline-none py-3.5 px-2 font-semibold" placeholder="0" />
+                  <span className="text-xs text-muted-foreground px-3 bg-pos-surface-high py-3.5">{selectedProduct?.unit || 'Pcs'}</span>
+                </div>
+              )}
               <div className="flex items-center border-2 border-pos-surface-container rounded-lg overflow-hidden">
-                <span className="text-xs font-bold text-pos-on-surface-variant uppercase bg-pos-surface-high px-4 py-3.5 shrink-0 tracking-wide">Carton</span>
-                <input type="number" min={0} value={manualCarton} onChange={e => handleManualCartonChange(parseInt(e.target.value) || 0)}
-                  className="w-20 bg-pos-surface-lowest text-base text-center outline-none py-3.5 px-2 font-semibold" />
-              </div>
-              <div className="flex items-center border-2 border-pos-surface-container rounded-lg overflow-hidden">
-                <span className="text-xs font-bold text-pos-on-surface-variant uppercase bg-pos-surface-high px-4 py-3.5 shrink-0 tracking-wide">Piece</span>
-                <input type="number" min={0} value={manualPiece} onChange={e => handleManualPieceChange(parseInt(e.target.value) || 0)}
-                  className="w-20 bg-pos-surface-lowest text-base text-center outline-none py-3.5 px-2 font-semibold" />
-              </div>
-              <div className="flex items-center border-2 border-pos-surface-container rounded-lg overflow-hidden flex-1 min-w-[160px]">
-                <span className="text-xs font-bold text-pos-on-surface-variant uppercase bg-pos-surface-high px-4 py-3.5 shrink-0 tracking-wide">Sqft./Qty.</span>
-                <input type="number" min={0} value={manualSqft} onChange={e => handleManualSqftChange(parseFloat(e.target.value) || 0)}
-                  className="w-full bg-pos-surface-lowest text-base text-center outline-none py-3.5 px-2 font-semibold" />
-              </div>
-              <div className="flex items-center border-2 border-pos-surface-container rounded-lg overflow-hidden">
-                <span className="text-xs font-bold text-pos-on-surface-variant uppercase bg-pos-surface-high px-4 py-3.5 shrink-0 tracking-wide">Sales Rate</span>
+                <span className="text-xs font-bold text-pos-on-surface-variant uppercase bg-pos-surface-high px-4 py-3.5 shrink-0 tracking-wide">Rate</span>
                 <input type="number" value={manualRate} onChange={e => setManualRate(e.target.value)} placeholder="৳"
                   className="w-28 bg-pos-surface-lowest text-base text-center outline-none py-3.5 px-2 font-semibold" />
               </div>
