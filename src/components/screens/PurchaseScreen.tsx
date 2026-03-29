@@ -93,18 +93,33 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
 
   // ── Add Purchase helpers ──
   const debouncedProductSearch = useDebounce(productSearch, 200);
-  const displayProducts = useMemo(() => {
-    if (debouncedProductSearch) {
-      return products.filter(p =>
+  const [showRecent, setShowRecent] = useState(false);
+
+  // Search results (dropdown-like) — only when actively searching
+  const searchResults = useMemo(() => {
+    if (!debouncedProductSearch) return [];
+    return products.filter(p =>
+      !items.find(i => i.productId === p.id) && (
         p.name.toLowerCase().includes(debouncedProductSearch.toLowerCase()) ||
         (p.barcode || '').toLowerCase().includes(debouncedProductSearch.toLowerCase()) ||
         p.batch.toLowerCase().includes(debouncedProductSearch.toLowerCase())
-      );
-    }
-    // Show only products added in the last 7 days
+      )
+    );
+  }, [products, debouncedProductSearch, items]);
+
+  // Recent products for quick-add modal
+  const recentProducts = useMemo(() => {
     const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-    return products.filter(p => new Date(p.createdAt || 0).getTime() >= sevenDaysAgo);
-  }, [products, debouncedProductSearch]);
+    return products.filter(p =>
+      !items.find(i => i.productId === p.id) &&
+      new Date(p.createdAt || 0).getTime() >= sevenDaysAgo
+    );
+  }, [products, items]);
+
+  // Table only shows items already added to cart
+  const displayProducts = useMemo(() => {
+    return items.map(i => products.find(p => p.id === i.productId)).filter(Boolean) as Product[];
+  }, [items, products]);
 
   const addProductToItems = (product: Product) => {
     if (items.find(i => i.productId === product.id)) {
