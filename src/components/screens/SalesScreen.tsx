@@ -139,15 +139,8 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
     const c = carton ?? 1;
     const pc = piece ?? 0;
     const sr = rate ?? product.pricePerBox;
-    const piecesPerBox = product.piecesPerBox || 4;
-    const sqftPerBox = product.sqftPerBox || 0;
-    const sqftPerPiece = piecesPerBox > 0 ? sqftPerBox / piecesPerBox : 0;
-    // Auto-calculate sqft from carton + piece
-    let autoSqft = sqft ?? 0;
-    if (sqftPerBox > 0 && piecesPerBox > 0 && autoSqft === 0) {
-      autoSqft = (c * sqftPerBox) + (pc * sqftPerPiece);
-    }
-    const sub = autoSqft * sr;
+    const autoSqft = sqft || (isSqftUnit(product.unit) ? calcSqftQty(product, c, pc) : 0);
+    const sub = calcSubTotal(product, c, pc, sr);
     setItems(prev => [...prev, {
       id: Date.now(), productId: product.id, barcode: product.barcode || product.batch || '',
       name: product.name, stock: product.stock, itemType: 'Sale',
@@ -172,14 +165,18 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
       if (item.id !== id) return item;
       const updated = { ...item, [field]: value };
       const product = products.find(p => p.id === item.productId);
-      const piecesPerBox = product?.piecesPerBox || 4;
-      const sqftPerBox = product?.sqftPerBox || 0;
-      const sqftPerPiece = piecesPerBox > 0 ? sqftPerBox / piecesPerBox : 0;
-      // Auto-calculate sqft from carton + piece
-      if (sqftPerBox > 0 && piecesPerBox > 0) {
-        updated.sqftQty = (updated.carton * sqftPerBox) + (updated.piece * sqftPerPiece);
+      if (!product) return updated;
+
+      if (isSqftUnit(product.unit)) {
+        if (field === 'sqftQty') {
+          const { carton, piece } = calcCartonPieceFromSqft(product, Number(value));
+          updated.carton = carton;
+          updated.piece = piece;
+        } else {
+          updated.sqftQty = calcSqftQty(product, updated.carton, updated.piece);
+        }
       }
-      updated.subTotal = updated.sqftQty * updated.salesRate;
+      updated.subTotal = calcSubTotal(product, updated.carton, updated.piece, updated.salesRate);
       return updated;
     }));
   };
