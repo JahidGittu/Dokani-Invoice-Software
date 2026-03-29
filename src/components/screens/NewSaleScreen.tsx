@@ -677,9 +677,8 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
                 {rows.map((row, idx) => {
                   const product = products.find(p => p.id === row.productId);
                   const piecesPerBox = product?.piecesPerBox || 4;
-                  const sqftPerPiece = piecesPerBox > 0 ? (product?.sqftPerBox || 0) / piecesPerBox : 0;
-                  const sqftQty = (row.carton * (product?.sqftPerBox || 0)) + (row.piece * sqftPerPiece);
-                  const rowTotal = sqftQty * row.rate;
+                  const sqftQty = product ? (isSqftUnit(product.unit) ? calcSqftQty(product, row.carton, row.piece) : row.carton + (row.piece / piecesPerBox)) : 0;
+                  const rowTotal = calcSubTotal(product, row.carton, row.piece, row.rate);
                   return (
                     <tr key={row.id} className="border-b border-border/50 hover:bg-muted/20 transition-colors align-top">
                       <td className="py-2 px-2 text-xs font-semibold text-muted-foreground">{idx + 1}</td>
