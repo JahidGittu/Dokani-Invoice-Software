@@ -946,7 +946,7 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
                   </div>
                   <div className="text-right">
                     <div className="font-bold text-primary">৳{scanResult.pricePerBox}</div>
-                    <div className="text-[10px] text-muted-foreground">{scanResult.stock} {t('boxes')}</div>
+                    <div className="text-[10px] text-muted-foreground">{formatStockDisplay(scanResult.stock, scanResult.piecesPerBox || 4)}</div>
                   </div>
                 </div>
               </div>
