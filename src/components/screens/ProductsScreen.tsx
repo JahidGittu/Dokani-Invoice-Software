@@ -148,6 +148,16 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
 
   const isSqft = (unit: string) => unit === 'SQFT';
 
+  // Auto-calculate sqftPerBox from height (cm) × width (cm) × piecesPerBox / 929.0304
+  const calcSqftPerBox = (f: AddFormData): number => {
+    if (!isSqft(f.unit)) return 0;
+    const h = parseFloat(f.height) || 0;
+    const w = parseFloat(f.width) || 0;
+    const pcs = parseInt(f.piecesPerBox) || 0;
+    if (h > 0 && w > 0 && pcs > 0) return parseFloat(((h * w * pcs) / 929.0304).toFixed(2));
+    return parseFloat(f.sqftPerBox) || 0;
+  };
+
   const validateForm = (f: AddFormData): string | null => {
     if (!f.name.trim()) return 'Product Name is required';
     if (!f.buyRate && !f.pricePerBox) return 'Buy Rate or Sales Rate is required';
@@ -176,12 +186,13 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
       setUploading(false);
     }
 
+    const autoSqftPerBox = calcSqftPerBox(form);
     onAddProduct({
       name: form.name.trim(), category: form.category, brand: form.brand,
       size: form.size || (form.height && form.width ? `${form.height}×${form.width}` : ''),
       finish: form.finish, unit: form.unit, height: form.height, width: form.width,
       piecesPerBox: parseInt(form.piecesPerBox) || 4, buyRate: parseFloat(form.buyRate) || 0,
-      pricePerBox: parseFloat(form.pricePerBox) || 0, sqftPerBox: parseFloat(form.sqftPerBox) || 0,
+      pricePerBox: parseFloat(form.pricePerBox) || 0, sqftPerBox: autoSqftPerBox,
       stock: parseInt(form.stock) || 0, reorderLimit: parseInt(form.reorderLimit) || 0,
       batch: form.batch || form.barcode, barcode: form.barcode, imageUrl,
     });
@@ -226,12 +237,13 @@ export default function ProductsScreen({ products, onAddProduct, onUpdateProduct
       setUploading(false);
     }
 
+    const autoSqftPerBox = calcSqftPerBox(editForm);
     onUpdateProduct(editProduct.id, {
       name: editForm.name.trim(), category: editForm.category, brand: editForm.brand,
       size: editForm.size || (editForm.height && editForm.width ? `${editForm.height}×${editForm.width}` : ''),
       finish: editForm.finish, unit: editForm.unit, height: editForm.height, width: editForm.width,
       piecesPerBox: parseInt(editForm.piecesPerBox) || 4, buyRate: parseFloat(editForm.buyRate) || 0,
-      pricePerBox: parseFloat(editForm.pricePerBox) || 0, sqftPerBox: parseFloat(editForm.sqftPerBox) || 0,
+      pricePerBox: parseFloat(editForm.pricePerBox) || 0, sqftPerBox: autoSqftPerBox,
       stock: parseInt(editForm.stock) || 0, reorderLimit: parseInt(editForm.reorderLimit) || 0,
       batch: editForm.batch || editForm.barcode, barcode: editForm.barcode, imageUrl,
     });
