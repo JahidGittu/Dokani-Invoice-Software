@@ -51,7 +51,7 @@ export default function ShopLayout() {
   const { customers, addCustomer, deleteCustomer, updateCustomerSpend, updateCustomerDue } = useSupabaseCustomers();
   const { sales, addSale, deleteSale } = useSupabaseSales();
   const { suppliers, addSupplier, deleteSupplier, updateSupplierDue } = useSupabaseSuppliers();
-  const { purchases, addPurchase, deletePurchase } = useSupabasePurchases();
+  const { purchases, addPurchase, deletePurchase, updatePurchase } = useSupabasePurchases();
   const { settings, setSettings } = useSupabaseSettings();
 
   const handleNavigate = useCallback((screen: string) => {
@@ -104,7 +104,7 @@ export default function ShopLayout() {
     customers, addCustomer, deleteCustomer, updateCustomerSpend, updateCustomerDue,
     sales, addSale, deleteSale,
     suppliers, addSupplier, deleteSupplier, updateSupplierDue,
-    purchases, addPurchase, deletePurchase,
+    purchases, addPurchase, deletePurchase, updatePurchase,
     settings, setSettings,
     handleSaleComplete, handleAutoAddCustomer, handleImportProducts,
     onNavigate: handleNavigate,

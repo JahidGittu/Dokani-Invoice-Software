@@ -370,7 +370,33 @@ export function useSupabasePurchases() {
     fetchPurchases();
   }, [user, fetchPurchases]);
 
-  return { purchases, setPurchases: fetchPurchases as any, addPurchase, deletePurchase };
+  const updatePurchase = useCallback(async (purchase: PurchaseRecord) => {
+    if (!user) return;
+    const { error } = await supabase.from('purchases').update({
+      invoice: purchase.invoice, supplier_name: purchase.supplierName,
+      purchase_date: purchase.date, total: purchase.total,
+      discount: purchase.discount, delivery: purchase.delivery,
+      payable: purchase.payable, paid: purchase.paid, due: purchase.due,
+      remark: purchase.remark,
+    } as any).eq('id', purchase.id);
+    if (error) { toast.error('Failed to update purchase'); return; }
+
+    // Delete old items and re-insert
+    await supabase.from('purchase_items').delete().eq('purchase_id', purchase.id);
+    if (purchase.items.length > 0) {
+      await supabase.from('purchase_items').insert(
+        purchase.items.map(i => ({
+          purchase_id: purchase.id, product_id: i.productId,
+          name: i.name, barcode: i.barcode || '',
+          carton: i.carton, piece: i.piece,
+          sqft_qty: i.sqftQty, buy_rate: i.buyRate, sub_total: i.subTotal,
+        } as any))
+      );
+    }
+    fetchPurchases();
+  }, [user, fetchPurchases]);
+
+  return { purchases, setPurchases: fetchPurchases as any, addPurchase, deletePurchase, updatePurchase };
 }
 
 // ─── Company Settings Hook (Supabase) ───

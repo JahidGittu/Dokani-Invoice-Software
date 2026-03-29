@@ -12,6 +12,7 @@ interface PurchaseScreenProps {
   purchases: PurchaseRecord[];
   onAddPurchase: (p: PurchaseRecord) => void;
   onDeletePurchase: (id: string) => void;
+  onUpdatePurchase: (p: PurchaseRecord) => void;
   onAddStock: (items: { productId: string; qty: number }[]) => void;
   onUpdateSupplierDue: (name: string, dueAmount: number) => void;
   settings?: CompanySettings;
@@ -34,7 +35,7 @@ interface PurchaseItemRow {
   subTotal: number;
 }
 
-export default function PurchaseScreen({ products, suppliers, purchases, onAddPurchase, onDeletePurchase, onAddStock, onUpdateSupplierDue, settings }: PurchaseScreenProps) {
+export default function PurchaseScreen({ products, suppliers, purchases, onAddPurchase, onDeletePurchase, onUpdatePurchase, onAddStock, onUpdateSupplierDue, settings }: PurchaseScreenProps) {
   const { t } = useI18n();
 
   // ── View toggle ──
@@ -49,7 +50,19 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
   const [sortField, setSortField] = useState<SortField>('date');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
 
-  // ══════ ADD PURCHASE STATE ══════
+  // ══════ EDIT MODAL STATE ══════
+  const [editPurchase, setEditPurchase] = useState<PurchaseRecord | null>(null);
+  const [editDate, setEditDate] = useState('');
+  const [editInvoice, setEditInvoice] = useState('');
+  const [editSupplier, setEditSupplier] = useState('');
+  const [editItems, setEditItems] = useState<PurchaseItemRow[]>([]);
+  const [editDiscount, setEditDiscount] = useState('');
+  const [editDelivery, setEditDelivery] = useState('');
+  const [editPaid, setEditPaid] = useState('');
+  const [editRemark, setEditRemark] = useState('');
+  const [editProductSearch, setEditProductSearch] = useState('');
+  const debouncedEditSearch = useDebounce(editProductSearch, 200);
+
   const [purchaseDate, setPurchaseDate] = useState(new Date().toISOString().split('T')[0]);
   const [invoiceNo, setInvoiceNo] = useState('');
   const [supplierName, setSupplierName] = useState('');
@@ -216,6 +229,103 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
   };
 
   const viewPurchase = purchases.find(p => p.id === viewId);
+
+  // ══════ EDIT HELPERS ══════
+  const openEditModal = (p: PurchaseRecord) => {
+    setEditPurchase(p);
+    setEditDate(new Date(p.date).toISOString().split('T')[0]);
+    setEditInvoice(p.invoice);
+    setEditSupplier(p.supplierName);
+    setEditDiscount(p.discount > 0 ? String(p.discount) : '');
+    setEditDelivery(p.delivery > 0 ? String(p.delivery) : '');
+    setEditPaid(p.paid > 0 ? String(p.paid) : '');
+    setEditRemark(p.remark || '');
+    setEditProductSearch('');
+    setEditItems(p.items.map((item, idx) => ({
+      id: Date.now() + idx,
+      productId: item.productId,
+      barcode: item.barcode,
+      name: item.name,
+      stock: products.find(pr => pr.id === item.productId)?.stock || 0,
+      carton: item.carton,
+      piece: item.piece,
+      sqftQty: item.sqftQty,
+      buyRate: item.buyRate,
+      subTotal: item.subTotal,
+    })));
+  };
+
+  const editSearchResults = useMemo(() => {
+    if (!debouncedEditSearch) return [];
+    return products.filter(p =>
+      !editItems.find(i => i.productId === p.id) && (
+        p.name.toLowerCase().includes(debouncedEditSearch.toLowerCase()) ||
+        (p.barcode || '').toLowerCase().includes(debouncedEditSearch.toLowerCase())
+      )
+    );
+  }, [products, debouncedEditSearch, editItems]);
+
+  const addEditProduct = (product: Product) => {
+    if (editItems.find(i => i.productId === product.id)) return;
+    const rate = product.buyRate || 0;
+    const initSqft = isSqftUnit(product.unit) ? calcSqftQty(product, 1, 0) : 0;
+    const initSubTotal = calcSubTotal(product, 1, 0, rate);
+    setEditItems(prev => [...prev, {
+      id: Date.now(), productId: product.id, barcode: product.barcode || product.batch || '',
+      name: product.name, stock: product.stock, carton: 1, piece: 0,
+      sqftQty: initSqft, buyRate: rate, subTotal: initSubTotal,
+    }]);
+    setEditProductSearch('');
+  };
+
+  const updateEditItem = (id: number, field: keyof PurchaseItemRow, value: number) => {
+    setEditItems(prev => prev.map(item => {
+      if (item.id !== id) return item;
+      const updated = { ...item, [field]: value };
+      const product = products.find(p => p.id === item.productId);
+      if (!product) return updated;
+      if (isSqftUnit(product.unit)) {
+        if (field === 'sqftQty') {
+          const { carton, piece } = calcCartonPieceFromSqft(product, value);
+          updated.carton = carton; updated.piece = piece; updated.sqftQty = value;
+        } else {
+          updated.sqftQty = calcSqftQty(product, updated.carton, updated.piece);
+        }
+      }
+      updated.subTotal = calcSubTotal(product, updated.carton, updated.piece, updated.buyRate);
+      return updated;
+    }));
+  };
+
+  const editTotal = editItems.reduce((s, i) => s + i.subTotal, 0);
+  const editDiscountVal = parseFloat(editDiscount) || 0;
+  const editDeliveryVal = parseFloat(editDelivery) || 0;
+  const editPayable = Math.max(0, editTotal - editDiscountVal + editDeliveryVal);
+  const editPaidVal = parseFloat(editPaid) || 0;
+  const editDueVal = Math.max(0, editPayable - editPaidVal);
+
+  const handleEditSave = () => {
+    if (!editPurchase) return;
+    if (!editSupplier.trim()) { toast.error('Supplier সিলেক্ট করুন'); return; }
+    if (!editItems.length) { toast.error('কমপক্ষে একটি প্রোডাক্ট যোগ করুন'); return; }
+
+    const updated: PurchaseRecord = {
+      ...editPurchase,
+      invoice: editInvoice,
+      supplierName: editSupplier,
+      date: new Date(editDate).toISOString(),
+      items: editItems.map(i => ({
+        productId: i.productId, name: i.name, barcode: i.barcode,
+        carton: i.carton, piece: i.piece, sqftQty: i.sqftQty,
+        buyRate: i.buyRate, subTotal: i.subTotal,
+      })),
+      total: editTotal, discount: editDiscountVal, delivery: editDeliveryVal,
+      payable: editPayable, paid: editPaidVal, due: editDueVal, remark: editRemark,
+    };
+    onUpdatePurchase(updated);
+    toast.success('Purchase updated');
+    setEditPurchase(null);
+  };
 
   const SortHeader = ({ field, children, align }: { field: SortField; children: React.ReactNode; align?: string }) => (
     <th className={`px-4 py-3 cursor-pointer select-none hover:bg-pos-surface-container transition-colors ${align || ''}`} onClick={() => toggleSort(field)}>
@@ -537,7 +647,7 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
                         <button onClick={() => setViewId(p.id)} className="w-7 h-7 rounded bg-[hsl(125,60%,35%)] text-white flex items-center justify-center" title="Print Preview">
                           <span className="material-symbols-outlined text-sm">print</span>
                         </button>
-                        <button className="w-7 h-7 rounded bg-pos-secondary text-white flex items-center justify-center" title="Edit">
+                        <button onClick={() => openEditModal(p)} className="w-7 h-7 rounded bg-pos-secondary text-white flex items-center justify-center" title="Edit">
                           <span className="material-symbols-outlined text-sm">edit</span>
                         </button>
                         <button onClick={() => setShowDeleteConfirm(p.id)} className="w-7 h-7 rounded bg-pos-error text-white flex items-center justify-center" title="Delete">
@@ -716,6 +826,150 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
             <div className="flex gap-3">
               <button onClick={() => setShowDeleteConfirm(null)} className="flex-1 py-2.5 bg-pos-surface-container rounded-lg font-semibold text-sm">Cancel</button>
               <button onClick={confirmDelete} className="flex-1 py-2.5 bg-pos-error text-white rounded-lg font-semibold text-sm">Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Purchase Modal */}
+      {editPurchase && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4" onClick={() => setEditPurchase(null)}>
+          <div className="bg-background rounded-xl w-[95vw] max-w-[900px] max-h-[90vh] shadow-2xl flex flex-col" onClick={e => e.stopPropagation()}>
+            {/* Modal header */}
+            <div className="flex justify-between items-center px-5 py-3 border-b border-border">
+              <h3 className="text-lg font-bold text-foreground">Edit Purchase #{editPurchase.invoice}</h3>
+              <button onClick={() => setEditPurchase(null)} className="w-8 h-8 rounded-lg hover:bg-accent flex items-center justify-center">
+                <span className="material-symbols-outlined text-muted-foreground">close</span>
+              </button>
+            </div>
+
+            <div className="overflow-y-auto flex-1 p-5 space-y-4">
+              {/* Top fields */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1">Date</label>
+                  <input type="date" value={editDate} onChange={e => setEditDate(e.target.value)}
+                    className="w-full bg-muted border border-border rounded-lg text-sm py-2.5 px-3 outline-none" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1">Invoice #</label>
+                  <input value={editInvoice} onChange={e => setEditInvoice(e.target.value)}
+                    className="w-full bg-muted border border-border rounded-lg text-sm py-2.5 px-3 outline-none" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1">Supplier *</label>
+                  <ComboInput value={editSupplier} onChange={setEditSupplier} options={suppliers.map(s => s.name)} placeholder="Select Supplier..."
+                    className="w-full bg-muted border border-border rounded-lg text-sm py-2.5 px-3 outline-none" />
+                </div>
+              </div>
+
+              {/* Product search */}
+              <div className="relative">
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">search</span>
+                <input value={editProductSearch} onChange={e => setEditProductSearch(e.target.value)}
+                  className="w-full bg-muted border border-border rounded-lg text-sm py-2.5 pl-10 pr-4 outline-none focus:ring-1 focus:ring-ring"
+                  placeholder="Search product to add..." />
+                {editSearchResults.length > 0 && (
+                  <div className="absolute left-0 right-0 top-full mt-1 z-30 bg-popover border border-border rounded-lg shadow-xl max-h-[180px] overflow-y-auto">
+                    {editSearchResults.map(p => (
+                      <button key={p.id} type="button" onClick={() => addEditProduct(p)}
+                        className="w-full text-left px-3 py-2 text-sm hover:bg-accent transition-colors flex items-center justify-between gap-2 border-b border-border/50 last:border-0">
+                        <span className="font-medium">{p.name}</span>
+                        <span className="text-xs text-muted-foreground">{p.barcode || ''} | Stock: {p.stock}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Items table */}
+              <div className="border border-border rounded-lg overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-[10px] font-bold text-white uppercase bg-[hsl(230,45%,35%)]">
+                      <th className="px-2 py-2">Product</th>
+                      <th className="px-2 py-2 text-center">Carton</th>
+                      <th className="px-2 py-2 text-center">Piece</th>
+                      <th className="px-2 py-2 text-center">Sqft/Qty</th>
+                      <th className="px-2 py-2 text-right">Rate</th>
+                      <th className="px-2 py-2 text-right">Sub Total</th>
+                      <th className="px-2 py-2 w-8"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {editItems.map(item => (
+                      <tr key={item.id} className="hover:bg-muted/30">
+                        <td className="px-2 py-1.5 font-medium">{item.name}</td>
+                        <td className="px-1 py-1">
+                          <input type="number" min={0} value={item.carton} onChange={e => updateEditItem(item.id, 'carton', parseInt(e.target.value) || 0)}
+                            className="w-16 bg-background border border-border rounded text-sm py-1.5 text-center outline-none focus:border-ring mx-auto block" />
+                        </td>
+                        <td className="px-1 py-1">
+                          <input type="number" min={0} value={item.piece} onChange={e => updateEditItem(item.id, 'piece', parseInt(e.target.value) || 0)}
+                            className="w-14 bg-background border border-border rounded text-sm py-1.5 text-center outline-none focus:border-ring mx-auto block" />
+                        </td>
+                        <td className="px-1 py-1">
+                          <input type="number" min={0} value={item.sqftQty} onChange={e => updateEditItem(item.id, 'sqftQty', parseFloat(e.target.value) || 0)}
+                            className="w-16 bg-background border border-border rounded text-sm py-1.5 text-center outline-none focus:border-ring mx-auto block" />
+                        </td>
+                        <td className="px-1 py-1">
+                          <input type="number" value={item.buyRate} onChange={e => updateEditItem(item.id, 'buyRate', parseFloat(e.target.value) || 0)}
+                            className="w-20 bg-background border border-border rounded text-sm py-1.5 text-right outline-none focus:border-ring ml-auto block" />
+                        </td>
+                        <td className="px-2 py-1.5 text-right font-bold">{formatCurrency(item.subTotal)}</td>
+                        <td className="px-1 py-1">
+                          <button onClick={() => setEditItems(prev => prev.filter(i => i.id !== item.id))} className="w-6 h-6 rounded bg-destructive/10 text-destructive flex items-center justify-center hover:bg-destructive/20">
+                            <span className="material-symbols-outlined text-sm">close</span>
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                    {editItems.length === 0 && (
+                      <tr><td colSpan={7} className="px-4 py-6 text-center text-sm text-muted-foreground">No products added</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Summary fields */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div>
+                  <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1">Discount</label>
+                  <input type="number" value={editDiscount} onChange={e => setEditDiscount(e.target.value)} placeholder="0"
+                    className="w-full bg-muted border border-border rounded-lg text-sm py-2 px-3 outline-none" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1">Labour/Delivery</label>
+                  <input type="number" value={editDelivery} onChange={e => setEditDelivery(e.target.value)} placeholder="0"
+                    className="w-full bg-muted border border-border rounded-lg text-sm py-2 px-3 outline-none" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1">Paid</label>
+                  <input type="number" value={editPaid} onChange={e => setEditPaid(e.target.value)} placeholder="0"
+                    className="w-full bg-muted border border-border rounded-lg text-sm py-2 px-3 outline-none" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1">Remark</label>
+                  <input value={editRemark} onChange={e => setEditRemark(e.target.value)} placeholder="Note..."
+                    className="w-full bg-muted border border-border rounded-lg text-sm py-2 px-3 outline-none" />
+                </div>
+              </div>
+
+              {/* Totals */}
+              <div className="flex justify-end">
+                <div className="w-[240px] text-sm space-y-1">
+                  <div className="flex justify-between"><span className="text-muted-foreground">Total</span><span className="font-bold">{formatCurrency(editTotal)}</span></div>
+                  <div className="flex justify-between border-t border-border pt-1"><span className="font-black text-primary">Payable</span><span className="font-black text-primary">{formatCurrency(editPayable)}</span></div>
+                  <div className="flex justify-between"><span className="text-[hsl(125,60%,35%)]">Paid</span><span className="font-bold">{formatCurrency(editPaidVal)}</span></div>
+                  <div className="flex justify-between"><span className={editDueVal > 0 ? 'text-destructive font-bold' : 'text-[hsl(125,60%,35%)]'}>Due</span><span className={`font-bold ${editDueVal > 0 ? 'text-destructive' : ''}`}>{formatCurrency(editDueVal)}</span></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="flex justify-end gap-3 px-5 py-3 border-t border-border">
+              <button onClick={() => setEditPurchase(null)} className="px-5 py-2.5 bg-secondary text-secondary-foreground rounded-lg font-semibold text-sm">Cancel</button>
+              <button onClick={handleEditSave} className="px-5 py-2.5 bg-primary text-primary-foreground rounded-lg font-semibold text-sm">Update Purchase</button>
             </div>
           </div>
         </div>
