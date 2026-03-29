@@ -902,20 +902,20 @@ tbody tr:nth-child(even){background:#fafafa}
                   className="flex-1 min-w-0 text-sm py-3 px-3 outline-none bg-pos-surface-lowest rounded-r-lg text-right font-bold" />
               </div>
               {/* DUE */}
-              <div className="flex items-center border border-pos-surface-container rounded-lg overflow-hidden">
+              <div className="flex items-center border border-pos-surface-container rounded-lg">
                 <span className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase">Due</span>
                 <span className={`flex-1 text-right text-lg font-black px-3 ${dueVal > 0 ? 'text-destructive' : 'text-[hsl(125,60%,35%)]'}`}>{formatCurrency(dueVal)}</span>
               </div>
               {/* BALANCE */}
-              <div className="flex items-center border border-pos-surface-container rounded-lg overflow-hidden">
+              <div className="flex items-center border border-pos-surface-container rounded-lg">
                 <span className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase">Balance</span>
                 <span className={`flex-1 text-right text-lg font-black px-3 ${balanceVal > 0 ? 'text-destructive' : 'text-[hsl(125,60%,35%)]'}`}>{formatCurrency(balanceVal)}</span>
               </div>
               {/* MODE */}
-              <div className="flex items-center border border-pos-surface-container rounded-lg overflow-hidden">
+              <div className="flex items-center border border-pos-surface-container rounded-lg">
                 <span className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase">Mode</span>
                 <select value={paymentMode} onChange={e => setPaymentMode(e.target.value)}
-                  className="flex-1 text-sm py-3 px-3 outline-none bg-transparent">
+                  className="flex-1 text-sm py-3 px-3 outline-none bg-pos-surface-lowest rounded-r-lg">
                   <option>Cash</option><option>bKash</option><option>Nagad</option><option>Card</option><option>Credit</option>
                 </select>
               </div>
