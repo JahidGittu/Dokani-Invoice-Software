@@ -249,6 +249,126 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
 
   const viewPurchase = purchases.find(p => p.id === viewId);
 
+  // ══════ DIRECT PRINT (no modal) ══════
+  const handlePrintInvoice = (p: PurchaseRecord) => {
+    const sup = suppliers.find(s => s.name === p.supplierName);
+    const fmtDate = (d: string) => { try { return new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }); } catch { return d; } };
+    const fc = (n: number) => `৳${n.toLocaleString('en-IN', { minimumFractionDigits: 0 })}`;
+
+    const itemRows = p.items.map((item, i) => `
+      <tr style="${i % 2 === 0 ? '' : 'background:#fafafa;'}">
+        <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;color:#6b7280;">${i + 1}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;font-weight:600;">${item.name}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;text-align:center;">${item.carton}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;text-align:center;">${item.piece}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;text-align:center;">${item.sqftQty ? item.sqftQty.toFixed(2) : '—'}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;text-align:right;">${fc(item.buyRate)}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;text-align:right;font-weight:700;">${fc(item.subTotal)}</td>
+      </tr>
+    `).join('');
+
+    const totalDueToSupplier = sup?.total_due ?? 0;
+
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+      * { margin:0; padding:0; box-sizing:border-box; }
+      body { font-family:'Inter',sans-serif; color:#1a1a1a; padding:20mm 15mm; background:white; }
+      @page { size:A4; margin:15mm 12mm; }
+      .header { text-align:center; border-bottom:3px solid #1a1a1a; padding-bottom:12px; margin-bottom:16px; }
+      .header h1 { font-size:20px; font-weight:900; text-transform:uppercase; letter-spacing:1px; }
+      .header .sub { font-size:11px; color:#555; margin-top:2px; }
+      .badge { display:inline-block; background:#1a1a1a; color:white; font-size:11px; font-weight:700; padding:3px 16px; margin-top:8px; letter-spacing:1px; }
+      .info-grid { display:flex; justify-content:space-between; font-size:11px; margin-bottom:14px; }
+      .info-grid .label { font-weight:700; color:#6b7280; text-transform:uppercase; font-size:10px; }
+      .info-grid .val { font-weight:600; color:#1a1a1a; }
+      table { width:100%; border-collapse:collapse; font-size:11px; margin-bottom:16px; }
+      thead tr { background:#1a1a1a; color:white; }
+      thead th { padding:7px 8px; font-weight:700; font-size:10px; text-transform:uppercase; }
+      .summary-row { display:flex; justify-content:space-between; margin-bottom:20px; }
+      .summary-left { font-size:11px; flex:1; }
+      .summary-left .item { display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid #e5e7eb; max-width:220px; }
+      .summary-right { width:240px; font-size:11px; }
+      .summary-right .item { display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid #e5e7eb; }
+      .summary-right .payable { display:flex; justify-content:space-between; padding:8px 0; border-top:2px solid #1a1a1a; border-bottom:2px solid #1a1a1a; font-size:13px; font-weight:900; margin:4px 0; }
+      .green { color:#15803d; font-weight:700; }
+      .red { color:#dc2626; font-weight:700; }
+      .remark { font-size:11px; border-top:1px solid #ddd; padding-top:8px; margin-top:8px; }
+      .footer { display:flex; justify-content:space-between; font-size:9px; color:#9ca3af; margin-top:24px; border-top:1px solid #e5e7eb; padding-top:8px; }
+    </style></head><body>
+      <div class="header">
+        <h1>${settings?.name || 'Shop Name'}</h1>
+        ${settings?.address ? `<div class="sub">${settings.address}</div>` : ''}
+        <div class="sub">${[settings?.phone ? '📞 ' + settings.phone : '', settings?.email ? '✉ ' + settings.email : ''].filter(Boolean).join(' &nbsp;|&nbsp; ')}</div>
+        <div class="badge">PURCHASE INVOICE</div>
+      </div>
+
+      <div class="info-grid">
+        <div>
+          <div><span class="label">Invoice #: </span><span class="val">${p.invoice}</span></div>
+          <div><span class="label">Date: </span><span>${fmtDate(p.date)}</span></div>
+        </div>
+        <div style="text-align:right;">
+          <div><span class="label">Supplier: </span><span class="val">${p.supplierName}</span></div>
+          ${sup?.phone ? `<div><span class="label">Phone: </span><span>${sup.phone}</span></div>` : ''}
+          ${sup?.address ? `<div><span class="label">Address: </span><span>${sup.address}</span></div>` : ''}
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="text-align:left;">#</th>
+            <th style="text-align:left;">Product</th>
+            <th style="text-align:center;">Carton</th>
+            <th style="text-align:center;">Piece</th>
+            <th style="text-align:center;">Sqft/Qty</th>
+            <th style="text-align:right;">Rate</th>
+            <th style="text-align:right;">Sub Total</th>
+          </tr>
+        </thead>
+        <tbody>${itemRows}</tbody>
+      </table>
+
+      <div class="summary-row">
+        <div class="summary-left">
+          <div class="item"><span class="label">Total Due (Supplier)</span><span class="${totalDueToSupplier > 0 ? 'red' : 'green'}">${fc(totalDueToSupplier)}</span></div>
+          <div class="item"><span class="label">This Invoice Due</span><span class="${p.due > 0 ? 'red' : 'green'}">${fc(p.due)}</span></div>
+          ${p.remark ? `<div style="margin-top:8px;"><span class="label">Remark: </span><span>${p.remark}</span></div>` : ''}
+        </div>
+        <div class="summary-right">
+          <div class="item"><span style="color:#6b7280;">Sub Total</span><span style="font-weight:700;">${fc(p.total)}</span></div>
+          ${p.discount > 0 ? `<div class="item"><span style="color:#6b7280;">Discount (−)</span><span class="red">−${fc(p.discount)}</span></div>` : ''}
+          ${p.delivery > 0 ? `<div class="item"><span style="color:#6b7280;">Labour/Delivery (+)</span><span style="font-weight:700;">+${fc(p.delivery)}</span></div>` : ''}
+          <div class="payable"><span>PAYABLE</span><span>${fc(p.payable)}</span></div>
+          <div class="item"><span class="green">Paid</span><span class="green">${fc(p.paid)}</span></div>
+          <div class="item"><span class="${p.due > 0 ? 'red' : 'green'}">Due</span><span class="${p.due > 0 ? 'red' : 'green'}">${fc(p.due)}</span></div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <span>Printed: ${new Date().toLocaleString('en-GB')}</span>
+        <span>Powered by Dokani</span>
+      </div>
+    </body></html>`;
+
+    const iframe = document.createElement('iframe');
+    iframe.style.cssText = 'position:fixed;width:0;height:0;border:none;left:-9999px;';
+    document.body.appendChild(iframe);
+    const doc = iframe.contentDocument || iframe.contentWindow?.document;
+    if (doc) {
+      doc.open();
+      doc.write(html);
+      doc.close();
+      iframe.onload = () => {
+        setTimeout(() => {
+          iframe.contentWindow?.print();
+          setTimeout(() => document.body.removeChild(iframe), 1000);
+        }, 300);
+      };
+    }
+  };
+
   // ══════ EDIT HELPERS ══════
   const openEditModal = (p: PurchaseRecord) => {
     setEditPurchase(p);
