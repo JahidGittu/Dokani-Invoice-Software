@@ -136,7 +136,7 @@ export default function SupplierScreen({ suppliers, onAddSupplier, onDeleteSuppl
             <th>Contact Person</th>
             <th>Address</th>
             <th>Mobile</th>
-            <th style="text-align:right;">Balance</th>
+            <th style="text-align:right;">Total Due</th>
           </tr></thead>
           <tbody>${filteredSuppliers.map((s, idx) => `
             <tr>
@@ -286,7 +286,7 @@ export default function SupplierScreen({ suppliers, onAddSupplier, onDeleteSuppl
                 Mobile <SortIcon col="phone" />
               </TableHead>
               <TableHead className="text-right font-bold cursor-pointer select-none" onClick={() => handleSort('totalDue')}>
-                Balance <SortIcon col="totalDue" />
+                Total Due <SortIcon col="totalDue" />
               </TableHead>
               <TableHead className="text-center font-bold w-28">Action</TableHead>
             </TableRow>
