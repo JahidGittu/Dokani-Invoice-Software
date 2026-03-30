@@ -882,14 +882,17 @@ tbody tr:nth-child(even){background:#fafafa}
                 <span className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase">Return</span>
                 <span className={`flex-1 text-right text-lg font-black px-3 ${returnVal > 0 ? 'text-pos-error' : 'text-pos-on-surface'}`}>{formatCurrency(returnVal)}</span>
               </div>
-              {/* DISCOUNT with ৳/% toggle */}
+              {/* DISCOUNT with ৳/% toggle + Less */}
               <div className="flex items-center border border-pos-surface-container rounded-lg">
                 <button onClick={() => setDiscountType(discountType === 'flat' ? 'percent' : 'flat')}
-                  className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase cursor-pointer hover:bg-pos-surface-high transition-colors rounded-l-lg select-none">
+                  className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 uppercase cursor-pointer hover:bg-pos-surface-high transition-colors rounded-l-lg select-none">
                   {discountType === 'flat' ? 'Dis. ৳' : 'Dis. %'}
                 </button>
                 <input type="number" min={0} step="any" value={discount} onChange={e => setDiscount(e.target.value)} placeholder="0"
-                  className="flex-1 min-w-0 text-sm py-3 px-3 outline-none bg-pos-surface-lowest rounded-r-lg text-right" />
+                  className="flex-1 min-w-0 text-sm py-3 px-3 outline-none bg-pos-surface-lowest text-right" />
+                <span className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 uppercase border-l border-pos-surface-container">Less</span>
+                <input type="number" min={0} step="any" value={lessAmt} onChange={e => setLessAmt(e.target.value)} placeholder="0"
+                  className="w-20 min-w-0 text-sm py-3 px-3 outline-none bg-pos-surface-lowest rounded-r-lg text-right" />
               </div>
               {/* LABOUR */}
               <div className="flex items-center border border-pos-surface-container rounded-lg">
