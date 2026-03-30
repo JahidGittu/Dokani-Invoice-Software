@@ -746,11 +746,17 @@ export type Database = {
       }
       staffs: {
         Row: {
+          address: string
           created_at: string
+          email: string
+          father_name: string
           id: string
           join_date: string
+          mother_name: string
           name: string
+          nid: string
           phone: string
+          photo_url: string
           role: string
           salary: number
           status: string
@@ -758,11 +764,17 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          address?: string
           created_at?: string
+          email?: string
+          father_name?: string
           id?: string
           join_date?: string
+          mother_name?: string
           name: string
+          nid?: string
           phone?: string
+          photo_url?: string
           role?: string
           salary?: number
           status?: string
@@ -770,11 +782,17 @@ export type Database = {
           user_id: string
         }
         Update: {
+          address?: string
           created_at?: string
+          email?: string
+          father_name?: string
           id?: string
           join_date?: string
+          mother_name?: string
           name?: string
+          nid?: string
           phone?: string
+          photo_url?: string
           role?: string
           salary?: number
           status?: string
