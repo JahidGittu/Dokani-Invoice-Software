@@ -304,6 +304,7 @@ export default function TransactionsScreen({ sales, purchases }: TransactionsScr
 
       {/* ────── TAB 1: Transaction Entry ────── */}
       {tab === 'entry' && (
+        <>
         <div className="bg-card border border-border rounded-xl p-5 sm:p-6 space-y-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Date */}
