@@ -19,7 +19,7 @@ interface PurchaseScreenProps {
 }
 
 const PAGE_SIZES = [10, 25, 50, 100];
-type SortField = 'invoice' | 'date' | 'supplierName' | 'qty' | 'payable' | 'paid' | 'due';
+type SortField = 'invoice' | 'date' | 'supplierName' | 'qty' | 'sqft' | 'payable' | 'paid' | 'due';
 
 // ── Item row for Add Purchase ──
 interface PurchaseItemRow {
