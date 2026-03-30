@@ -278,17 +278,22 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
       return words + ' Taka Only';
     };
 
-    const itemRows = p.items.map((item, i) => `
+    const productMap = new Map(products.map(pr => [pr.id, pr]));
+    const itemRows = p.items.map((item, i) => {
+      const prod = productMap.get(item.productId);
+      return `
       <tr style="${i % 2 === 0 ? '' : 'background:#fafafa;'}">
         <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;color:#6b7280;">${i + 1}</td>
         <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;font-weight:600;">${item.name}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;">${prod?.category || '—'}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;">${prod?.size || '—'}</td>
         <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;text-align:center;">${item.carton}</td>
         <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;text-align:center;">${item.piece}</td>
         <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;text-align:center;">${item.sqftQty ? item.sqftQty.toFixed(2) : '—'}</td>
         <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;text-align:right;">${fc(item.buyRate)}</td>
         <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;text-align:right;font-weight:700;">${fc(item.subTotal)}</td>
-      </tr>
-    `).join('');
+      </tr>`;
+    }).join('');
 
     const totalDueToSupplier = sup?.totalDue ?? 0;
 
@@ -348,13 +353,15 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
       <table>
         <thead>
           <tr>
-            <th style="text-align:left;">#</th>
-            <th style="text-align:left;">Product</th>
-            <th style="text-align:center;">Carton</th>
-            <th style="text-align:center;">Piece</th>
-            <th style="text-align:center;">Sqft/Qty</th>
-            <th style="text-align:right;">Rate</th>
-            <th style="text-align:right;">Sub Total</th>
+             <th style="text-align:left;">#</th>
+             <th style="text-align:left;">Product</th>
+             <th style="text-align:left;">Category</th>
+             <th style="text-align:left;">Size</th>
+             <th style="text-align:center;">Carton</th>
+             <th style="text-align:center;">Piece</th>
+             <th style="text-align:center;">Sqft/Qty</th>
+             <th style="text-align:right;">Rate</th>
+             <th style="text-align:right;">Sub Total</th>
           </tr>
         </thead>
         <tbody>${itemRows}</tbody>
@@ -831,8 +838,10 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
                 <SortHeader field="invoice">Invoice #</SortHeader>
                 <SortHeader field="date">Date</SortHeader>
                 <SortHeader field="supplierName">Supplier</SortHeader>
+                <th className="px-4 py-3 text-[11px] font-bold text-pos-on-surface-variant uppercase tracking-wider">Category</th>
+                <th className="px-4 py-3 text-[11px] font-bold text-pos-on-surface-variant uppercase tracking-wider">Size</th>
                 <SortHeader field="qty">Carton</SortHeader>
-                <th className="px-4 py-3 text-[11px] font-bold text-pos-on-surface-variant uppercase tracking-wider">Piece</th>
+                <th className="px-4 py-3 text-[11px] font-bold text-pos-on-surface-variant uppercase tracking-wider text-center">Piece</th>
                 <SortHeader field="sqft">Sqft Qty</SortHeader>
                 <SortHeader field="payable" align="text-right">Total</SortHeader>
                 <SortHeader field="paid" align="text-right">Paid</SortHeader>
@@ -845,11 +854,17 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
                 const totalCarton = p.items.reduce((s, i) => s + (i.carton || 0), 0);
                 const totalPiece = p.items.reduce((s, i) => s + (i.piece || 0), 0);
                 const totalSqft = p.items.reduce((s, i) => s + (i.sqftQty || 0), 0);
+                // Lookup category/size from products
+                const productMap = new Map(products.map(pr => [pr.id, pr]));
+                const categories = [...new Set(p.items.map(i => productMap.get(i.productId)?.category).filter(Boolean))];
+                const sizes = [...new Set(p.items.map(i => productMap.get(i.productId)?.size).filter(Boolean))];
                 return (
                   <tr key={p.id} className="hover:bg-pos-surface-low transition-colors">
                     <td className="px-4 py-3 text-sm font-bold text-pos-secondary">{p.invoice}</td>
                     <td className="px-4 py-3 text-sm">{(() => { try { return new Date(p.date).toLocaleDateString('en-GB'); } catch { return p.date; } })()}</td>
                     <td className="px-4 py-3 text-sm font-medium">{p.supplierName}</td>
+                    <td className="px-4 py-3 text-xs">{categories.join(', ') || '—'}</td>
+                    <td className="px-4 py-3 text-xs">{sizes.join(', ') || '—'}</td>
                     <td className="px-4 py-3 text-sm text-center">{totalCarton}</td>
                     <td className="px-4 py-3 text-sm text-center">{totalPiece}</td>
                     <td className="px-4 py-3 text-sm text-center">{totalSqft > 0 ? totalSqft.toFixed(2) : '—'}</td>
@@ -873,7 +888,7 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
                 );
               })}
               {paginated.length === 0 && (
-                <tr><td colSpan={10} className="px-8 py-8 text-center text-sm text-pos-on-surface-variant">No purchases yet</td></tr>
+                <tr><td colSpan={12} className="px-8 py-8 text-center text-sm text-pos-on-surface-variant">No purchases yet</td></tr>
               )}
             </tbody>
           </table>
