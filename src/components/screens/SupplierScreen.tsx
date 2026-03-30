@@ -38,7 +38,7 @@ export default function SupplierScreen({ suppliers, onAddSupplier, onDeleteSuppl
 
   const handleAdd = () => {
     if (!name.trim()) { toast.error('Supplier name required'); return; }
-    onAddSupplier(name, phone, address, contactPerson);
+    onAddSupplier(name, phone, address, contactPerson, openingBalance ? parseFloat(openingBalance) : 0);
     toast.success(t('supplierAdded'));
     resetForm();
   };
