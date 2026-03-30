@@ -10,6 +10,7 @@ interface SupplierScreenProps {
   suppliers: Supplier[];
   onAddSupplier: (name: string, phone: string, address: string, contactPerson?: string, openingBalance?: number) => void;
   onDeleteSupplier: (id: string) => void;
+  onUpdateSupplier?: (id: string, updates: { name?: string; phone?: string; address?: string; contactPerson?: string }) => void;
   shopName?: string;
   shopAddress?: string;
 }
