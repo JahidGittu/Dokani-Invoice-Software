@@ -617,8 +617,7 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
             )}
 
             {/* All products table with checkbox */}
-            <div className="relative">
-              <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container overflow-hidden">
+            <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container overflow-visible">
               <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
                 <table className="w-full min-w-[700px]">
                   <thead className="sticky top-0 z-10">
