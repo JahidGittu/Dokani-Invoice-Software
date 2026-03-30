@@ -208,23 +208,19 @@ export default function ReportsScreen({ sales = [], products = [], customers = [
           <h3 className="text-sm font-bold text-pos-on-surface-variant uppercase tracking-wider mb-4">List of Reports</h3>
           <div className="space-y-1">
             {reportList.map(item => {
-              const isParentActive = activeReport === item.id || item.children?.some(c => c.id === activeReport);
-              const isExpanded = item.children ? (expandedParents[item.id] ?? isParentActive) : false;
+              const isParentActive = item.children.some(c => c.id === activeReport);
+              const isExpanded = expandedParents[item.id] ?? isParentActive;
 
               return (
                 <div key={item.id}>
                   <button
                     onClick={() => {
-                      if (item.children) {
-                        setExpandedParents(prev => ({ ...prev, [item.id]: !isExpanded }));
-                        if (!item.children.some(c => c.id === activeReport)) {
-                          setActiveReport(item.children[0].id);
-                        }
-                      } else {
-                        setActiveReport(item.id);
+                      setExpandedParents(prev => ({ ...prev, [item.id]: !isExpanded }));
+                      if (!item.children.some(c => c.id === activeReport)) {
+                        setActiveReport(item.children[0].id);
                       }
                     }}
-                    className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                    className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                       isParentActive
                         ? 'bg-pos-secondary text-white'
                         : 'text-pos-on-surface hover:bg-pos-surface-high'
@@ -232,14 +228,12 @@ export default function ReportsScreen({ sales = [], products = [], customers = [
                   >
                     <span className="material-symbols-outlined text-base">{item.icon}</span>
                     <span className="flex-1 text-left">{item.label}</span>
-                    {item.children && (
-                      <span className={`material-symbols-outlined text-base transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
-                        expand_more
-                      </span>
-                    )}
+                    <span className={`material-symbols-outlined text-base transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
+                      expand_more
+                    </span>
                   </button>
-                  {item.children && isExpanded && (
-                    <div className="mt-1.5 ml-2 grid grid-cols-3 gap-1.5 animate-in slide-in-from-top-2 duration-200">
+                  {isExpanded && (
+                    <div className="mt-1.5 ml-2 grid grid-cols-3 gap-1.5 animate-in slide-in-from-top-2 duration-200 mb-1">
                       {item.children.map(child => (
                         <button
                           key={child.id}
