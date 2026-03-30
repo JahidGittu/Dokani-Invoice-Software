@@ -107,7 +107,7 @@ export function useSupabaseProducts() {
     fetchProducts();
   }, [user, fetchProducts]);
 
-  return { products, setProducts: fetchProducts as unknown as React.Dispatch<React.SetStateAction<Product[]>>, addProduct, updateProduct, deleteProduct, deductStock, addStock, loading };
+  return { products, setProducts: fetchProducts as unknown as React.Dispatch<React.SetStateAction<Product[]>>, addProduct, updateProduct, deleteProduct, deductStock, addStock, loading, refreshProducts: fetchProducts };
 }
 
 // ─── Customers Hook (Supabase) ───
