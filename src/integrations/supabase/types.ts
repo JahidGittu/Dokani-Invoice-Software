@@ -284,6 +284,93 @@ export type Database = {
         }
         Relationships: []
       }
+      loans: {
+        Row: {
+          amount: number
+          balance: number
+          comment: string
+          created_at: string
+          giver: string
+          id: string
+          loan_date: string
+          loan_no: string
+          receiver: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          balance?: number
+          comment?: string
+          created_at?: string
+          giver?: string
+          id?: string
+          loan_date?: string
+          loan_no: string
+          receiver?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          balance?: number
+          comment?: string
+          created_at?: string
+          giver?: string
+          id?: string
+          loan_date?: string
+          loan_no?: string
+          receiver?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      manual_transactions: {
+        Row: {
+          account: string
+          amount: number
+          category: string
+          created_at: string
+          description: string
+          id: string
+          is_profit_loss: boolean
+          transaction_date: string
+          transaction_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account?: string
+          amount?: number
+          category?: string
+          created_at?: string
+          description?: string
+          id?: string
+          is_profit_loss?: boolean
+          transaction_date?: string
+          transaction_type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account?: string
+          amount?: number
+          category?: string
+          created_at?: string
+          description?: string
+          id?: string
+          is_profit_loss?: boolean
+          transaction_date?: string
+          transaction_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       product_options: {
         Row: {
           created_at: string
@@ -728,6 +815,27 @@ export type Database = {
           phone?: string
           total_due?: number
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      transaction_categories: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
           user_id?: string
         }
         Relationships: []
