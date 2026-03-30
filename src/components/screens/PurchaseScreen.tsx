@@ -249,6 +249,126 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
 
   const viewPurchase = purchases.find(p => p.id === viewId);
 
+  // ══════ DIRECT PRINT (no modal) ══════
+  const handlePrintInvoice = (p: PurchaseRecord) => {
+    const sup = suppliers.find(s => s.name === p.supplierName);
+    const fmtDate = (d: string) => { try { return new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }); } catch { return d; } };
+    const fc = (n: number) => `৳${n.toLocaleString('en-IN', { minimumFractionDigits: 0 })}`;
+
+    const itemRows = p.items.map((item, i) => `
+      <tr style="${i % 2 === 0 ? '' : 'background:#fafafa;'}">
+        <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;color:#6b7280;">${i + 1}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;font-weight:600;">${item.name}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;text-align:center;">${item.carton}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;text-align:center;">${item.piece}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;text-align:center;">${item.sqftQty ? item.sqftQty.toFixed(2) : '—'}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;text-align:right;">${fc(item.buyRate)}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;text-align:right;font-weight:700;">${fc(item.subTotal)}</td>
+      </tr>
+    `).join('');
+
+    const totalDueToSupplier = sup?.totalDue ?? 0;
+
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+      * { margin:0; padding:0; box-sizing:border-box; }
+      body { font-family:'Inter',sans-serif; color:#1a1a1a; padding:20mm 15mm; background:white; }
+      @page { size:A4; margin:15mm 12mm; }
+      .header { text-align:center; border-bottom:3px solid #1a1a1a; padding-bottom:12px; margin-bottom:16px; }
+      .header h1 { font-size:20px; font-weight:900; text-transform:uppercase; letter-spacing:1px; }
+      .header .sub { font-size:11px; color:#555; margin-top:2px; }
+      .badge { display:inline-block; background:#1a1a1a; color:white; font-size:11px; font-weight:700; padding:3px 16px; margin-top:8px; letter-spacing:1px; }
+      .info-grid { display:flex; justify-content:space-between; font-size:11px; margin-bottom:14px; }
+      .info-grid .label { font-weight:700; color:#6b7280; text-transform:uppercase; font-size:10px; }
+      .info-grid .val { font-weight:600; color:#1a1a1a; }
+      table { width:100%; border-collapse:collapse; font-size:11px; margin-bottom:16px; }
+      thead tr { background:#1a1a1a; color:white; }
+      thead th { padding:7px 8px; font-weight:700; font-size:10px; text-transform:uppercase; }
+      .summary-row { display:flex; justify-content:space-between; margin-bottom:20px; }
+      .summary-left { font-size:11px; flex:1; }
+      .summary-left .item { display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid #e5e7eb; max-width:220px; }
+      .summary-right { width:240px; font-size:11px; }
+      .summary-right .item { display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid #e5e7eb; }
+      .summary-right .payable { display:flex; justify-content:space-between; padding:8px 0; border-top:2px solid #1a1a1a; border-bottom:2px solid #1a1a1a; font-size:13px; font-weight:900; margin:4px 0; }
+      .green { color:#15803d; font-weight:700; }
+      .red { color:#dc2626; font-weight:700; }
+      .remark { font-size:11px; border-top:1px solid #ddd; padding-top:8px; margin-top:8px; }
+      .footer { display:flex; justify-content:space-between; font-size:9px; color:#9ca3af; margin-top:24px; border-top:1px solid #e5e7eb; padding-top:8px; }
+    </style></head><body>
+      <div class="header">
+        <h1>${settings?.name || 'Shop Name'}</h1>
+        ${settings?.address ? `<div class="sub">${settings.address}</div>` : ''}
+        <div class="sub">${[settings?.phone ? '📞 ' + settings.phone : '', settings?.email ? '✉ ' + settings.email : ''].filter(Boolean).join(' &nbsp;|&nbsp; ')}</div>
+        <div class="badge">PURCHASE INVOICE</div>
+      </div>
+
+      <div class="info-grid">
+        <div>
+          <div><span class="label">Invoice #: </span><span class="val">${p.invoice}</span></div>
+          <div><span class="label">Date: </span><span>${fmtDate(p.date)}</span></div>
+        </div>
+        <div style="text-align:right;">
+          <div><span class="label">Supplier: </span><span class="val">${p.supplierName}</span></div>
+          ${sup?.phone ? `<div><span class="label">Phone: </span><span>${sup.phone}</span></div>` : ''}
+          ${sup?.address ? `<div><span class="label">Address: </span><span>${sup.address}</span></div>` : ''}
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="text-align:left;">#</th>
+            <th style="text-align:left;">Product</th>
+            <th style="text-align:center;">Carton</th>
+            <th style="text-align:center;">Piece</th>
+            <th style="text-align:center;">Sqft/Qty</th>
+            <th style="text-align:right;">Rate</th>
+            <th style="text-align:right;">Sub Total</th>
+          </tr>
+        </thead>
+        <tbody>${itemRows}</tbody>
+      </table>
+
+      <div class="summary-row">
+        <div class="summary-left">
+          <div class="item"><span class="label">Total Due (Supplier)</span><span class="${totalDueToSupplier > 0 ? 'red' : 'green'}">${fc(totalDueToSupplier)}</span></div>
+          <div class="item"><span class="label">This Invoice Due</span><span class="${p.due > 0 ? 'red' : 'green'}">${fc(p.due)}</span></div>
+          ${p.remark ? `<div style="margin-top:8px;"><span class="label">Remark: </span><span>${p.remark}</span></div>` : ''}
+        </div>
+        <div class="summary-right">
+          <div class="item"><span style="color:#6b7280;">Sub Total</span><span style="font-weight:700;">${fc(p.total)}</span></div>
+          ${p.discount > 0 ? `<div class="item"><span style="color:#6b7280;">Discount (−)</span><span class="red">−${fc(p.discount)}</span></div>` : ''}
+          ${p.delivery > 0 ? `<div class="item"><span style="color:#6b7280;">Labour/Delivery (+)</span><span style="font-weight:700;">+${fc(p.delivery)}</span></div>` : ''}
+          <div class="payable"><span>PAYABLE</span><span>${fc(p.payable)}</span></div>
+          <div class="item"><span class="green">Paid</span><span class="green">${fc(p.paid)}</span></div>
+          <div class="item"><span class="${p.due > 0 ? 'red' : 'green'}">Due</span><span class="${p.due > 0 ? 'red' : 'green'}">${fc(p.due)}</span></div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <span>Printed: ${new Date().toLocaleString('en-GB')}</span>
+        <span>Powered by Dokani</span>
+      </div>
+    </body></html>`;
+
+    const iframe = document.createElement('iframe');
+    iframe.style.cssText = 'position:fixed;width:0;height:0;border:none;left:-9999px;';
+    document.body.appendChild(iframe);
+    const doc = iframe.contentDocument || iframe.contentWindow?.document;
+    if (doc) {
+      doc.open();
+      doc.write(html);
+      doc.close();
+      iframe.onload = () => {
+        setTimeout(() => {
+          iframe.contentWindow?.print();
+          setTimeout(() => document.body.removeChild(iframe), 1000);
+        }, 300);
+      };
+    }
+  };
+
   // ══════ EDIT HELPERS ══════
   const openEditModal = (p: PurchaseRecord) => {
     setEditPurchase(p);
@@ -695,7 +815,7 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
                     <td className={`px-4 py-3 text-sm text-right font-semibold ${p.due > 0 ? 'text-destructive' : ''}`}>{formatCurrency(p.due)}</td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-1">
-                        <button onClick={() => setViewId(p.id)} className="w-7 h-7 rounded bg-[hsl(125,60%,35%)] text-white flex items-center justify-center" title="Print Preview">
+                        <button onClick={() => handlePrintInvoice(p)} className="w-7 h-7 rounded bg-[hsl(125,60%,35%)] text-white flex items-center justify-center" title="Print">
                           <span className="material-symbols-outlined text-sm">print</span>
                         </button>
                         <button onClick={() => openEditModal(p)} className="w-7 h-7 rounded bg-pos-secondary text-white flex items-center justify-center" title="Edit">
@@ -731,137 +851,7 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
         </div>
       </div>
 
-      {/* Purchase Invoice Print Preview */}
-      {viewPurchase && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4" onClick={() => setViewId(null)}>
-          <div className="bg-white rounded-xl w-[95vw] max-w-[700px] max-h-[90vh] shadow-2xl flex flex-col" onClick={e => e.stopPropagation()}>
-            {/* Modal header (no-print) */}
-            <div className="flex justify-between items-center px-5 py-3 border-b border-gray-200 no-print">
-              <h3 className="text-lg font-bold text-gray-800">Purchase Invoice Preview</h3>
-              <div className="flex items-center gap-2">
-                <button onClick={() => window.print()} className="px-4 py-2 bg-[hsl(211,100%,38%)] text-white rounded-lg text-sm font-semibold flex items-center gap-1.5 hover:bg-[hsl(211,100%,33%)] transition-colors">
-                  <span className="material-symbols-outlined text-base">print</span>Print
-                </button>
-                <button onClick={() => setViewId(null)} className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center transition-colors">
-                  <span className="material-symbols-outlined text-gray-500">close</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Printable invoice content */}
-            <div id="purchase-invoice-print" className="overflow-y-auto flex-1 p-6 print:p-0">
-              <div className="bg-white text-black print:shadow-none" style={{ fontFamily: "'Inter', sans-serif" }}>
-                {/* Company header */}
-                <div className="text-center border-b-2 border-gray-800 pb-3 mb-4">
-                  <h1 className="text-xl font-black uppercase tracking-wide">{settings?.name || 'Company Name'}</h1>
-                  <p className="text-xs text-gray-600 mt-0.5">{settings?.address || ''}</p>
-                  <div className="flex justify-center gap-4 text-xs text-gray-600 mt-0.5">
-                    {settings?.phone && <span>📞 {settings.phone}</span>}
-                    {settings?.email && <span>✉ {settings.email}</span>}
-                  </div>
-                  <p className="text-sm font-bold mt-2 bg-gray-100 inline-block px-4 py-0.5 rounded">PURCHASE INVOICE</p>
-                </div>
-
-                {/* Invoice info row */}
-                <div className="grid grid-cols-2 gap-4 text-xs mb-4">
-                  <div className="space-y-1">
-                    <div><span className="font-bold text-gray-500 uppercase">Invoice #:</span> <span className="font-bold text-gray-800">{viewPurchase.invoice}</span></div>
-                    <div><span className="font-bold text-gray-500 uppercase">Date:</span> <span>{(() => { try { return new Date(viewPurchase.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }); } catch { return viewPurchase.date; } })()}</span></div>
-                  </div>
-                  <div className="text-right space-y-1">
-                    <div><span className="font-bold text-gray-500 uppercase">Supplier:</span> <span className="font-bold text-gray-800">{viewPurchase.supplierName}</span></div>
-                    {(() => {
-                      const sup = suppliers.find(s => s.name === viewPurchase.supplierName);
-                      return sup ? (
-                        <>
-                          {sup.phone && <div><span className="font-bold text-gray-500 uppercase">Phone:</span> <span>{sup.phone}</span></div>}
-                          {sup.address && <div><span className="font-bold text-gray-500 uppercase">Address:</span> <span>{sup.address}</span></div>}
-                        </>
-                      ) : null;
-                    })()}
-                  </div>
-                </div>
-
-                {/* Items table */}
-                <table className="w-full text-xs border-collapse mb-4">
-                  <thead>
-                    <tr className="bg-gray-800 text-white">
-                      <th className="py-2 px-2 text-left font-bold">#</th>
-                      <th className="py-2 px-2 text-left font-bold">Product</th>
-                      <th className="py-2 px-2 text-center font-bold">Carton</th>
-                      <th className="py-2 px-2 text-center font-bold">Piece</th>
-                      <th className="py-2 px-2 text-center font-bold">Sqft/Qty</th>
-                      <th className="py-2 px-2 text-right font-bold">Rate</th>
-                      <th className="py-2 px-2 text-right font-bold">Sub Total</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {viewPurchase.items.map((item, i) => (
-                      <tr key={i} className={`border-b border-gray-200 ${i % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}>
-                        <td className="py-1.5 px-2 text-gray-500">{i + 1}</td>
-                        <td className="py-1.5 px-2 font-medium">{item.name}</td>
-                        <td className="py-1.5 px-2 text-center">{item.carton}</td>
-                        <td className="py-1.5 px-2 text-center">{item.piece}</td>
-                        <td className="py-1.5 px-2 text-center">{item.sqftQty ? item.sqftQty.toFixed(2) : '—'}</td>
-                        <td className="py-1.5 px-2 text-right">{formatCurrency(item.buyRate)}</td>
-                        <td className="py-1.5 px-2 text-right font-bold">{formatCurrency(item.subTotal)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-
-                {/* Summary section */}
-                <div className="flex justify-end">
-                  <div className="w-[260px] text-xs space-y-1">
-                    <div className="flex justify-between py-1 border-b border-gray-200">
-                      <span className="text-gray-500 font-medium">Sub Total</span>
-                      <span className="font-bold">{formatCurrency(viewPurchase.total)}</span>
-                    </div>
-                    {viewPurchase.discount > 0 && (
-                      <div className="flex justify-between py-1 border-b border-gray-200">
-                        <span className="text-gray-500 font-medium">Discount (-)</span>
-                        <span className="text-red-600 font-bold">-{formatCurrency(viewPurchase.discount)}</span>
-                      </div>
-                    )}
-                    {viewPurchase.delivery > 0 && (
-                      <div className="flex justify-between py-1 border-b border-gray-200">
-                        <span className="text-gray-500 font-medium">Labour/Delivery (+)</span>
-                        <span className="font-bold">+{formatCurrency(viewPurchase.delivery)}</span>
-                      </div>
-                    )}
-                    <div className="flex justify-between py-2 border-y-2 border-gray-800 font-black text-sm">
-                      <span>PAYABLE</span>
-                      <span>{formatCurrency(viewPurchase.payable)}</span>
-                    </div>
-                    <div className="flex justify-between py-1">
-                      <span className="text-green-700 font-bold">Paid</span>
-                      <span className="text-green-700 font-bold">{formatCurrency(viewPurchase.paid)}</span>
-                    </div>
-                    <div className="flex justify-between py-1">
-                      <span className={`font-bold ${viewPurchase.due > 0 ? 'text-red-600' : 'text-green-700'}`}>Due</span>
-                      <span className={`font-bold ${viewPurchase.due > 0 ? 'text-red-600' : 'text-green-700'}`}>{formatCurrency(viewPurchase.due)}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Remark */}
-                {viewPurchase.remark && (
-                  <div className="mt-3 pt-2 border-t border-gray-200 text-xs">
-                    <span className="font-bold text-gray-500">Remark: </span>
-                    <span className="text-gray-700">{viewPurchase.remark}</span>
-                  </div>
-                )}
-
-                {/* Footer */}
-                <div className="mt-6 pt-3 border-t border-gray-300 flex justify-between text-[10px] text-gray-400">
-                  <span>Printed: {new Date().toLocaleString('en-GB')}</span>
-                  <span>Powered by TilePOS</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Purchase print handled via iframe — no modal needed */}
 
       {/* Delete Confirm */}
       {showDeleteConfirm && (

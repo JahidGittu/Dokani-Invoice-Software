@@ -302,18 +302,4 @@ input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
     page-break-inside: avoid;
   }
 
-  /* Keep purchase invoice print support */
-  #purchase-invoice-print, #purchase-invoice-print * { visibility: visible !important; }
-  #purchase-invoice-print {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    background: white !important;
-    padding: 20px !important;
-    overflow: visible !important;
-    color-adjust: exact;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
 }
