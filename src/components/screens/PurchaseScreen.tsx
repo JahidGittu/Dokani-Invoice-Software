@@ -639,7 +639,15 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
                       const isSelected = !!item;
                       const pIsSqft = isSqftUnit(p.unit);
                       return (
-                        <tr key={p.id} className={`transition-colors ${isSelected ? 'bg-[hsl(45,100%,96%)] dark:bg-[hsl(45,20%,12%)]' : 'hover:bg-muted/30'}`}>
+                        <tr key={p.id} className={`group/row relative transition-colors ${isSelected ? 'bg-[hsl(45,100%,96%)] dark:bg-[hsl(45,20%,12%)]' : 'hover:bg-muted/30'}`}>
+                          {/* Delete icon outside left on hover */}
+                          {isSelected && (
+                            <td className="absolute -left-8 top-1/2 -translate-y-1/2 opacity-0 group-hover/row:opacity-100 transition-all duration-300 delay-100 scale-75 group-hover/row:scale-100 z-20" style={{ position: 'absolute' }}>
+                              <button onClick={() => removeItem(item!.id)} className="w-6 h-6 rounded-full bg-destructive text-white flex items-center justify-center shadow-md hover:bg-destructive/90 transition-colors" title="Remove">
+                                <span className="material-symbols-outlined text-xs" style={{ fontSize: '14px' }}>close</span>
+                              </button>
+                            </td>
+                          )}
                           <td className="px-2 py-2 text-center">
                             <input type="checkbox" checked={isSelected}
                               onChange={() => isSelected ? removeItem(item!.id) : addProductToItems(p)}
