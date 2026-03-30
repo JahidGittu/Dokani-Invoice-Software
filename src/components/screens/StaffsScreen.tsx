@@ -366,6 +366,45 @@ export default function StaffsScreen() {
         )}
       </div>
 
+      {/* Recent Staff - separate section (only on Add tab) */}
+      {activeTab === 'add' && staffs.length > 0 && (
+        <div className="bg-card border border-border rounded-xl overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-3 border-b border-border bg-muted/30">
+            <h4 className="text-sm font-bold text-foreground">Recently Added Staff</h4>
+            <button onClick={() => setActiveTab('list')} className="text-xs font-semibold text-primary hover:underline flex items-center gap-1">
+              View All <span className="material-symbols-outlined text-sm">arrow_forward</span>
+            </button>
+          </div>
+          <table className="w-full">
+            <thead>
+              <tr className="bg-muted/30 text-[10px] font-bold text-muted-foreground uppercase">
+                <th className="text-center py-2.5 px-3">#</th>
+                <th className="text-left py-2.5 px-3">Name</th>
+                <th className="text-left py-2.5 px-3">Designation</th>
+                <th className="text-left py-2.5 px-3">Mobile</th>
+                <th className="text-right py-2.5 px-3">Salary</th>
+                <th className="text-center py-2.5 px-3">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {staffs.slice(0, 5).map((s, i) => (
+                <tr key={s.id} className="border-t border-border/50 hover:bg-muted/20 transition-colors text-sm">
+                  <td className="py-2.5 px-3 text-center text-xs text-muted-foreground">{i + 1}</td>
+                  <td className="py-2.5 px-3 font-semibold text-foreground">{s.name}</td>
+                  <td className="py-2.5 px-3"><span className="text-xs bg-muted px-2 py-0.5 rounded-full">{s.role}</span></td>
+                  <td className="py-2.5 px-3 text-muted-foreground">{s.phone || '-'}</td>
+                  <td className="py-2.5 px-3 text-right font-bold">৳{s.salary.toLocaleString()}</td>
+                  <td className="py-2.5 px-3 text-center">
+                    <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${
+                      s.status === 'active' ? 'bg-[hsl(142,70%,90%)] text-[hsl(142,70%,30%)]' : 'bg-muted text-muted-foreground'
+                    }`}>{s.status}</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {/* Edit Staff Modal */}
       {showEditModal && editingStaff && (
