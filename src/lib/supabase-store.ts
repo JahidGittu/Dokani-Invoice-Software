@@ -251,18 +251,33 @@ export function useSupabaseSales() {
 
   const deleteSale = useCallback(async (id: string) => {
     if (!user) return;
-    // Get sale items to restore stock before deleting
     const saleToDelete = sales.find(s => s.id === id);
-    if (saleToDelete && saleToDelete.items.length > 0) {
+    if (saleToDelete) {
+      // Restore stock for all items
       for (const item of saleToDelete.items) {
         if (item.productId) {
-          // Find product to get piecesPerBox for proper piece-based restore
           const { data: prod } = await supabase.from('products').select('pieces_per_box').eq('id', item.productId).maybeSingle();
           const piecesPerBox = prod?.pieces_per_box || 4;
           const totalPieces = cartonPieceToTotalPieces(item.carton ?? 0, item.piece ?? 0, piecesPerBox);
           if (totalPieces > 0) {
             await supabase.rpc('add_stock', { p_product_id: item.productId, p_qty: totalPieces });
           }
+        }
+      }
+      // Reverse customer total_spent and total_due
+      if (saleToDelete.customer && saleToDelete.customerType !== 'Walking') {
+        const { data: custRow } = await supabase.from('customers')
+          .select('id, total_spent, total_due')
+          .eq('user_id', user.id)
+          .eq('name', saleToDelete.customer)
+          .maybeSingle();
+        if (custRow) {
+          const newSpent = Math.max(0, (custRow.total_spent || 0) - (saleToDelete.total || 0));
+          const newDue = Math.max(0, (custRow.total_due || 0) - (saleToDelete.due || 0));
+          await supabase.from('customers').update({
+            total_spent: newSpent,
+            total_due: newDue,
+          } as any).eq('id', custRow.id);
         }
       }
     }
