@@ -345,6 +345,7 @@ export default function TransactionsScreen({ sales, purchases }: TransactionsScr
                 options={categories}
                 onAddNew={handleAddCategory}
                 placeholder="Select or add category..."
+                className="w-full bg-muted/50 border border-border rounded-lg text-sm py-2.5 px-3 outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
           </div>
