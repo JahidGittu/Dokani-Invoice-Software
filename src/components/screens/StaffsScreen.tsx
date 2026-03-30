@@ -365,6 +365,80 @@ export default function StaffsScreen() {
         )}
       </div>
 
+
+      {/* Edit Staff Modal */}
+      {showEditModal && editingStaff && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[1000] p-4" onClick={() => setShowEditModal(false)}>
+          <div className="bg-card rounded-xl w-full max-w-2xl shadow-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-5 py-3 border-b border-border bg-muted/30 rounded-t-xl">
+              <h3 className="text-base font-bold text-foreground">Edit Staff — {editingStaff.name}</h3>
+              <button onClick={() => setShowEditModal(false)} className="text-muted-foreground hover:text-foreground">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+            <div className="p-5 space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className={labelClass}>Name *</label>
+                  <input value={editName} onChange={e => setEditName(e.target.value)} className={inputClass} />
+                </div>
+                <div>
+                  <label className={labelClass}>Designation</label>
+                  <select value={editDesignation} onChange={e => setEditDesignation(e.target.value)} className={inputClass}>
+                    <option>Salesman</option><option>Manager</option><option>Delivery</option>
+                    <option>Labour</option><option>Accountant</option><option>Cashier</option><option>Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label className={labelClass}>NID</label>
+                  <input value={editNid} onChange={e => setEditNid(e.target.value)} className={inputClass} />
+                </div>
+                <div>
+                  <label className={labelClass}>Photo</label>
+                  <div className="flex items-center gap-2">
+                    {editPhotoPreview && <img src={editPhotoPreview} alt="preview" className="w-10 h-10 rounded-lg object-cover border border-border" />}
+                    <input ref={editFileRef} type="file" accept="image/*" onChange={e => { const f = e.target.files?.[0]; if (f) { setEditPhoto(f); setEditPhotoPreview(URL.createObjectURL(f)); } }}
+                      className="w-full text-sm text-muted-foreground file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border file:border-border file:text-sm file:font-semibold file:bg-muted file:text-foreground" />
+                  </div>
+                </div>
+                <div>
+                  <label className={labelClass}>Father's Name</label>
+                  <input value={editFatherName} onChange={e => setEditFatherName(e.target.value)} className={inputClass} />
+                </div>
+                <div>
+                  <label className={labelClass}>Mother's Name</label>
+                  <input value={editMotherName} onChange={e => setEditMotherName(e.target.value)} className={inputClass} />
+                </div>
+                <div>
+                  <label className={labelClass}>Mobile</label>
+                  <input value={editMobile} onChange={e => setEditMobile(e.target.value)} className={inputClass} />
+                </div>
+                <div>
+                  <label className={labelClass}>Email</label>
+                  <input type="email" value={editEmail} onChange={e => setEditEmail(e.target.value)} className={inputClass} />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className={labelClass}>Address</label>
+                  <input value={editAddress} onChange={e => setEditAddress(e.target.value)} className={inputClass} />
+                </div>
+                <div>
+                  <label className={labelClass}>Salary</label>
+                  <input type="number" value={editSalary} onChange={e => setEditSalary(e.target.value)} className={inputClass} />
+                </div>
+                <div>
+                  <label className={labelClass}>Joining Date</label>
+                  <input type="date" value={editJoinDate} onChange={e => setEditJoinDate(e.target.value)} className={inputClass} />
+                </div>
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button onClick={handleEditSave} className="px-6 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-bold hover:bg-primary/90 transition-colors">Update</button>
+                <button onClick={() => setShowEditModal(false)} className="px-6 py-2.5 bg-muted text-foreground rounded-lg text-sm font-bold hover:bg-muted/80 transition-colors">Cancel</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/35 flex items-center justify-center z-[1000]" onClick={() => setShowDeleteConfirm(null)}>
