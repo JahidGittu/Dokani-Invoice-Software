@@ -273,8 +273,8 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
       * { margin:0; padding:0; box-sizing:border-box; }
-      body { font-family:'Inter',sans-serif; color:#1a1a1a; padding:20mm 15mm; background:white; }
-      @page { size:A4; margin:15mm 12mm; }
+       body { font-family:'Inter',sans-serif; color:#1a1a1a; padding:8mm 10mm; background:white; }
+       @page { size:A4; margin:8mm 10mm; }
       .header { text-align:center; border-bottom:3px solid #1a1a1a; padding-bottom:12px; margin-bottom:16px; }
       .header h1 { font-size:20px; font-weight:900; text-transform:uppercase; letter-spacing:1px; }
       .header .sub { font-size:11px; color:#555; margin-top:2px; }
