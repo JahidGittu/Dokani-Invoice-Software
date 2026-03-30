@@ -114,7 +114,11 @@ export default function DashboardScreen({ onNavigate, products, customers, sales
       if (method in balances) balances[method] += paid;
       else balances['cash'] += paid;
     });
-    purchases.forEach(p => { balances['cash'] -= p.paid; });
+    purchases.forEach(p => {
+      const method = (p.account || 'cash').toLowerCase();
+      const key = method in balances ? method : 'cash';
+      balances[key] -= p.paid;
+    });
     // Include ALL manual transactions in balance (not just today's)
     allManualTxns.forEach(tx => {
       const account = (tx.account || 'cash').toLowerCase();

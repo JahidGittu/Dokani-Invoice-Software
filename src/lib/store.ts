@@ -115,6 +115,7 @@ export interface PurchaseRecord {
   paid: number;
   due: number;
   remark: string;
+  account?: string;
 }
 
 export interface CompanySettings {
