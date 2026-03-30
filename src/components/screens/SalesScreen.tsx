@@ -936,7 +936,7 @@ tbody tr:nth-child(even){background:#fafafa}
               </div>
               {/* PAYABLE */}
               <div className="flex items-center border-2 border-pos-secondary rounded-lg bg-pos-secondary/5">
-                <span className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase flex items-center gap-1">Payable <InfoTooltip text="Total − Return − Discount − Less + Delivery + Labour = কাস্টমারকে যত টাকা দিতে হবে।" /></span>
+                <span className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase flex items-center gap-1">Payable <InfoTooltip text="কাস্টমারকে মোট যত টাকা দিতে হবে।" /></span>
                 <span className={`flex-1 text-right text-lg font-black px-3 ${payable < 0 ? 'text-destructive' : 'text-pos-secondary'}`}>{formatCurrency(payable)}</span>
               </div>
               {/* PAID */}
