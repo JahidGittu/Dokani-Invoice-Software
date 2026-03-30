@@ -4,6 +4,7 @@ import { formatCurrency, type Supplier } from "@/lib/store";
 import { toast } from "sonner";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Pencil, Trash2, Printer, Search, ArrowUpDown, ChevronLeft, ChevronRight } from "lucide-react";
+import InfoTooltip from "@/components/InfoTooltip";
 
 interface SupplierScreenProps {
   suppliers: Supplier[];
