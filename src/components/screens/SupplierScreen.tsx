@@ -102,7 +102,7 @@ export default function SupplierScreen({ suppliers, onAddSupplier, onDeleteSuppl
   const paginatedSuppliers = filteredSuppliers.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
   // Reset page when search changes
-  useMemo(() => setPage(1), [search]);
+  useEffect(() => { setPage(1); }, [search]);
 
   const handlePrint = () => {
     const style = document.createElement('style');
