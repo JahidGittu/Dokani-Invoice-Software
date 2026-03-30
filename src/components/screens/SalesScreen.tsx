@@ -880,15 +880,14 @@ tbody tr:nth-child(even){background:#fafafa}
                 <input type="number" min={0} step="any" value={returnAmt} onChange={e => setReturnAmt(e.target.value)} placeholder="0"
                   className="flex-1 min-w-0 text-sm py-3 px-3 outline-none bg-pos-surface-lowest rounded-r-lg text-right font-bold text-pos-error" />
               </div>
-              {/* DIS.% + Less */}
+              {/* DISCOUNT with ৳/% toggle */}
               <div className="flex items-center border border-pos-surface-container rounded-lg">
-                <span className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase">Dis.%</span>
-                <input type="number" min={0} step="any" value={discount} onChange={e => setDiscount(e.target.value)} placeholder="0"
-                  className="flex-1 min-w-0 text-sm py-3 px-3 outline-none bg-pos-surface-lowest text-right" />
-                <button onClick={() => setDiscountType(discountType === 'percent' ? 'flat' : 'percent')}
-                  className="px-3 py-3 bg-pos-surface-high border-l border-pos-surface-container text-xs font-bold shrink-0 rounded-r-lg">
-                  {discountType === 'percent' ? 'Less' : '৳'}
+                <button onClick={() => setDiscountType(discountType === 'flat' ? 'percent' : 'flat')}
+                  className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase cursor-pointer hover:bg-pos-surface-high transition-colors rounded-l-lg select-none">
+                  {discountType === 'flat' ? 'Dis. ৳' : 'Dis. %'}
                 </button>
+                <input type="number" min={0} step="any" value={discount} onChange={e => setDiscount(e.target.value)} placeholder="0"
+                  className="flex-1 min-w-0 text-sm py-3 px-3 outline-none bg-pos-surface-lowest rounded-r-lg text-right" />
               </div>
               {/* LABOUR */}
               <div className="flex items-center border border-pos-surface-container rounded-lg">
