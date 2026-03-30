@@ -1,9 +1,11 @@
-import { useMemo } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import { useI18n } from "@/lib/i18n";
 import { formatCurrency, getLowStockProducts, type Product, type Customer, type SaleRecord, type Supplier, type PurchaseRecord } from "@/lib/store";
 import { formatStockDisplay } from "@/lib/calc-utils";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import InfoTooltip from "@/components/InfoTooltip";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 interface DashboardScreenProps {
   onNavigate: (screen: string) => void;
@@ -17,7 +19,20 @@ interface DashboardScreenProps {
 
 export default function DashboardScreen({ onNavigate, products, customers, sales, suppliers = [], purchases = [], shopName }: DashboardScreenProps) {
   const { t, lang } = useI18n();
+  const { user } = useAuth();
   const todayStr = new Date().toDateString();
+
+  // Fetch today's manual transactions
+  const [manualTxns, setManualTxns] = useState<{ transaction_type: string; amount: number; category: string; description: string }[]>([]);
+  const fetchManualTxns = useCallback(async () => {
+    if (!user) return;
+    const todayISO = new Date().toISOString().split('T')[0];
+    const { data } = await (supabase.from('manual_transactions') as any)
+      .select('transaction_type, amount, category, description')
+      .eq('transaction_date', todayISO);
+    setManualTxns(data || []);
+  }, [user]);
+  useEffect(() => { fetchManualTxns(); }, [fetchManualTxns]);
 
   const { todayTotal, todayCount, todayCashSales, todayDueSales, todayCashReceive, todayCashPayment, todayCashReceiveList, todayCashPaymentList } = useMemo(() => {
     let total = 0, count = 0, cashSales = 0, dueSales = 0, cashReceive = 0, cashPayment = 0;
@@ -45,8 +60,20 @@ export default function DashboardScreen({ onNavigate, products, customers, sales
         }
       } catch {}
     });
+
+    // Include manual transactions from Transaction Entry
+    manualTxns.forEach(tx => {
+      if (tx.transaction_type === 'cash_received' || tx.transaction_type === 'loan_receive') {
+        cashReceive += tx.amount;
+        receiveList.push({ label: tx.description || tx.category || 'Manual TRX', amount: tx.amount });
+      } else if (tx.transaction_type === 'cash_payment' || tx.transaction_type === 'loan_payment') {
+        cashPayment += tx.amount;
+        paymentList.push({ label: tx.description || tx.category || 'Manual TRX', amount: tx.amount });
+      }
+    });
+
     return { todayTotal: total, todayCount: count, todayCashSales: cashSales, todayDueSales: dueSales, todayCashReceive: cashReceive, todayCashPayment: cashPayment, todayCashReceiveList: receiveList, todayCashPaymentList: paymentList };
-  }, [sales, purchases, todayStr]);
+  }, [sales, purchases, todayStr, manualTxns]);
 
   const supplierDues = useMemo(() => suppliers.reduce((sum, s) => sum + (s.totalDue || 0), 0), [suppliers]);
   const customerDues = useMemo(() => customers.reduce((sum, c) => sum + (c.totalDue || 0), 0), [customers]);

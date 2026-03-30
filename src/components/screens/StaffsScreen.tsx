@@ -20,6 +20,7 @@ export default function StaffsScreen() {
   const [staffs, setStaffs] = useState<Staff[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [role, setRole] = useState('Salesman');
@@ -60,9 +61,9 @@ export default function StaffsScreen() {
   };
 
   const deleteStaff = async (id: string) => {
-    if (!confirm('Are you sure?')) return;
     await supabase.from('staffs').delete().eq('id', id);
     toast.success('Staff deleted');
+    setShowDeleteConfirm(null);
     fetchStaffs();
   };
 
@@ -165,7 +166,7 @@ export default function StaffsScreen() {
                     </button>
                   </td>
                   <td className="py-3 px-4 text-right">
-                    <button onClick={() => deleteStaff(s.id)} className="text-destructive hover:text-destructive/80">
+                    <button onClick={() => setShowDeleteConfirm(s.id)} className="text-destructive hover:text-destructive/80">
                       <span className="material-symbols-outlined text-lg">delete</span>
                     </button>
                   </td>
@@ -173,6 +174,21 @@ export default function StaffsScreen() {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/35 flex items-center justify-center z-[1000]" onClick={() => setShowDeleteConfirm(null)}>
+          <div className="bg-card rounded-xl w-[350px] shadow-2xl p-7 text-center" onClick={e => e.stopPropagation()}>
+            <span className="material-symbols-outlined text-4xl text-destructive mb-3">warning</span>
+            <h3 className="text-lg font-bold mb-2">Delete Staff?</h3>
+            <p className="text-sm text-muted-foreground mb-5">This action cannot be undone.</p>
+            <div className="flex gap-3">
+              <button onClick={() => setShowDeleteConfirm(null)} className="flex-1 py-2.5 bg-muted rounded-lg font-semibold text-sm">Cancel</button>
+              <button onClick={() => deleteStaff(showDeleteConfirm)} className="flex-1 py-2.5 bg-destructive text-white rounded-lg font-semibold text-sm">Delete</button>
+            </div>
+          </div>
         </div>
       )}
     </section>

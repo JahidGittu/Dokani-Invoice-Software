@@ -48,7 +48,7 @@ export default function ShopLayout() {
   const { products, addProduct, updateProduct, deleteProduct, deductStock, addStock, setProducts } = useSupabaseProducts();
   const { customers, addCustomer, deleteCustomer, updateCustomerSpend, updateCustomerDue, refreshCustomers } = useSupabaseCustomers();
   const { sales, addSale, deleteSale } = useSupabaseSales();
-  const { suppliers, addSupplier, deleteSupplier, updateSupplierDue, refreshSuppliers } = useSupabaseSuppliers();
+  const { suppliers, addSupplier, deleteSupplier, updateSupplier, updateSupplierDue, refreshSuppliers } = useSupabaseSuppliers();
   const { purchases, addPurchase, deletePurchase, updatePurchase } = useSupabasePurchases();
   const { settings, setSettings } = useSupabaseSettings();
 
@@ -125,7 +125,7 @@ export default function ShopLayout() {
     products, addProduct, updateProduct, deleteProduct, deductStock, addStock, setProducts,
     customers, addCustomer, deleteCustomer, updateCustomerSpend, updateCustomerDue, refreshCustomers,
     sales, addSale, deleteSale: handleDeleteSale,
-    suppliers, addSupplier, deleteSupplier, updateSupplierDue, refreshSuppliers,
+    suppliers, addSupplier, deleteSupplier, updateSupplier, updateSupplierDue, refreshSuppliers,
     purchases, addPurchase: handleAddPurchase, deletePurchase: handleDeletePurchase, updatePurchase: handleUpdatePurchase,
     settings, setSettings,
     handleSaleComplete, handleAutoAddCustomer, handleImportProducts,

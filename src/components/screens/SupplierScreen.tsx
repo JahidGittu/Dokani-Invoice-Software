@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { useI18n } from "@/lib/i18n";
 import { formatCurrency, type Supplier } from "@/lib/store";
 import { toast } from "sonner";
@@ -10,6 +10,7 @@ interface SupplierScreenProps {
   suppliers: Supplier[];
   onAddSupplier: (name: string, phone: string, address: string, contactPerson?: string, openingBalance?: number) => void;
   onDeleteSupplier: (id: string) => void;
+  onUpdateSupplier?: (id: string, updates: { name?: string; phone?: string; address?: string; contactPerson?: string }) => void;
   shopName?: string;
   shopAddress?: string;
 }
@@ -19,7 +20,7 @@ type SortDir = 'asc' | 'desc';
 
 const ITEMS_PER_PAGE = 10;
 
-export default function SupplierScreen({ suppliers, onAddSupplier, onDeleteSupplier, shopName = '', shopAddress = '' }: SupplierScreenProps) {
+export default function SupplierScreen({ suppliers, onAddSupplier, onDeleteSupplier, onUpdateSupplier, shopName = '', shopAddress = '' }: SupplierScreenProps) {
   const { t } = useI18n();
   const [view, setView] = useState<'list' | 'add'>('add');
   const [name, setName] = useState('');
@@ -28,6 +29,11 @@ export default function SupplierScreen({ suppliers, onAddSupplier, onDeleteSuppl
   const [address, setAddress] = useState('');
   const [openingBalance, setOpeningBalance] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+  const [editSupplier, setEditSupplier] = useState<Supplier | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editContact, setEditContact] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+  const [editAddress, setEditAddress] = useState('');
 
   // Search, Sort, Pagination
   const [search, setSearch] = useState('');
@@ -97,7 +103,7 @@ export default function SupplierScreen({ suppliers, onAddSupplier, onDeleteSuppl
   const paginatedSuppliers = filteredSuppliers.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
   // Reset page when search changes
-  useMemo(() => setPage(1), [search]);
+  useEffect(() => { setPage(1); }, [search]);
 
   const handlePrint = () => {
     const style = document.createElement('style');
@@ -311,7 +317,8 @@ export default function SupplierScreen({ suppliers, onAddSupplier, onDeleteSuppl
                 </TableCell>
                 <TableCell className="text-center">
                   <div className="flex items-center justify-center gap-3">
-                    <button className="text-pos-secondary hover:text-pos-secondary/80 transition-colors" title="Edit">
+                    <button onClick={() => { setEditSupplier(s); setEditName(s.name); setEditContact(s.contactPerson || ''); setEditPhone(s.phone || ''); setEditAddress(s.address || ''); }}
+                      className="text-pos-secondary hover:text-pos-secondary/80 transition-colors" title="Edit">
                       <Pencil size={16} />
                     </button>
                     <button onClick={() => setShowDeleteConfirm(s.id)} className="text-pos-error hover:text-pos-error/80 transition-colors" title={t('delete')}>
@@ -370,6 +377,46 @@ export default function SupplierScreen({ suppliers, onAddSupplier, onDeleteSuppl
             <div className="flex gap-3">
               <button onClick={() => setShowDeleteConfirm(null)} className="flex-1 py-2.5 bg-pos-surface-container text-pos-on-surface-variant rounded-lg font-semibold text-sm">{t('cancel')}</button>
               <button onClick={confirmDelete} className="flex-1 py-2.5 bg-pos-error text-white rounded-lg font-semibold text-sm">{t('delete')}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Supplier Modal */}
+      {editSupplier && (
+        <div className="fixed inset-0 bg-black/35 flex items-center justify-center z-[1000]" onClick={() => setEditSupplier(null)}>
+          <div className="bg-pos-surface-lowest rounded-xl w-[95vw] max-w-[450px] shadow-2xl p-7" onClick={e => e.stopPropagation()}>
+            <h3 className="text-lg font-bold mb-5">Edit Supplier</h3>
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-pos-on-surface">Supplier Name *</label>
+                <input value={editName} onChange={e => setEditName(e.target.value)}
+                  className="w-full bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2.5 px-3 outline-none focus:border-pos-secondary" />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-pos-on-surface">Contact Person</label>
+                <input value={editContact} onChange={e => setEditContact(e.target.value)}
+                  className="w-full bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2.5 px-3 outline-none focus:border-pos-secondary" />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-pos-on-surface">Mobile</label>
+                <input value={editPhone} onChange={e => setEditPhone(e.target.value)}
+                  className="w-full bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2.5 px-3 outline-none focus:border-pos-secondary" />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-pos-on-surface">Address</label>
+                <input value={editAddress} onChange={e => setEditAddress(e.target.value)}
+                  className="w-full bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2.5 px-3 outline-none focus:border-pos-secondary" />
+              </div>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button onClick={() => setEditSupplier(null)} className="flex-1 py-2.5 bg-pos-surface-container text-pos-on-surface-variant rounded-lg font-semibold text-sm">{t('cancel')}</button>
+              <button onClick={() => {
+                if (!editName.trim()) { toast.error('Name required'); return; }
+                onUpdateSupplier?.(editSupplier.id, { name: editName.trim(), phone: editPhone, address: editAddress, contactPerson: editContact });
+                toast.success('Supplier updated');
+                setEditSupplier(null);
+              }} className="flex-1 py-2.5 bg-pos-secondary text-white rounded-lg font-semibold text-sm">Save</button>
             </div>
           </div>
         </div>
