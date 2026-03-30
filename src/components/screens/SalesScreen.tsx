@@ -883,7 +883,7 @@ tbody tr:nth-child(even){background:#fafafa}
                   </select>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-pos-on-surface-variant uppercase flex items-center gap-1">Delivery <InfoTooltip text="Complete: মাল পুরোটা দিয়ে দিয়েছেন। Partial: কিছু দিয়েছেন। Pending: এখনো দেননি।" size={12} /></span>
+                  <span className="text-xs font-bold text-pos-on-surface-variant uppercase flex items-center gap-1">Delivery <InfoTooltip text="Complete: পুরো ডেলিভারি। Partial: আংশিক। Pending: বাকি।" size={12} /></span>
                   <select value={deliveryStatus} onChange={e => setDeliveryStatus(e.target.value)}
                     className="bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2 px-3 outline-none">
                     <option>Complete</option><option>Partial</option><option>Pending</option>
