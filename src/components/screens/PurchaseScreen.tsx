@@ -353,13 +353,15 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
       <table>
         <thead>
           <tr>
-            <th style="text-align:left;">#</th>
-            <th style="text-align:left;">Product</th>
-            <th style="text-align:center;">Carton</th>
-            <th style="text-align:center;">Piece</th>
-            <th style="text-align:center;">Sqft/Qty</th>
-            <th style="text-align:right;">Rate</th>
-            <th style="text-align:right;">Sub Total</th>
+             <th style="text-align:left;">#</th>
+             <th style="text-align:left;">Product</th>
+             <th style="text-align:left;">Category</th>
+             <th style="text-align:left;">Size</th>
+             <th style="text-align:center;">Carton</th>
+             <th style="text-align:center;">Piece</th>
+             <th style="text-align:center;">Sqft/Qty</th>
+             <th style="text-align:right;">Rate</th>
+             <th style="text-align:right;">Sub Total</th>
           </tr>
         </thead>
         <tbody>${itemRows}</tbody>
