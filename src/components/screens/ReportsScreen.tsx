@@ -22,6 +22,7 @@ export default function ReportsScreen({ sales = [], products = [], customers = [
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [activeReport, setActiveReport] = useState<ReportType>('sales');
+  const [expandedParents, setExpandedParents] = useState<Record<string, boolean>>({});
 
   // Fetch manual transactions
   const [manualTxns, setManualTxns] = useState<{ transaction_type: string; amount: number; category: string; description: string; account: string; transaction_date: string }[]>([]);
