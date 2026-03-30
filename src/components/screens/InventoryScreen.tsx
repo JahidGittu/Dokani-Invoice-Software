@@ -128,7 +128,7 @@ export default function InventoryScreen({ products }: InventoryScreenProps) {
                 <th className="px-4 sm:px-8 py-3">{t('date')}</th><th className="px-4 sm:px-8 py-3">{t('product')}</th><th className="px-4 sm:px-8 py-3">{t('type')}</th><th className="px-4 sm:px-8 py-3">{t('qty')}</th><th className="px-4 sm:px-8 py-3">{t('totalStock')}</th><th className="px-4 sm:px-8 py-3">{t('note')}</th>
               </tr></thead>
               <tbody className="divide-y divide-pos-surface-container">
-                {logs.map(l => {
+                {logs.filter(l => filterType === 'ALL' || l.log_type === filterType).map(l => {
                   const isIn = l.log_type === 'IN';
                   const prod = products.find(p => p.id === l.product_id);
                   const piecesPerBox = prod?.piecesPerBox || 4;
