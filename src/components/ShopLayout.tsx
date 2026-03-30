@@ -98,13 +98,35 @@ export default function ShopLayout() {
     return () => window.removeEventListener('keydown', handleKey);
   }, [navigate]);
 
+  // Wrapped purchase operations that auto-refresh suppliers
+  const handleAddPurchase = useCallback(async (purchase: any) => {
+    await addPurchase(purchase);
+    refreshSuppliers();
+  }, [addPurchase, refreshSuppliers]);
+
+  const handleDeletePurchase = useCallback(async (id: string) => {
+    await deletePurchase(id);
+    refreshSuppliers();
+  }, [deletePurchase, refreshSuppliers]);
+
+  const handleUpdatePurchase = useCallback(async (purchase: any) => {
+    await updatePurchase(purchase);
+    refreshSuppliers();
+  }, [updatePurchase, refreshSuppliers]);
+
+  // Wrapped deleteSale that auto-refreshes customers
+  const handleDeleteSale = useCallback(async (id: string) => {
+    await deleteSale(id);
+    refreshCustomers();
+  }, [deleteSale, refreshCustomers]);
+
   // Context passed to child routes via Outlet context
   const ctx = {
     products, addProduct, updateProduct, deleteProduct, deductStock, addStock, setProducts,
-    customers, addCustomer, deleteCustomer, updateCustomerSpend, updateCustomerDue,
-    sales, addSale, deleteSale,
-    suppliers, addSupplier, deleteSupplier, updateSupplierDue,
-    purchases, addPurchase, deletePurchase, updatePurchase,
+    customers, addCustomer, deleteCustomer, updateCustomerSpend, updateCustomerDue, refreshCustomers,
+    sales, addSale, deleteSale: handleDeleteSale,
+    suppliers, addSupplier, deleteSupplier, updateSupplierDue, refreshSuppliers,
+    purchases, addPurchase: handleAddPurchase, deletePurchase: handleDeletePurchase, updatePurchase: handleUpdatePurchase,
     settings, setSettings,
     handleSaleComplete, handleAutoAddCustomer, handleImportProducts,
     onNavigate: handleNavigate,
