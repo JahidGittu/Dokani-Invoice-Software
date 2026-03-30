@@ -369,6 +369,7 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
           <div class="extra-info">
             ${p.remark ? `<div class="info-line"><span class="info-label">Remark:</span></div><div class="info-line">${p.remark}</div>` : `<div class="info-line"><span class="info-label">Remark:</span></div>`}
             <div class="info-line" style="margin-top:4px;"><span class="info-label">Total Quantity:</span> <span class="info-val">${p.items.reduce((s, it) => s + it.carton + it.piece, 0)}</span></div>
+            <div class="info-line" style="margin-top:4px;"><span class="info-label">In Word:</span> <span class="info-val">${numToWords(p.payable)}</span></div>
           </div>
         </div>
         <div class="summary-right">
