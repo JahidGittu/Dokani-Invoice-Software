@@ -22,15 +22,23 @@ export default function DashboardScreen({ onNavigate, products, customers, sales
   const { user } = useAuth();
   const todayStr = new Date().toDateString();
 
-  // Fetch today's manual transactions
+  // Fetch today's manual transactions (for Cash TRX Today card)
   const [manualTxns, setManualTxns] = useState<{ transaction_type: string; amount: number; category: string; description: string; account: string }[]>([]);
+  // Fetch ALL manual transactions (for Balance table)
+  const [allManualTxns, setAllManualTxns] = useState<{ transaction_type: string; amount: number; account: string }[]>([]);
+
   const fetchManualTxns = useCallback(async () => {
     if (!user) return;
     const todayISO = new Date().toISOString().split('T')[0];
+    // Today's transactions
     const { data } = await (supabase.from('manual_transactions') as any)
       .select('transaction_type, amount, category, description, account')
       .eq('transaction_date', todayISO);
     setManualTxns(data || []);
+    // All-time transactions for balance
+    const { data: allData } = await (supabase.from('manual_transactions') as any)
+      .select('transaction_type, amount, account');
+    setAllManualTxns(allData || []);
   }, [user]);
   useEffect(() => { fetchManualTxns(); }, [fetchManualTxns]);
 
@@ -97,7 +105,7 @@ export default function DashboardScreen({ onNavigate, products, customers, sales
       .map(([date, total]) => ({ date, total }));
   }, [sales]);
 
-  // Account balances (includes manual transactions)
+  // Account balances (all-time: sales + purchases + ALL manual transactions)
   const accountBalances = useMemo(() => {
     const balances: Record<string, number> = { cash: 0, bkash: 0, nagad: 0, card: 0, bank: 0 };
     sales.forEach(s => {
@@ -107,8 +115,8 @@ export default function DashboardScreen({ onNavigate, products, customers, sales
       else balances['cash'] += paid;
     });
     purchases.forEach(p => { balances['cash'] -= p.paid; });
-    // Include manual transactions in balance
-    manualTxns.forEach(tx => {
+    // Include ALL manual transactions in balance (not just today's)
+    allManualTxns.forEach(tx => {
       const account = (tx.account || 'cash').toLowerCase();
       const key = account in balances ? account : 'cash';
       if (tx.transaction_type === 'cash_received' || tx.transaction_type === 'loan_receive') {
@@ -118,7 +126,7 @@ export default function DashboardScreen({ onNavigate, products, customers, sales
       }
     });
     return balances;
-  }, [sales, purchases, manualTxns]);
+  }, [sales, purchases, allManualTxns]);
   const totalBalance = Object.values(accountBalances).reduce((s, v) => s + v, 0);
 
   const quickActions = [
