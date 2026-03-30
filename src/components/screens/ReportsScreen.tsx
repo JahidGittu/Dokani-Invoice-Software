@@ -102,24 +102,76 @@ export default function ReportsScreen({ sales = [], products = [], customers = [
     return { totalRevenue, totalPaid, totalDue, totalProfit, totalCost, dueCustomers, purchaseTotal, purchasePaid, purchaseDue };
   }, [filteredSales, filteredPurchases, products, customers]);
 
-  const reportList: { id: ReportType; label: string; icon: string; children?: { id: ReportType; label: string; icon?: string }[] }[] = [
-    { id: 'purchase', label: 'Purchase Report', icon: 'shopping_cart' },
-    { id: 'sales', label: 'Sales Report', icon: 'point_of_sale' },
-    { id: 'stock', label: 'Stock Report', icon: 'layers' },
-    { id: 'payment', label: 'Payment Report', icon: 'payments' },
-    { id: 'general_transaction', label: 'General Transaction', icon: 'receipt_long' },
-    { id: 'customer', label: 'Customer Report', icon: 'group' },
-    { id: 'supplier', label: 'Supplier Report', icon: 'local_shipping' },
-    { id: 'staff', label: 'Staff Report', icon: 'badge' },
-    { id: 'profit', label: 'Profit Reports', icon: 'trending_up' },
-    { id: 'customer_dues', label: 'Due Reports', icon: 'warning', children: [
+  const reportList: { id: string; label: string; icon: string; children: { id: ReportType; label: string; icon: string }[] }[] = [
+    { id: 'purchase', label: 'Purchase Report', icon: 'shopping_cart', children: [
+      { id: 'purchase_invoice', label: 'Invoice', icon: 'receipt' },
+      { id: 'purchase_product', label: 'Product', icon: 'inventory_2' },
+      { id: 'category_purchase', label: 'Category', icon: 'category' },
+      { id: 'product_purchase', label: 'Prod. Wise', icon: 'view_list' },
+      { id: 'supplier_purchase', label: 'Supplier', icon: 'local_shipping' },
+      { id: 'purchase_summary', label: 'Summary', icon: 'summarize' },
+    ]},
+    { id: 'sales', label: 'Sales Report', icon: 'point_of_sale', children: [
+      { id: 'sales_invoice', label: 'Invoice', icon: 'receipt_long' },
+      { id: 'sales_product', label: 'Product', icon: 'inventory_2' },
+      { id: 'category_sales', label: 'Category', icon: 'category' },
+      { id: 'product_sales', label: 'Prod. Wise', icon: 'view_list' },
+      { id: 'sales_summary', label: 'Summary', icon: 'summarize' },
+      { id: 'brand_sales', label: 'Brand', icon: 'branding_watermark' },
+      { id: 'sales_return', label: 'Return', icon: 'assignment_return' },
+    ]},
+    { id: 'stock', label: 'Stock Report', icon: 'layers', children: [
+      { id: 'overall_stock', label: 'Overall', icon: 'inventory' },
+      { id: 'overall_stock_no_price', label: 'No Price', icon: 'visibility_off' },
+      { id: 'category_stock', label: 'Category', icon: 'category' },
+      { id: 'brand_stock', label: 'Brand', icon: 'branding_watermark' },
+      { id: 'low_stock', label: 'Low Stock', icon: 'warning' },
+      { id: 'product_ledger', label: 'Ledger', icon: 'menu_book' },
+      { id: 'damage_lost', label: 'Damage', icon: 'broken_image' },
+    ]},
+    { id: 'payment', label: 'Payment Report', icon: 'payments', children: [
+      { id: 'customer_payment', label: 'Customer', icon: 'person' },
+      { id: 'supplier_payment', label: 'Supplier', icon: 'local_shipping' },
+      { id: 'staff_salary_payment', label: 'Staff', icon: 'badge' },
+    ]},
+    { id: 'transaction', label: 'Transaction Report', icon: 'receipt_long', children: [
+      { id: 'general_transaction', label: 'General', icon: 'swap_horiz' },
+      { id: 'category_transaction', label: 'Category', icon: 'category' },
+      { id: 'transaction_summary', label: 'Summary', icon: 'summarize' },
+    ]},
+    { id: 'customer', label: 'Customer Report', icon: 'group', children: [
+      { id: 'customer_invoices', label: 'Invoices', icon: 'receipt' },
+      { id: 'customer_purchased', label: 'Products', icon: 'shopping_bag' },
+      { id: 'customer_ledger', label: 'Ledger', icon: 'menu_book' },
+    ]},
+    { id: 'supplier', label: 'Supplier Report', icon: 'local_shipping', children: [
+      { id: 'supplier_invoices', label: 'Invoices', icon: 'receipt' },
+      { id: 'supplier_sales', label: 'Products', icon: 'shopping_bag' },
+      { id: 'supplier_ledger', label: 'Ledger', icon: 'menu_book' },
+    ]},
+    { id: 'staff', label: 'Staff Report', icon: 'badge', children: [
+      { id: 'staff_salary', label: 'Salary', icon: 'payments' },
+      { id: 'cashier_sales', label: 'Cashier', icon: 'point_of_sale' },
+      { id: 'staff_sales', label: 'Sales', icon: 'receipt_long' },
+    ]},
+    { id: 'profit', label: 'Profit Reports', icon: 'trending_up', children: [
+      { id: 'invoice_profit', label: 'Invoice', icon: 'receipt' },
+      { id: 'product_profit', label: 'Product', icon: 'inventory_2' },
+      { id: 'net_profit', label: 'Net Profit', icon: 'trending_up' },
+    ]},
+    { id: 'dues', label: 'Due Reports', icon: 'warning', children: [
       { id: 'customer_dues', label: 'Cust. Dues', icon: 'person' },
       { id: 'customer_walking', label: 'Walking', icon: 'directions_walk' },
       { id: 'customer_advance', label: 'Advance', icon: 'savings' },
       { id: 'supplier_balance', label: 'Supplier', icon: 'local_shipping' },
       { id: 'staff_balance', label: 'Staff', icon: 'badge' },
     ]},
-    { id: 'account', label: 'Account Reports', icon: 'account_balance' },
+    { id: 'account', label: 'Account Reports', icon: 'account_balance', children: [
+      { id: 'cash_ledger', label: 'Cash Led.', icon: 'menu_book' },
+      { id: 'all_transaction_summary', label: 'All TRX', icon: 'summarize' },
+      { id: 'account_transaction', label: 'Acc. TRX', icon: 'swap_horiz' },
+      { id: 'account_balance', label: 'Balance', icon: 'account_balance_wallet' },
+    ]},
   ];
 
   const handlePrint = () => {
