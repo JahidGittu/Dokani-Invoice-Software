@@ -876,14 +876,14 @@ tbody tr:nth-child(even){background:#fafafa}
                     className="flex-1 bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2 px-3 outline-none" placeholder="Optional note..." />
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-pos-on-surface-variant uppercase">Status</span>
+                  <span className="text-xs font-bold text-pos-on-surface-variant uppercase flex items-center gap-1">Status <InfoTooltip text="Complete: পুরো টাকা পেয়েছেন। Pending: আংশিক পেয়েছেন। Credit: বাকিতে দিয়েছেন।" size={12} /></span>
                   <select value={saleStatus} onChange={e => setSaleStatus(e.target.value)}
                     className="bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2 px-3 outline-none">
                     <option>Complete</option><option>Pending</option><option>Credit</option>
                   </select>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-pos-on-surface-variant uppercase">Delivery</span>
+                  <span className="text-xs font-bold text-pos-on-surface-variant uppercase flex items-center gap-1">Delivery <InfoTooltip text="Complete: মাল পুরোটা দিয়ে দিয়েছেন। Partial: কিছু দিয়েছেন। Pending: এখনো দেননি।" size={12} /></span>
                   <select value={deliveryStatus} onChange={e => setDeliveryStatus(e.target.value)}
                     className="bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2 px-3 outline-none">
                     <option>Complete</option><option>Partial</option><option>Pending</option>
