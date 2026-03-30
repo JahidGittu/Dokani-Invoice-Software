@@ -61,9 +61,9 @@ export default function StaffsScreen() {
   };
 
   const deleteStaff = async (id: string) => {
-    if (!confirm('Are you sure?')) return;
     await supabase.from('staffs').delete().eq('id', id);
     toast.success('Staff deleted');
+    setShowDeleteConfirm(null);
     fetchStaffs();
   };
 
