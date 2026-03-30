@@ -737,15 +737,19 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
               {/* DIS. */}
               <div className="flex items-center border border-pos-surface-container rounded-lg overflow-hidden">
                 <span className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase">Dis.</span>
-                <input type="number" value={discount} onChange={e => setDiscount(e.target.value)} placeholder="0"
-                  className="flex-1 text-sm py-3 px-3 outline-none bg-transparent text-right" />
+                <div className="flex-1 relative">
+                  <input type="number" inputMode="decimal" value={discount} onChange={e => setDiscount(e.target.value)} placeholder="0"
+                    className="w-full h-full text-sm py-3 px-3 outline-none bg-white text-right font-semibold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none focus:bg-pos-secondary/5 transition-colors" />
+                </div>
               </div>
 
               {/* LABOUR */}
               <div className="flex items-center border border-pos-surface-container rounded-lg overflow-hidden">
                 <span className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase">Labour</span>
-                <input type="number" value={delivery} onChange={e => setDelivery(e.target.value)} placeholder="0"
-                  className="flex-1 text-sm py-3 px-3 outline-none bg-transparent text-right" />
+                <div className="flex-1 relative">
+                  <input type="number" inputMode="decimal" value={delivery} onChange={e => setDelivery(e.target.value)} placeholder="0"
+                    className="w-full h-full text-sm py-3 px-3 outline-none bg-white text-right font-semibold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none focus:bg-pos-secondary/5 transition-colors" />
+                </div>
               </div>
 
               {/* PAYABLE */}
@@ -757,8 +761,10 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
               {/* PAID */}
               <div className="flex items-center border border-pos-surface-container rounded-lg overflow-hidden">
                 <span className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase">Paid</span>
-                <input type="number" value={paid} onChange={e => setPaid(e.target.value)} placeholder="0"
-                  className="flex-1 text-sm py-3 px-3 outline-none bg-transparent text-right font-bold" />
+                <div className="flex-1 relative">
+                  <input type="number" inputMode="decimal" value={paid} onChange={e => setPaid(e.target.value)} placeholder="0"
+                    className="w-full h-full text-sm py-3 px-3 outline-none bg-white text-right font-bold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none focus:bg-pos-secondary/5 transition-colors" />
+                </div>
               </div>
 
               {/* DUE */}
