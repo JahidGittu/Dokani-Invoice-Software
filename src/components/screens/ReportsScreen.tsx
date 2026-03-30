@@ -139,7 +139,7 @@ export default function ReportsScreen({ sales = [], products = [], customers = [
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left: Report List */}
-        <div className="lg:col-span-4 bg-pos-surface-lowest rounded-xl border border-pos-surface-container p-5">
+        <div className="lg:col-span-4 bg-pos-surface-lowest rounded-xl border border-pos-surface-container p-5 lg:sticky lg:top-20 lg:max-h-[calc(100vh-120px)] lg:overflow-y-auto">
           <h3 className="text-sm font-bold text-pos-on-surface-variant uppercase tracking-wider mb-4">List of Reports</h3>
           <div className="space-y-1">
             {reportList.map(item => {
