@@ -48,7 +48,7 @@ export default function ShopLayout() {
   const { products, addProduct, updateProduct, deleteProduct, deductStock, addStock, setProducts } = useSupabaseProducts();
   const { customers, addCustomer, deleteCustomer, updateCustomerSpend, updateCustomerDue, refreshCustomers } = useSupabaseCustomers();
   const { sales, addSale, deleteSale } = useSupabaseSales();
-  const { suppliers, addSupplier, deleteSupplier, updateSupplierDue, refreshSuppliers } = useSupabaseSuppliers();
+  const { suppliers, addSupplier, deleteSupplier, updateSupplier, updateSupplierDue, refreshSuppliers } = useSupabaseSuppliers();
   const { purchases, addPurchase, deletePurchase, updatePurchase } = useSupabasePurchases();
   const { settings, setSettings } = useSupabaseSettings();
 
