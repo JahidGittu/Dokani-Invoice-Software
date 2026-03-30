@@ -7,6 +7,7 @@ import { formatStockDisplay, totalPiecesToCartonPiece } from "@/lib/calc-utils";
 
 interface InventoryLog {
   id: string;
+  product_id: string;
   product_name: string;
   log_type: string;
   qty: number;
@@ -127,6 +128,10 @@ export default function InventoryScreen({ products }: InventoryScreenProps) {
               <tbody className="divide-y divide-pos-surface-container">
                 {logs.map(l => {
                   const isIn = l.log_type === 'IN';
+                  const prod = products.find(p => p.id === l.product_id);
+                  const piecesPerBox = prod?.piecesPerBox || 4;
+                  const qtyDisplay = formatStockDisplay(l.qty, piecesPerBox);
+                  const totalDisplay = formatStockDisplay(l.total_after, piecesPerBox);
                   return (
                     <tr key={l.id} className="hover:bg-pos-surface-low transition-colors">
                       <td className="px-4 sm:px-8 py-4 text-xs text-pos-on-surface-variant">{formatDate(l.created_at)}</td>
@@ -134,8 +139,8 @@ export default function InventoryScreen({ products }: InventoryScreenProps) {
                       <td className="px-4 sm:px-8 py-4">
                         <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${isIn ? 'bg-pos-tertiary-container text-pos-on-tertiary-container' : 'bg-pos-error-container text-pos-on-error-container'}`}>{l.log_type}</span>
                       </td>
-                      <td className={`px-4 sm:px-8 py-4 font-bold ${isIn ? 'text-pos-tertiary' : 'text-pos-error'}`}>{isIn ? '+' : '−'}{l.qty}</td>
-                      <td className="px-4 sm:px-8 py-4">{l.total_after}</td>
+                      <td className={`px-4 sm:px-8 py-4 font-bold ${isIn ? 'text-pos-tertiary' : 'text-pos-error'}`}>{isIn ? '+' : '−'}{qtyDisplay}</td>
+                      <td className="px-4 sm:px-8 py-4 font-semibold">{totalDisplay}</td>
                       <td className="px-4 sm:px-8 py-4 text-xs text-pos-on-surface-variant">{l.note}</td>
                     </tr>
                   );
