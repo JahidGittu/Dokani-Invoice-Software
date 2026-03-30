@@ -153,7 +153,7 @@ export default function StaffsScreen() {
           <div className="flex items-center gap-1 text-sm">
             <span className="text-primary font-bold">Staff Profile</span>
             <span className="text-muted-foreground">›</span>
-            <span className="font-semibold text-foreground">{editingStaff ? 'Edit Staff' : 'Add Staff'}</span>
+            <span className="font-semibold text-foreground">{activeTab === 'list' ? "Staff's List" : (editingStaff ? 'Edit Staff' : 'Add Staff')}</span>
           </div>
           <div className="flex gap-2">
             <button
