@@ -444,6 +444,7 @@ export default function TransactionsScreen({ sales, purchases }: TransactionsScr
             </div>
           </div>
         )}
+        </>
       )}
 
       {/* ────── TAB 2: All Transactions ────── */}
