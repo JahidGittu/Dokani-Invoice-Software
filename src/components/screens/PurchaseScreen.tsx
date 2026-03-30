@@ -837,18 +837,18 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
           <table className="w-full min-w-[800px]">
             <thead>
               <tr className="text-[11px] font-bold text-pos-on-surface-variant uppercase tracking-wider bg-pos-surface-low border-b-2 border-pos-secondary/30">
-                <SortHeader field="invoice">Invoice #</SortHeader>
-                <SortHeader field="date">Date</SortHeader>
-                <SortHeader field="supplierName">Supplier</SortHeader>
-                <th className="px-4 py-3 text-[11px] font-bold text-pos-on-surface-variant uppercase tracking-wider">Category</th>
-                <th className="px-4 py-3 text-[11px] font-bold text-pos-on-surface-variant uppercase tracking-wider">Size</th>
-                <SortHeader field="qty">Carton</SortHeader>
+                <SortHeader field="invoice" align="text-center">Invoice #</SortHeader>
+                <SortHeader field="date" align="text-center">Date</SortHeader>
+                <SortHeader field="supplierName" align="text-center">Supplier</SortHeader>
+                <th className="px-4 py-3 text-[11px] font-bold text-pos-on-surface-variant uppercase tracking-wider text-center">Category</th>
+                <th className="px-4 py-3 text-[11px] font-bold text-pos-on-surface-variant uppercase tracking-wider text-center">Size</th>
+                <SortHeader field="qty" align="text-center">Carton</SortHeader>
                 <th className="px-4 py-3 text-[11px] font-bold text-pos-on-surface-variant uppercase tracking-wider text-center">Piece</th>
-                <SortHeader field="sqft">Sqft Qty</SortHeader>
-                <SortHeader field="payable" align="text-right">Total</SortHeader>
-                <SortHeader field="paid" align="text-right">Paid</SortHeader>
-                <SortHeader field="due" align="text-right">Due</SortHeader>
-                <th className="px-4 py-3 text-right">Actions</th>
+                <SortHeader field="sqft" align="text-center">Sqft Qty</SortHeader>
+                <SortHeader field="payable" align="text-center">Total</SortHeader>
+                <SortHeader field="paid" align="text-center">Paid</SortHeader>
+                <SortHeader field="due" align="text-center">Due</SortHeader>
+                <th className="px-4 py-3 text-center">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-pos-surface-container">
