@@ -94,7 +94,8 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
       if (sortField === 'invoice') cmp = a.invoice.localeCompare(b.invoice);
       else if (sortField === 'date') cmp = new Date(a.date).getTime() - new Date(b.date).getTime();
       else if (sortField === 'supplierName') cmp = a.supplierName.localeCompare(b.supplierName);
-      else if (sortField === 'qty') cmp = a.items.reduce((s, i) => s + i.carton, 0) - b.items.reduce((s, i) => s + i.carton, 0);
+      else if (sortField === 'qty') cmp = a.items.reduce((s, i) => s + i.carton + i.piece, 0) - b.items.reduce((s, i) => s + i.carton + i.piece, 0);
+      else if (sortField === 'sqft') cmp = a.items.reduce((s, i) => s + (i.sqftQty || 0), 0) - b.items.reduce((s, i) => s + (i.sqftQty || 0), 0);
       else if (sortField === 'payable') cmp = a.payable - b.payable;
       else if (sortField === 'paid') cmp = a.paid - b.paid;
       else if (sortField === 'due') cmp = a.due - b.due;
