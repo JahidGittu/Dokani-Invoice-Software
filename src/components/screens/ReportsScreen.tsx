@@ -648,6 +648,23 @@ export default function ReportsScreen({ sales = [], products = [], customers = [
               </div>
             </div>
           )}
+
+          {/* Fallback for unimplemented reports */}
+          {![
+            'sales_invoice', 'purchase_invoice', 'overall_stock', 'customer_payment',
+            'general_transaction', 'customer_invoices', 'supplier_invoices', 'staff_salary',
+            'invoice_profit', 'customer_dues', 'customer_walking', 'customer_advance',
+            'supplier_balance', 'staff_balance', 'account_balance'
+          ].includes(activeReport) && (
+            <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container overflow-hidden">
+              <div className="px-5 py-3 bg-pos-surface-low font-semibold text-sm capitalize">{activeReport.replace(/_/g, ' ')}</div>
+              <div className="p-8 text-center text-pos-on-surface-variant">
+                <span className="material-symbols-outlined text-5xl mb-3 block opacity-40">construction</span>
+                <p className="text-sm font-medium">এই রিপোর্টটি শীঘ্রই আসছে</p>
+                <p className="text-xs mt-1 opacity-60">Coming Soon — This report is under development</p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </section>
