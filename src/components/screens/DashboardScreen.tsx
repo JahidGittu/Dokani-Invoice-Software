@@ -19,7 +19,20 @@ interface DashboardScreenProps {
 
 export default function DashboardScreen({ onNavigate, products, customers, sales, suppliers = [], purchases = [], shopName }: DashboardScreenProps) {
   const { t, lang } = useI18n();
+  const { user } = useAuth();
   const todayStr = new Date().toDateString();
+
+  // Fetch today's manual transactions
+  const [manualTxns, setManualTxns] = useState<{ transaction_type: string; amount: number; category: string; description: string }[]>([]);
+  const fetchManualTxns = useCallback(async () => {
+    if (!user) return;
+    const todayISO = new Date().toISOString().split('T')[0];
+    const { data } = await (supabase.from('manual_transactions') as any)
+      .select('transaction_type, amount, category, description')
+      .eq('transaction_date', todayISO);
+    setManualTxns(data || []);
+  }, [user]);
+  useEffect(() => { fetchManualTxns(); }, [fetchManualTxns]);
 
   const { todayTotal, todayCount, todayCashSales, todayDueSales, todayCashReceive, todayCashPayment, todayCashReceiveList, todayCashPaymentList } = useMemo(() => {
     let total = 0, count = 0, cashSales = 0, dueSales = 0, cashReceive = 0, cashPayment = 0;
