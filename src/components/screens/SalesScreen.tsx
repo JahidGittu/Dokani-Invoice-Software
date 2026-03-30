@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from "react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useI18n } from "@/lib/i18n";
 import { formatCurrency, getNextInvoiceNumber, downloadCSV, calcDiscount, numberToWords, type CartItem, type Product, type SaleRecord, type Customer, type CompanySettings } from "@/lib/store";
