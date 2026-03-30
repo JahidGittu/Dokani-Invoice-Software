@@ -622,14 +622,14 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
                 <table className="w-full min-w-[700px]">
                   <thead className="sticky top-0 z-10">
                     <tr className="text-[10px] font-bold text-white uppercase tracking-wider bg-[hsl(230,45%,35%)]">
-                      <th className="px-2 py-2.5 w-8"><span className="material-symbols-outlined text-sm">check_box</span></th>
-                      <th className="px-3 py-2.5">Barcode</th>
-                      <th className="px-3 py-2.5">Product Name</th>
+                      <th className="px-2 py-2.5 w-8 text-center"><span className="material-symbols-outlined text-sm">check_box</span></th>
+                      <th className="px-3 py-2.5 text-left">Barcode</th>
+                      <th className="px-3 py-2.5 text-center">Product Name</th>
                       <th className="px-3 py-2.5 text-center">Stock</th>
                       <th className="px-3 py-2.5 text-center">Qty / Carton</th>
                       <th className="px-3 py-2.5 text-center">Piece</th>
                       <th className="px-3 py-2.5 text-center">Sqft/Qty</th>
-                      <th className="px-3 py-2.5 text-right">Buy Rate</th>
+                      <th className="px-3 py-2.5 text-center">Buy Rate</th>
                       <th className="px-3 py-2.5 text-right">Sub Total</th>
                     </tr>
                   </thead>
@@ -645,8 +645,8 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
                               onChange={() => isSelected ? removeItem(item!.id) : addProductToItems(p)}
                               className="w-4 h-4 rounded border-pos-surface-container accent-pos-secondary cursor-pointer" />
                           </td>
-                          <td className="px-3 py-2 text-xs text-muted-foreground font-mono">{p.barcode || p.batch || '—'}</td>
-                          <td className="px-3 py-2 text-sm font-medium">
+                          <td className="px-3 py-2 text-xs text-muted-foreground font-mono text-left">{p.barcode || p.batch || '—'}</td>
+                          <td className="px-3 py-2 text-sm font-medium text-center">
                             {p.name}
                             {!pIsSqft && <span className="text-[10px] ml-1 text-muted-foreground">({p.unit})</span>}
                           </td>
@@ -692,13 +692,13 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
                             <>
                               <td className="px-1 py-1">
                                 <input type="number" value={item!.buyRate} onChange={e => updateItem(item!.id, 'buyRate', parseFloat(e.target.value) || 0)}
-                                  className="w-20 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-right outline-none focus:border-pos-secondary ml-auto block" />
+                                  className="w-20 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-center outline-none focus:border-pos-secondary mx-auto block" />
                               </td>
                               <td className="px-3 py-2 text-right font-bold text-sm">{formatCurrency(item!.subTotal)}</td>
                             </>
                           ) : (
                             <>
-                              <td className="px-3 py-2 text-right text-sm text-muted-foreground">{p.buyRate || 0}</td>
+                              <td className="px-3 py-2 text-center text-sm text-muted-foreground">{p.buyRate || 0}</td>
                               <td className="px-3 py-2 text-right text-sm text-muted-foreground">0.00</td>
                             </>
                           )}
@@ -837,18 +837,18 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
           <table className="w-full min-w-[800px]">
             <thead>
               <tr className="text-[11px] font-bold text-pos-on-surface-variant uppercase tracking-wider bg-pos-surface-low border-b-2 border-pos-secondary/30">
-                <SortHeader field="invoice">Invoice #</SortHeader>
-                <SortHeader field="date">Date</SortHeader>
-                <SortHeader field="supplierName">Supplier</SortHeader>
-                <th className="px-4 py-3 text-[11px] font-bold text-pos-on-surface-variant uppercase tracking-wider">Category</th>
-                <th className="px-4 py-3 text-[11px] font-bold text-pos-on-surface-variant uppercase tracking-wider">Size</th>
-                <SortHeader field="qty">Carton</SortHeader>
+                <SortHeader field="invoice" align="text-center">Invoice #</SortHeader>
+                <SortHeader field="date" align="text-center">Date</SortHeader>
+                <SortHeader field="supplierName" align="text-center">Supplier</SortHeader>
+                <th className="px-4 py-3 text-[11px] font-bold text-pos-on-surface-variant uppercase tracking-wider text-center">Category</th>
+                <th className="px-4 py-3 text-[11px] font-bold text-pos-on-surface-variant uppercase tracking-wider text-center">Size</th>
+                <SortHeader field="qty" align="text-center">Carton</SortHeader>
                 <th className="px-4 py-3 text-[11px] font-bold text-pos-on-surface-variant uppercase tracking-wider text-center">Piece</th>
-                <SortHeader field="sqft">Sqft Qty</SortHeader>
-                <SortHeader field="payable" align="text-right">Total</SortHeader>
-                <SortHeader field="paid" align="text-right">Paid</SortHeader>
-                <SortHeader field="due" align="text-right">Due</SortHeader>
-                <th className="px-4 py-3 text-right">Actions</th>
+                <SortHeader field="sqft" align="text-center">Sqft Qty</SortHeader>
+                <SortHeader field="payable" align="text-center">Total</SortHeader>
+                <SortHeader field="paid" align="text-center">Paid</SortHeader>
+                <SortHeader field="due" align="text-center">Due</SortHeader>
+                <th className="px-4 py-3 text-center">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-pos-surface-container">
@@ -862,19 +862,19 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
                 const sizes = [...new Set(p.items.map(i => productMap.get(i.productId)?.size).filter(Boolean))];
                 return (
                   <tr key={p.id} className="hover:bg-pos-surface-low transition-colors">
-                    <td className="px-4 py-3 text-sm font-bold text-pos-secondary">{p.invoice}</td>
-                    <td className="px-4 py-3 text-sm">{(() => { try { return new Date(p.date).toLocaleDateString('en-GB'); } catch { return p.date; } })()}</td>
-                    <td className="px-4 py-3 text-sm font-medium">{p.supplierName}</td>
-                    <td className="px-4 py-3 text-xs">{categories.join(', ') || '—'}</td>
-                    <td className="px-4 py-3 text-xs">{sizes.join(', ') || '—'}</td>
+                    <td className="px-4 py-3 text-sm font-bold text-pos-secondary text-center">{p.invoice}</td>
+                    <td className="px-4 py-3 text-sm text-center">{(() => { try { return new Date(p.date).toLocaleDateString('en-GB'); } catch { return p.date; } })()}</td>
+                    <td className="px-4 py-3 text-sm font-medium text-center">{p.supplierName}</td>
+                    <td className="px-4 py-3 text-xs text-center">{categories.join(', ') || '—'}</td>
+                    <td className="px-4 py-3 text-xs text-center">{sizes.join(', ') || '—'}</td>
                     <td className="px-4 py-3 text-sm text-center">{totalCarton}</td>
                     <td className="px-4 py-3 text-sm text-center">{totalPiece}</td>
                     <td className="px-4 py-3 text-sm text-center">{totalSqft > 0 ? totalSqft.toFixed(2) : '—'}</td>
-                    <td className="px-4 py-3 text-sm text-right font-semibold">{formatCurrency(p.payable)}</td>
-                    <td className="px-4 py-3 text-sm text-right font-semibold text-[hsl(125,60%,35%)]">{formatCurrency(p.paid)}</td>
-                    <td className={`px-4 py-3 text-sm text-right font-semibold ${p.due > 0 ? 'text-destructive' : ''}`}>{formatCurrency(p.due)}</td>
+                    <td className="px-4 py-3 text-sm text-center font-semibold">{formatCurrency(p.payable)}</td>
+                    <td className="px-4 py-3 text-sm text-center font-semibold text-[hsl(125,60%,35%)]">{formatCurrency(p.paid)}</td>
+                    <td className={`px-4 py-3 text-sm text-center font-semibold ${p.due > 0 ? 'text-destructive' : ''}`}>{formatCurrency(p.due)}</td>
                     <td className="px-4 py-3">
-                      <div className="flex items-center justify-end gap-1">
+                      <div className="flex items-center justify-center gap-1">
                         <button onClick={() => handlePrintInvoice(p)} className="w-7 h-7 rounded bg-[hsl(125,60%,35%)] text-white flex items-center justify-center" title="Print">
                           <span className="material-symbols-outlined text-sm">print</span>
                         </button>
