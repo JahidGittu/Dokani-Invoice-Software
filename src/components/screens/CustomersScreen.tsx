@@ -130,7 +130,7 @@ export default function CustomersScreen({ customers, sales = [], onAddCustomer, 
           <div className="text-2xl font-black text-pos-secondary">{formatCurrency(totalRevenue)}</div>
         </div>
         <div className="bg-pos-surface-lowest rounded-xl p-5 border border-pos-surface-container">
-          <div className="text-xs font-bold text-pos-on-surface-variant uppercase mb-2 flex items-center gap-1">মোট বাকি <InfoTooltip text="সব কাস্টমারের কাছে মোট যত টাকা পাওনা আছে।" /></div>
+          <div className="text-xs font-bold text-pos-on-surface-variant uppercase mb-2 flex items-center gap-1">মোট বাকি <InfoTooltip text="সব কাস্টমারের মোট বকেয়া।" /></div>
           <div className="text-2xl font-black text-destructive">{formatCurrency(totalDues)}</div>
         </div>
         <div className="bg-pos-surface-lowest rounded-xl p-5 border border-pos-surface-container">
