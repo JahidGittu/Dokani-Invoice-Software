@@ -28,6 +28,15 @@ export default function InventoryScreen({ products }: InventoryScreenProps) {
   const [logs, setLogs] = useState<InventoryLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterType, setFilterType] = useState<'ALL' | 'IN' | 'OUT'>('ALL');
+  const [collapsedCats, setCollapsedCats] = useState<Set<string>>(new Set());
+
+  const toggleCategory = (cat: string) => {
+    setCollapsedCats(prev => {
+      const next = new Set(prev);
+      next.has(cat) ? next.delete(cat) : next.add(cat);
+      return next;
+    });
+  };
 
   const fetchLogs = useCallback(async () => {
     if (!user) return;
@@ -99,18 +108,21 @@ export default function InventoryScreen({ products }: InventoryScreenProps) {
                 }, {} as Record<string, typeof products>)
               ).map(([category, items]) => (
                 <React.Fragment key={category}>
-                  <tr className="bg-pos-surface-container/50">
-                    <td colSpan={4} className="px-4 sm:px-8 py-2.5">
-                      <span className="text-[11px] font-bold text-pos-primary uppercase tracking-wider">{category}</span>
-                      <span className="text-[10px] text-pos-on-surface-variant ml-2">({items.length})</span>
+                  <tr className="bg-pos-surface-container/50 cursor-pointer select-none" onClick={() => toggleCategory(category)}>
+                    <td colSpan={4} className="px-4 sm:px-8 py-1.5">
+                      <span className="flex items-center gap-2">
+                        <span className={`text-[10px] text-pos-on-surface-variant transition-transform ${collapsedCats.has(category) ? '' : 'rotate-90'}`}>▶</span>
+                        <span className="text-[11px] font-bold text-pos-primary uppercase tracking-wider">{category}</span>
+                        <span className="text-[10px] text-pos-on-surface-variant">({items.length})</span>
+                      </span>
                     </td>
                   </tr>
-                  {items.map(p => (
+                  {!collapsedCats.has(category) && items.map(p => (
                     <tr key={p.id} className="hover:bg-pos-surface-low transition-colors border-b border-pos-surface-container/50">
-                      <td className="px-4 sm:px-8 py-3.5 font-semibold">{p.name}</td>
-                      <td className="px-4 sm:px-8 py-3.5"><span className="px-2 py-0.5 bg-pos-secondary-container text-pos-on-secondary-container rounded text-xs font-bold">{p.size}</span></td>
-                      <td className="px-4 sm:px-8 py-3.5 font-bold">{formatStockDisplay(p.stock, p.piecesPerBox || 4)}</td>
-                      <td className="px-4 sm:px-8 py-3.5">
+                      <td className="px-4 sm:px-8 py-3 font-semibold">{p.name}</td>
+                      <td className="px-4 sm:px-8 py-3"><span className="px-2 py-0.5 bg-pos-secondary-container text-pos-on-secondary-container rounded text-xs font-bold">{p.size}</span></td>
+                      <td className="px-4 sm:px-8 py-3 font-bold">{formatStockDisplay(p.stock, p.piecesPerBox || 4)}</td>
+                      <td className="px-4 sm:px-8 py-3">
                         <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
                           p.stock <= 0 ? 'bg-pos-error text-white' :
                           p.stock <= 20 ? 'bg-pos-error-container text-pos-on-error-container' :
