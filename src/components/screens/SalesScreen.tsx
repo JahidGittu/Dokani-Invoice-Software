@@ -296,19 +296,19 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
     }));
   };
 
-  // ── Calculations ──
-  const total = items.reduce((s, i) => s + i.subTotal, 0);
-  const returnVal = parseFloat(returnAmt) || 0;
+  // ── Calculations (Sale/Return from cart items) ──
+  const total = items.filter(i => i.itemType === 'Sale').reduce((s, i) => s + i.subTotal, 0);
+  const returnVal = items.filter(i => i.itemType === 'Return').reduce((s, i) => s + i.subTotal, 0);
   const discountVal = discountType === 'percent' ? Math.round(total * (parseFloat(discount) || 0) / 100) : (parseFloat(discount) || 0);
   const lessVal = parseFloat(lessAmt) || 0;
   const deliveryVal = parseFloat(delivery) || 0;
   const labourVal = parseFloat(labourCost) || 0;
-  const payable = Math.max(0, total - returnVal - discountVal - lessVal + deliveryVal + labourVal);
+  const payable = total - returnVal - discountVal - lessVal + deliveryVal + labourVal;
   const paidVal = parseFloat(paidAmount) || 0;
-  const dueVal = Math.max(0, payable - paidVal);
+  const dueVal = payable - paidVal;
   const selectedCustomerObj = customers.find(c => c.name === customerName);
   const prevDues = selectedCustomerObj?.totalDue || 0;
-  const balanceVal = dueVal + prevDues;
+  const balanceVal = payable - paidVal;
 
   const openAddSale = () => {
     setView('add');
