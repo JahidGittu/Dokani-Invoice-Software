@@ -65,7 +65,9 @@ export default function ShopLayout() {
       const dueAmount = sale.due ?? 0;
       await updateCustomerSpend(sale.customer, sale.total, dueAmount);
     }
-  }, [addSale, deductStock, updateCustomerSpend]);
+    // Refresh customers to sync dashboard
+    refreshCustomers();
+  }, [addSale, deductStock, updateCustomerSpend, refreshCustomers]);
 
   const handleAutoAddCustomer = useCallback((name: string, phone: string, address: string) => {
     if (!customers.find(c => c.name === name)) {
