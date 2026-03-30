@@ -339,9 +339,15 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
 
       <div class="summary-row">
         <div class="summary-left">
-          <div class="item"><span class="label">Total Due (Supplier)</span><span class="${totalDueToSupplier > 0 ? 'red' : 'green'}">${fc(totalDueToSupplier)}</span></div>
-          <div class="item"><span class="label">This Invoice Due</span><span class="${p.due > 0 ? 'red' : 'green'}">${fc(p.due)}</span></div>
-          ${p.remark ? `<div style="margin-top:8px;"><span class="label">Remark: </span><span>${p.remark}</span></div>` : ''}
+          <div class="due-box">
+            <div class="due-row"><span class="lbl">Due In This Bill:</span><span class="val ${p.due > 0 ? 'red' : ''}">${p.due > 0 ? fc(p.due) : '0/-'}</span></div>
+            <div class="due-row"><span class="lbl">Previous Dues:</span><span class="val ${(totalDueToSupplier - p.due) > 0 ? 'red' : ''}">${(totalDueToSupplier - p.due) > 0 ? fc(totalDueToSupplier - p.due) : '0/-'}</span></div>
+            <div class="due-row"><span class="lbl">Balance:</span><span class="val ${totalDueToSupplier > 0 ? 'red' : ''}">${totalDueToSupplier > 0 ? fc(totalDueToSupplier) : '0/-'}</span></div>
+          </div>
+          <div class="extra-info">
+            ${p.remark ? `<div class="info-line"><span class="info-label">Remark:</span></div><div class="info-line">${p.remark}</div>` : `<div class="info-line"><span class="info-label">Remark:</span></div>`}
+            <div class="info-line" style="margin-top:4px;"><span class="info-label">Total Quantity:</span> <span class="info-val">${p.items.reduce((s, it) => s + it.carton + it.piece, 0)}</span></div>
+          </div>
         </div>
         <div class="summary-right">
           <div class="item"><span style="color:#6b7280;">Sub Total</span><span style="font-weight:700;">${fc(p.total)}</span></div>
