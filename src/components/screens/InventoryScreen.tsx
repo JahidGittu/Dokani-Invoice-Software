@@ -27,6 +27,7 @@ export default function InventoryScreen({ products }: InventoryScreenProps) {
   const { user } = useAuth();
   const [logs, setLogs] = useState<InventoryLog[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filterType, setFilterType] = useState<'ALL' | 'IN' | 'OUT'>('ALL');
 
   const fetchLogs = useCallback(async () => {
     if (!user) return;
