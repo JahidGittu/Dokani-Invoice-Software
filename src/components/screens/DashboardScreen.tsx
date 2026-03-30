@@ -56,7 +56,7 @@ export default function DashboardScreen({ onNavigate, products, customers, sales
       try {
         if (new Date(p.date).toDateString() === todayStr) {
           cashPayment += p.paid;
-          if (p.paid > 0) paymentList.push({ label: `Purchase / ${p.invoice}`, amount: p.paid });
+          if (p.paid > 0) paymentList.push({ label: `${p.supplierName || 'Purchase'} / ${p.invoice}`, amount: p.paid });
         }
       } catch {}
     });
@@ -344,11 +344,11 @@ export default function DashboardScreen({ onNavigate, products, customers, sales
           </button>
         </div>
 
-        {/* Recent Sales */}
+        {/* Recent Transactions (Sales + Purchases) */}
         <div className="lg:col-span-8 bg-pos-surface-lowest rounded-lg overflow-hidden border border-pos-surface-container">
           <div className="px-4 py-3 flex justify-between items-center border-b border-pos-surface-container">
             <h3 className="text-sm font-bold">{t('recentTransactions')}</h3>
-            <button onClick={() => onNavigate('sales')} className="text-xs font-medium text-pos-secondary flex items-center gap-1 hover:underline">
+            <button onClick={() => onNavigate('transactions')} className="text-xs font-medium text-pos-secondary flex items-center gap-1 hover:underline">
               {t('viewAll')} <span className="material-symbols-outlined text-sm">arrow_forward</span>
             </button>
           </div>
@@ -356,35 +356,40 @@ export default function DashboardScreen({ onNavigate, products, customers, sales
             <table className="w-full text-left text-xs">
               <thead>
                 <tr className="text-[10px] font-bold uppercase tracking-wider bg-pos-surface-low border-b border-pos-surface-container text-pos-on-surface-variant">
+                  <th className="px-3 py-2">Type</th>
                   <th className="px-3 py-2">{t('invoice')}</th>
-                  <th className="px-3 py-2">{t('customer')}</th>
+                  <th className="px-3 py-2">Party</th>
                   <th className="px-3 py-2">{t('amount')}</th>
                   <th className="px-3 py-2 hidden sm:table-cell">{t('paid')}</th>
                   <th className="px-3 py-2 hidden sm:table-cell">{t('due')}</th>
-                  <th className="px-3 py-2 text-right">{t('status')}</th>
+                  <th className="px-3 py-2 text-right">Date</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-pos-surface-container">
-                {sales.slice(0, 5).map((s) => {
-                  const sdue = s.due ?? 0;
-                  return (
-                    <tr key={s.id} className="hover:bg-pos-surface-low transition-colors">
-                      <td className="px-3 py-2 font-mono text-[11px] font-bold text-pos-secondary">{s.invoice}</td>
-                      <td className="px-3 py-2 font-medium">{s.customer}</td>
-                      <td className="px-3 py-2 font-bold">{formatCurrency(s.total)}</td>
-                      <td className="px-3 py-2 font-semibold text-green-600 dark:text-green-400 hidden sm:table-cell">{formatCurrency(s.paid ?? s.total)}</td>
-                      <td className={`px-3 py-2 font-semibold hidden sm:table-cell ${sdue > 0 ? 'text-destructive' : 'text-green-600 dark:text-green-400'}`}>{formatCurrency(sdue)}</td>
-                      <td className="px-3 py-2 text-right">
-                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${s.status === 'paid' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : s.status === 'pending' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'}`}>
-                          {s.status === 'paid' ? t('paid') : s.status === 'pending' ? t('pending') : t('credit')}
+                {(() => {
+                  const combined: { type: 'sale' | 'purchase'; id: string; invoice: string; party: string; total: number; paid: number; due: number; date: string; status?: string }[] = [];
+                  sales.forEach(s => combined.push({ type: 'sale', id: s.id, invoice: s.invoice, party: s.customer, total: s.total, paid: s.paid ?? s.total, due: s.due ?? 0, date: s.date, status: s.status }));
+                  purchases.forEach(p => combined.push({ type: 'purchase', id: p.id, invoice: p.invoice, party: p.supplierName || '', total: p.total || 0, paid: p.paid || 0, due: p.due || 0, date: p.date }));
+                  combined.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+                  if (combined.length === 0) return <tr><td colSpan={7} className="px-4 py-6 text-center text-pos-on-surface-variant text-xs">{t('noSalesYetDash')}</td></tr>;
+                  return combined.slice(0, 8).map(item => (
+                    <tr key={item.id} className="hover:bg-pos-surface-low transition-colors">
+                      <td className="px-3 py-2">
+                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${item.type === 'sale' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300'}`}>
+                          {item.type === 'sale' ? 'Sale' : 'Purchase'}
                         </span>
                       </td>
+                      <td className="px-3 py-2 font-mono text-[11px] font-bold text-pos-secondary">{item.invoice}</td>
+                      <td className="px-3 py-2 font-medium truncate max-w-[120px]">{item.party}</td>
+                      <td className="px-3 py-2 font-bold">{formatCurrency(item.total)}</td>
+                      <td className="px-3 py-2 font-semibold text-green-600 dark:text-green-400 hidden sm:table-cell">{formatCurrency(item.paid)}</td>
+                      <td className={`px-3 py-2 font-semibold hidden sm:table-cell ${item.due > 0 ? 'text-destructive' : 'text-green-600 dark:text-green-400'}`}>{formatCurrency(item.due)}</td>
+                      <td className="px-3 py-2 text-right text-[10px] text-pos-on-surface-variant">
+                        {(() => { try { return new Date(item.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }); } catch { return ''; } })()}
+                      </td>
                     </tr>
-                  );
-                })}
-                {sales.length === 0 && (
-                  <tr><td colSpan={6} className="px-4 py-6 text-center text-pos-on-surface-variant text-xs">{t('noSalesYetDash')}</td></tr>
-                )}
+                  ));
+                })()}
               </tbody>
             </table>
           </div>
