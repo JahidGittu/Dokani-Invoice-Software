@@ -339,7 +339,7 @@ export function useSupabaseSuppliers() {
     fetchSuppliers();
   }, [user, suppliers, fetchSuppliers]);
 
-  return { suppliers, setSuppliers: fetchSuppliers as any, addSupplier, deleteSupplier, updateSupplierDue };
+  return { suppliers, setSuppliers: fetchSuppliers as any, addSupplier, deleteSupplier, updateSupplierDue, refreshSuppliers: fetchSuppliers };
 }
 
 // ─── Purchases Hook (Supabase) ───
