@@ -94,6 +94,7 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
   const [deliveryStatus, setDeliveryStatus] = useState('Complete');
   const [salesMan, setSalesMan] = useState('');
   const [paymentMode, setPaymentMode] = useState('Cash');
+  const [sendWhatsApp, setSendWhatsApp] = useState(true);
   const [showAddCustomerModal, setShowAddCustomerModal] = useState(false);
   const [newCustName, setNewCustName] = useState('');
   const [newCustPhone, setNewCustPhone] = useState('');
