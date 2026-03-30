@@ -1287,7 +1287,7 @@ export default function ReportsScreen({ sales = [], products = [], customers = [
       default:
         return (
           <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container overflow-hidden">
-            <div className="px-5 py-3 bg-pos-surface-low font-semibold text-sm capitalize">{activeReport.replace(/_/g, ' ')}</div>
+            <div className="px-5 py-3 bg-pos-surface-low font-semibold text-sm capitalize">{String(activeReport).replace(/_/g, ' ')}</div>
             <div className="p-8 text-center text-pos-on-surface-variant">
               <span className="material-symbols-outlined text-5xl mb-3 block opacity-40">construction</span>
               <p className="text-sm font-medium">এই রিপোর্টটি শীঘ্রই আসছে</p>
