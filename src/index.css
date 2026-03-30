@@ -173,9 +173,13 @@ input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
 
   /* Hide sidebar, header, FAB */
   aside, nav, header,
-  .lg\:ml-64,
   button[title="New Sale (F2)"] {
     display: none !important;
+  }
+
+  /* Remove sidebar margin on print */
+  .lg\:ml-64 {
+    margin-left: 0 !important;
   }
 
   /* Report print area */
