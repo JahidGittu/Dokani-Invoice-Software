@@ -3,6 +3,7 @@ import { useI18n } from "@/lib/i18n";
 import { formatCurrency, getLowStockProducts, type Product, type Customer, type SaleRecord, type Supplier, type PurchaseRecord } from "@/lib/store";
 import { formatStockDisplay } from "@/lib/calc-utils";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import InfoTooltip from "@/components/InfoTooltip";
 
 interface DashboardScreenProps {
   onNavigate: (screen: string) => void;
@@ -145,9 +146,9 @@ export default function DashboardScreen({ onNavigate, products, customers, sales
             <span className="text-xs font-bold uppercase tracking-wider text-pos-on-surface">CASH TRX. TODAY</span>
           </div>
           <div className="space-y-1.5 text-xs">
-            <div className="flex justify-between"><span className="text-pos-on-surface-variant">Cash Receive:</span><span className="font-bold">{formatCurrency(todayCashReceive)}</span></div>
-            <div className="flex justify-between"><span className="text-pos-on-surface-variant">Cash Payment:</span><span className="font-bold">{formatCurrency(todayCashPayment)}</span></div>
-            <div className="flex justify-between"><span className="text-pos-on-surface-variant">Cash Balance:</span><span className="font-bold">{formatCurrency(cashBalance)}</span></div>
+            <div className="flex justify-between items-center"><span className="text-pos-on-surface-variant flex items-center gap-1">Cash Receive <InfoTooltip text="আজকের সব বিক্রি থেকে যত টাকা নগদ পেয়েছেন।" /></span><span className="font-bold">{formatCurrency(todayCashReceive)}</span></div>
+            <div className="flex justify-between items-center"><span className="text-pos-on-surface-variant flex items-center gap-1">Cash Payment <InfoTooltip text="আজকে পার্চেজ/কেনাকাটায় যত টাকা দিয়েছেন।" /></span><span className="font-bold">{formatCurrency(todayCashPayment)}</span></div>
+            <div className="flex justify-between items-center"><span className="text-pos-on-surface-variant flex items-center gap-1">Cash Balance <InfoTooltip text="আজকের নগদ আয় − নগদ ব্যয়। হাতে যত টাকা আছে।" /></span><span className="font-bold">{formatCurrency(cashBalance)}</span></div>
           </div>
         </div>
 
@@ -158,9 +159,9 @@ export default function DashboardScreen({ onNavigate, products, customers, sales
             <span className="text-xs font-bold uppercase tracking-wider text-pos-on-surface">OVERALL BALANCE</span>
           </div>
           <div className="space-y-1.5 text-xs">
-            <div className="flex justify-between"><span className="text-pos-on-surface-variant">Supplier Dues:</span><span className="font-bold">{formatCurrency(supplierDues)}</span></div>
-            <div className="flex justify-between"><span className="text-pos-on-surface-variant">Customer Dues:</span><span className="font-bold text-destructive">{formatCurrency(customerDues)}</span></div>
-            <div className="flex justify-between"><span className="text-pos-on-surface-variant">Liability:</span><span className="font-bold">{formatCurrency(liability)}</span></div>
+            <div className="flex justify-between items-center"><span className="text-pos-on-surface-variant flex items-center gap-1">Supplier Dues <InfoTooltip text="সাপ্লায়ারদের কাছে আপনার মোট বকেয়া। পার্চেজে যত টাকা বাকি আছে তার যোগফল।" /></span><span className="font-bold">{formatCurrency(supplierDues)}</span></div>
+            <div className="flex justify-between items-center"><span className="text-pos-on-surface-variant flex items-center gap-1">Customer Dues <InfoTooltip text="কাস্টমারদের কাছ থেকে আপনার পাওনা। বিক্রিতে যত টাকা বাকি আছে তার যোগফল।" /></span><span className="font-bold text-destructive">{formatCurrency(customerDues)}</span></div>
+            <div className="flex justify-between items-center"><span className="text-pos-on-surface-variant flex items-center gap-1">Liability <InfoTooltip text="Customer Dues − Supplier Dues। পজিটিভ হলে কাস্টমাররা বেশি দেনা (ভালো), নেগেটিভ হলে আপনি সাপ্লায়ারকে বেশি দেনা।" /></span><span className="font-bold">{formatCurrency(liability)}</span></div>
           </div>
         </div>
       </div>

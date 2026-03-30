@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from "react";
+import InfoTooltip from "@/components/InfoTooltip";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useI18n } from "@/lib/i18n";
@@ -875,14 +876,14 @@ tbody tr:nth-child(even){background:#fafafa}
                     className="flex-1 bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2 px-3 outline-none" placeholder="Optional note..." />
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-pos-on-surface-variant uppercase">Status</span>
+                  <span className="text-xs font-bold text-pos-on-surface-variant uppercase flex items-center gap-1">Status <InfoTooltip text="Complete: পুরো টাকা পেয়েছেন। Pending: আংশিক পেয়েছেন। Credit: বাকিতে দিয়েছেন।" size={12} /></span>
                   <select value={saleStatus} onChange={e => setSaleStatus(e.target.value)}
                     className="bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2 px-3 outline-none">
                     <option>Complete</option><option>Pending</option><option>Credit</option>
                   </select>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-pos-on-surface-variant uppercase">Delivery</span>
+                  <span className="text-xs font-bold text-pos-on-surface-variant uppercase flex items-center gap-1">Delivery <InfoTooltip text="Complete: মাল পুরোটা দিয়ে দিয়েছেন। Partial: কিছু দিয়েছেন। Pending: এখনো দেননি।" size={12} /></span>
                   <select value={deliveryStatus} onChange={e => setDeliveryStatus(e.target.value)}
                     className="bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2 px-3 outline-none">
                     <option>Complete</option><option>Partial</option><option>Pending</option>
@@ -915,7 +916,7 @@ tbody tr:nth-child(even){background:#fafafa}
               </div>
               {/* RETURN (auto from cart Return items) */}
               <div className="flex items-center border border-pos-surface-container rounded-lg">
-                <span className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase">Return</span>
+                <span className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase flex items-center gap-1">Return <InfoTooltip text="রিটার্ন আইটেমের মোট মূল্য। কার্টে Return টাইপ সিলেক্ট করলে এখানে অটো যোগ হয়।" /></span>
                 <span className={`flex-1 text-right text-lg font-black px-3 ${returnVal > 0 ? 'text-pos-error' : 'text-pos-on-surface'}`}>{formatCurrency(returnVal)}</span>
               </div>
               {/* DISCOUNT with ৳/% toggle */}
@@ -929,13 +930,13 @@ tbody tr:nth-child(even){background:#fafafa}
               </div>
               {/* LABOUR */}
               <div className="flex items-center border border-pos-surface-container rounded-lg">
-                <span className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase">Labour</span>
+                <span className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase flex items-center gap-1">Labour <InfoTooltip text="রাজমিস্ত্রি বা শ্রমিকের খরচ। এটি Payable এর সাথে যোগ হবে।" /></span>
                 <input type="number" min={0} step="any" value={labourCost} onChange={e => setLabourCost(e.target.value)} placeholder="0"
                   className="flex-1 min-w-0 text-sm py-3 px-3 outline-none bg-pos-surface-lowest rounded-r-lg text-right" />
               </div>
               {/* PAYABLE */}
               <div className="flex items-center border-2 border-pos-secondary rounded-lg bg-pos-secondary/5">
-                <span className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase">Payable</span>
+                <span className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase flex items-center gap-1">Payable <InfoTooltip text="Total − Return − Discount − Less + Delivery + Labour = কাস্টমারকে যত টাকা দিতে হবে।" /></span>
                 <span className={`flex-1 text-right text-lg font-black px-3 ${payable < 0 ? 'text-destructive' : 'text-pos-secondary'}`}>{formatCurrency(payable)}</span>
               </div>
               {/* PAID */}
@@ -946,12 +947,12 @@ tbody tr:nth-child(even){background:#fafafa}
               </div>
               {/* DUE */}
               <div className="flex items-center border border-pos-surface-container rounded-lg">
-                <span className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase">Due</span>
+                <span className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase flex items-center gap-1">Due <InfoTooltip text="Payable − Paid = এই বিলে যত টাকা বাকি।" /></span>
                 <span className={`flex-1 text-right text-lg font-black px-3 ${dueVal > 0 ? 'text-destructive' : dueVal < 0 ? 'text-[hsl(125,60%,35%)]' : 'text-pos-on-surface'}`}>{formatCurrency(dueVal)}</span>
               </div>
               {/* TOTAL DUE (Due + Previous Dues) */}
               <div className="flex items-center border border-pos-surface-container rounded-lg">
-                <span className="text-[11px] font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase leading-tight">Total Due</span>
+                <span className="text-[11px] font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase leading-tight flex items-center gap-1">Total Due <InfoTooltip text="এই বিলের Due + আগের বাকি (Previous Dues) = কাস্টমারের কাছে সর্বমোট পাওনা।" /></span>
                 <span className={`flex-1 text-right text-lg font-black px-3 ${balanceVal < 0 ? 'text-[hsl(125,60%,35%)]' : balanceVal > 0 ? 'text-destructive' : 'text-pos-on-surface'}`}>{formatCurrency(balanceVal)}</span>
               </div>
               {/* MODE */}
