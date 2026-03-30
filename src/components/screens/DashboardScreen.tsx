@@ -60,8 +60,20 @@ export default function DashboardScreen({ onNavigate, products, customers, sales
         }
       } catch {}
     });
+
+    // Include manual transactions from Transaction Entry
+    manualTxns.forEach(tx => {
+      if (tx.transaction_type === 'cash_received' || tx.transaction_type === 'loan_receive') {
+        cashReceive += tx.amount;
+        receiveList.push({ label: tx.description || tx.category || 'Manual TRX', amount: tx.amount });
+      } else if (tx.transaction_type === 'cash_payment' || tx.transaction_type === 'loan_payment') {
+        cashPayment += tx.amount;
+        paymentList.push({ label: tx.description || tx.category || 'Manual TRX', amount: tx.amount });
+      }
+    });
+
     return { todayTotal: total, todayCount: count, todayCashSales: cashSales, todayDueSales: dueSales, todayCashReceive: cashReceive, todayCashPayment: cashPayment, todayCashReceiveList: receiveList, todayCashPaymentList: paymentList };
-  }, [sales, purchases, todayStr]);
+  }, [sales, purchases, todayStr, manualTxns]);
 
   const supplierDues = useMemo(() => suppliers.reduce((sum, s) => sum + (s.totalDue || 0), 0), [suppliers]);
   const customerDues = useMemo(() => customers.reduce((sum, c) => sum + (c.totalDue || 0), 0), [customers]);
