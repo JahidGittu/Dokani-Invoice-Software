@@ -208,7 +208,7 @@ input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
   }
 
   .print\:bg-gray-100 {
-    background: #f3f4f6 !important;
+    background: white !important;
   }
 
   .print\:border {
@@ -249,7 +249,7 @@ input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
   }
 
   .print-report-table thead tr {
-    background: #f3f4f6 !important;
+    background: white !important;
   }
 
   /* Summary cards in print */
