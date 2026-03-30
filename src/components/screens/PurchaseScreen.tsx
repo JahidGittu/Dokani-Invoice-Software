@@ -278,17 +278,22 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
       return words + ' Taka Only';
     };
 
-    const itemRows = p.items.map((item, i) => `
+    const productMap = new Map(products.map(pr => [pr.id, pr]));
+    const itemRows = p.items.map((item, i) => {
+      const prod = productMap.get(item.productId);
+      return `
       <tr style="${i % 2 === 0 ? '' : 'background:#fafafa;'}">
         <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;color:#6b7280;">${i + 1}</td>
         <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;font-weight:600;">${item.name}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;">${prod?.category || '—'}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;">${prod?.size || '—'}</td>
         <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;text-align:center;">${item.carton}</td>
         <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;text-align:center;">${item.piece}</td>
         <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;text-align:center;">${item.sqftQty ? item.sqftQty.toFixed(2) : '—'}</td>
         <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;text-align:right;">${fc(item.buyRate)}</td>
         <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;text-align:right;font-weight:700;">${fc(item.subTotal)}</td>
-      </tr>
-    `).join('');
+      </tr>`;
+    }).join('');
 
     const totalDueToSupplier = sup?.totalDue ?? 0;
 
