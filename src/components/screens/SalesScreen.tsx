@@ -863,8 +863,9 @@ tbody tr:nth-child(even){background:#fafafa}
                   </select>
                 </div>
                 <label className="flex items-center gap-1.5 text-xs cursor-pointer">
-                  <input type="checkbox" className="w-3.5 h-3.5 accent-pos-secondary" defaultChecked />
-                  Send SMS
+                  <input type="checkbox" className="w-3.5 h-3.5 accent-pos-secondary" checked={sendWhatsApp} onChange={e => setSendWhatsApp(e.target.checked)} />
+                  <span className="material-symbols-outlined text-[16px] text-green-600">chat</span>
+                  WhatsApp
                 </label>
               </div>
             </div>
