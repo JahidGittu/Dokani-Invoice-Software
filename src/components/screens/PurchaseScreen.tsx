@@ -862,19 +862,19 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
                 const sizes = [...new Set(p.items.map(i => productMap.get(i.productId)?.size).filter(Boolean))];
                 return (
                   <tr key={p.id} className="hover:bg-pos-surface-low transition-colors">
-                    <td className="px-4 py-3 text-sm font-bold text-pos-secondary">{p.invoice}</td>
-                    <td className="px-4 py-3 text-sm">{(() => { try { return new Date(p.date).toLocaleDateString('en-GB'); } catch { return p.date; } })()}</td>
-                    <td className="px-4 py-3 text-sm font-medium">{p.supplierName}</td>
-                    <td className="px-4 py-3 text-xs">{categories.join(', ') || '—'}</td>
-                    <td className="px-4 py-3 text-xs">{sizes.join(', ') || '—'}</td>
+                    <td className="px-4 py-3 text-sm font-bold text-pos-secondary text-center">{p.invoice}</td>
+                    <td className="px-4 py-3 text-sm text-center">{(() => { try { return new Date(p.date).toLocaleDateString('en-GB'); } catch { return p.date; } })()}</td>
+                    <td className="px-4 py-3 text-sm font-medium text-center">{p.supplierName}</td>
+                    <td className="px-4 py-3 text-xs text-center">{categories.join(', ') || '—'}</td>
+                    <td className="px-4 py-3 text-xs text-center">{sizes.join(', ') || '—'}</td>
                     <td className="px-4 py-3 text-sm text-center">{totalCarton}</td>
                     <td className="px-4 py-3 text-sm text-center">{totalPiece}</td>
                     <td className="px-4 py-3 text-sm text-center">{totalSqft > 0 ? totalSqft.toFixed(2) : '—'}</td>
-                    <td className="px-4 py-3 text-sm text-right font-semibold">{formatCurrency(p.payable)}</td>
-                    <td className="px-4 py-3 text-sm text-right font-semibold text-[hsl(125,60%,35%)]">{formatCurrency(p.paid)}</td>
-                    <td className={`px-4 py-3 text-sm text-right font-semibold ${p.due > 0 ? 'text-destructive' : ''}`}>{formatCurrency(p.due)}</td>
+                    <td className="px-4 py-3 text-sm text-center font-semibold">{formatCurrency(p.payable)}</td>
+                    <td className="px-4 py-3 text-sm text-center font-semibold text-[hsl(125,60%,35%)]">{formatCurrency(p.paid)}</td>
+                    <td className={`px-4 py-3 text-sm text-center font-semibold ${p.due > 0 ? 'text-destructive' : ''}`}>{formatCurrency(p.due)}</td>
                     <td className="px-4 py-3">
-                      <div className="flex items-center justify-end gap-1">
+                      <div className="flex items-center justify-center gap-1">
                         <button onClick={() => handlePrintInvoice(p)} className="w-7 h-7 rounded bg-[hsl(125,60%,35%)] text-white flex items-center justify-center" title="Print">
                           <span className="material-symbols-outlined text-sm">print</span>
                         </button>
