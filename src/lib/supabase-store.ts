@@ -456,7 +456,7 @@ export function useSupabasePurchases() {
       purchase_date: purchase.date, total: purchase.total,
       discount: purchase.discount, delivery: purchase.delivery,
       payable: purchase.payable, paid: purchase.paid, due: purchase.due,
-      remark: purchase.remark,
+      remark: purchase.remark, account: purchase.account || 'Cash',
     } as any).eq('id', purchase.id);
     if (error) { toast.error('Failed to update purchase'); return; }
 
