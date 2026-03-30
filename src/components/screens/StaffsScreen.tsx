@@ -28,6 +28,22 @@ export default function StaffsScreen() {
   const [activeTab, setActiveTab] = useState<'add' | 'list'>('add');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [editingStaff, setEditingStaff] = useState<Staff | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+
+  // Edit modal fields
+  const [editName, setEditName] = useState('');
+  const [editDesignation, setEditDesignation] = useState('Salesman');
+  const [editNid, setEditNid] = useState('');
+  const [editPhoto, setEditPhoto] = useState<File | null>(null);
+  const [editPhotoPreview, setEditPhotoPreview] = useState('');
+  const [editFatherName, setEditFatherName] = useState('');
+  const [editMotherName, setEditMotherName] = useState('');
+  const [editMobile, setEditMobile] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+  const [editAddress, setEditAddress] = useState('');
+  const [editSalary, setEditSalary] = useState('');
+  const [editJoinDate, setEditJoinDate] = useState('');
+  const editFileRef = useRef<HTMLInputElement>(null);
 
   // Form fields
   const [name, setName] = useState('');
