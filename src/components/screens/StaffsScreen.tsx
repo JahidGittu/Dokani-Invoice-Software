@@ -166,8 +166,10 @@ export default function StaffsScreen() {
                     </button>
                   </td>
                   <td className="py-3 px-4 text-right">
-                    <button onClick={() => deleteStaff(s.id)} className="text-destructive hover:text-destructive/80">
+                    <button onClick={() => setShowDeleteConfirm(s.id)} className="text-destructive hover:text-destructive/80">
                       <span className="material-symbols-outlined text-lg">delete</span>
+                    </button>
+                  </td>
                     </button>
                   </td>
                 </tr>
