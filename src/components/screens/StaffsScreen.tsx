@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +12,12 @@ interface Staff {
   salary: number;
   joinDate: string;
   status: 'active' | 'inactive';
+  nid: string;
+  photoUrl: string;
+  fatherName: string;
+  motherName: string;
+  email: string;
+  address: string;
 }
 
 export default function StaffsScreen() {
@@ -19,12 +25,24 @@ export default function StaffsScreen() {
   const { user } = useAuth();
   const [staffs, setStaffs] = useState<Staff[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
+  const [activeTab, setActiveTab] = useState<'add' | 'list'>('add');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+  const [editingStaff, setEditingStaff] = useState<Staff | null>(null);
+
+  // Form fields
   const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [role, setRole] = useState('Salesman');
+  const [designation, setDesignation] = useState('Salesman');
+  const [nid, setNid] = useState('');
+  const [photo, setPhoto] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState('');
+  const [fatherName, setFatherName] = useState('');
+  const [motherName, setMotherName] = useState('');
+  const [mobile, setMobile] = useState('');
+  const [email, setEmail] = useState('');
+  const [address, setAddress] = useState('');
   const [salary, setSalary] = useState('');
+  const [joinDate, setJoinDate] = useState(new Date().toISOString().split('T')[0]);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const fetchStaffs = useCallback(async () => {
     if (!user) return;
@@ -33,23 +51,80 @@ export default function StaffsScreen() {
     setStaffs((data || []).map((s: any) => ({
       id: s.id, name: s.name, phone: s.phone, role: s.role,
       salary: Number(s.salary), joinDate: s.join_date, status: s.status as 'active' | 'inactive',
+      nid: s.nid || '', photoUrl: s.photo_url || '',
+      fatherName: s.father_name || '', motherName: s.mother_name || '',
+      email: s.email || '', address: s.address || '',
     })));
     setLoading(false);
   }, [user]);
 
   useEffect(() => { fetchStaffs(); }, [fetchStaffs]);
 
-  const handleAdd = async () => {
-    if (!name.trim() || !user) return;
-    const { error } = await supabase.from('staffs').insert({
-      user_id: user.id, name: name.trim(), phone, role,
-      salary: parseFloat(salary) || 0, status: 'active',
-    } as any);
-    if (error) { toast.error('Failed to add staff'); return; }
-    toast.success('Staff added');
-    setName(''); setPhone(''); setRole('Salesman'); setSalary('');
-    setShowForm(false);
+  const resetForm = () => {
+    setName(''); setDesignation('Salesman'); setNid(''); setPhoto(null); setPhotoPreview('');
+    setFatherName(''); setMotherName(''); setMobile(''); setEmail('');
+    setAddress(''); setSalary(''); setJoinDate(new Date().toISOString().split('T')[0]);
+    setEditingStaff(null);
+    if (fileRef.current) fileRef.current.value = '';
+  };
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setPhoto(file);
+      setPhotoPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const uploadPhoto = async (file: File): Promise<string> => {
+    const ext = file.name.split('.').pop();
+    const fileName = `staff-${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from('product-images').upload(fileName, file);
+    if (error) { console.error('Upload error:', error); return ''; }
+    const { data } = supabase.storage.from('product-images').getPublicUrl(fileName);
+    return data.publicUrl;
+  };
+
+  const handleSave = async () => {
+    if (!name.trim() || !user) { toast.error('নাম দিন'); return; }
+
+    let photoUrl = editingStaff?.photoUrl || '';
+    if (photo) {
+      photoUrl = await uploadPhoto(photo);
+    }
+
+    if (editingStaff) {
+      // Update
+      const { error } = await supabase.from('staffs').update({
+        name: name.trim(), role: designation, phone: mobile, salary: parseFloat(salary) || 0,
+        nid, photo_url: photoUrl, father_name: fatherName, mother_name: motherName,
+        email, address, join_date: joinDate,
+      } as any).eq('id', editingStaff.id);
+      if (error) { toast.error('Failed to update staff'); return; }
+      toast.success('Staff updated');
+    } else {
+      // Insert
+      const { error } = await supabase.from('staffs').insert({
+        user_id: user.id, name: name.trim(), role: designation, phone: mobile,
+        salary: parseFloat(salary) || 0, status: 'active',
+        nid, photo_url: photoUrl, father_name: fatherName, mother_name: motherName,
+        email, address, join_date: joinDate,
+      } as any);
+      if (error) { toast.error('Failed to add staff'); return; }
+      toast.success('Staff added');
+    }
+    resetForm();
     fetchStaffs();
+  };
+
+  const handleEdit = (s: Staff) => {
+    setEditingStaff(s);
+    setName(s.name); setDesignation(s.role); setNid(s.nid);
+    setFatherName(s.fatherName); setMotherName(s.motherName);
+    setMobile(s.phone); setEmail(s.email); setAddress(s.address);
+    setSalary(String(s.salary || '')); setJoinDate(s.joinDate?.split('T')[0] || '');
+    setPhotoPreview(s.photoUrl || '');
+    setActiveTab('add');
   };
 
   const toggleStatus = async (id: string) => {
@@ -67,115 +142,209 @@ export default function StaffsScreen() {
     fetchStaffs();
   };
 
-  return (
-    <section className="p-4 sm:p-6 max-w-6xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-foreground">Staffs</h2>
-        <button onClick={() => setShowForm(!showForm)}
-          className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold flex items-center gap-2 hover:bg-primary/90 transition-colors">
-          <span className="material-symbols-outlined text-lg">person_add</span>
-          Add Staff
-        </button>
-      </div>
+  const inputClass = "w-full border border-border rounded-lg text-sm py-2.5 px-3 outline-none focus:ring-2 focus:ring-ring bg-background text-foreground";
+  const labelClass = "block text-sm font-bold text-primary mb-1";
 
-      {showForm && (
-        <div className="bg-card border border-border rounded-xl p-5 space-y-4">
-          <h3 className="text-sm font-bold text-foreground">New Staff</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div>
-              <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1">Name *</label>
-              <input value={name} onChange={e => setName(e.target.value)}
-                className="w-full bg-muted/50 border border-border rounded-lg text-sm py-2 px-3 outline-none focus:ring-2 focus:ring-ring"
-                placeholder="Staff name" />
-            </div>
-            <div>
-              <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1">Phone</label>
-              <input value={phone} onChange={e => setPhone(e.target.value)}
-                className="w-full bg-muted/50 border border-border rounded-lg text-sm py-2 px-3 outline-none focus:ring-2 focus:ring-ring"
-                placeholder="01XXXXXXXXX" />
-            </div>
-            <div>
-              <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1">Role</label>
-              <select value={role} onChange={e => setRole(e.target.value)}
-                className="w-full bg-muted/50 border border-border rounded-lg text-sm py-2 px-3 outline-none focus:ring-2 focus:ring-ring">
-                <option>Salesman</option>
-                <option>Manager</option>
-                <option>Delivery</option>
-                <option>Labour</option>
-                <option>Accountant</option>
-                <option>Other</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1">Salary</label>
-              <input type="number" value={salary} onChange={e => setSalary(e.target.value)}
-                className="w-full bg-muted/50 border border-border rounded-lg text-sm py-2 px-3 outline-none focus:ring-2 focus:ring-ring"
-                placeholder="0" />
-            </div>
+  return (
+    <section className="p-4 sm:p-6 max-w-6xl mx-auto space-y-4">
+      {/* Header with tabs */}
+      <div className="bg-card border border-border rounded-xl overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-3 border-b border-border bg-muted/30">
+          <div className="flex items-center gap-1 text-sm">
+            <span className="text-primary font-bold">Staff Profile</span>
+            <span className="text-muted-foreground">›</span>
+            <span className="font-semibold text-foreground">{editingStaff ? 'Edit Staff' : 'Add Staff'}</span>
           </div>
           <div className="flex gap-2">
-            <button onClick={handleAdd} className="px-5 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:bg-primary/90">Save</button>
-            <button onClick={() => setShowForm(false)} className="px-5 py-2 bg-muted text-foreground rounded-lg text-sm font-semibold hover:bg-muted/80">Cancel</button>
+            <button
+              onClick={() => { setActiveTab('add'); resetForm(); }}
+              className={`px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 border transition-colors ${
+                activeTab === 'add'
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-background text-foreground border-border hover:bg-muted/50'
+              }`}
+            >
+              <span className="material-symbols-outlined text-base">person_add</span>
+              Add Staff
+            </button>
+            <button
+              onClick={() => setActiveTab('list')}
+              className={`px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 border transition-colors ${
+                activeTab === 'list'
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-background text-foreground border-border hover:bg-muted/50'
+              }`}
+            >
+              <span className="material-symbols-outlined text-base">list</span>
+              Staff's List
+            </button>
           </div>
         </div>
-      )}
 
-      {loading ? (
-        <div className="flex justify-center py-12"><span className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>
-      ) : staffs.length === 0 ? (
-        <div className="bg-card border border-border rounded-xl p-12 text-center">
-          <span className="material-symbols-outlined text-5xl text-muted-foreground/30 mb-3">badge</span>
-          <p className="text-muted-foreground text-sm">No staff members added yet</p>
-          <p className="text-muted-foreground/60 text-xs mt-1">Click "Add Staff" to get started</p>
-        </div>
-      ) : (
-        <div className="bg-card border border-border rounded-xl overflow-hidden">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-muted/50 text-xs font-bold text-muted-foreground uppercase">
-                <th className="text-left py-3 px-4">Name</th>
-                <th className="text-left py-3 px-4">Phone</th>
-                <th className="text-left py-3 px-4">Role</th>
-                <th className="text-right py-3 px-4">Salary</th>
-                <th className="text-left py-3 px-4">Status</th>
-                <th className="text-right py-3 px-4">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {staffs.map(s => (
-                <tr key={s.id} className="border-t border-border/50 hover:bg-muted/20 transition-colors">
-                  <td className="py-3 px-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                        <span className="text-xs font-bold text-primary">{s.name.slice(0, 2).toUpperCase()}</span>
-                      </div>
-                      <span className="text-sm font-semibold text-foreground">{s.name}</span>
-                    </div>
-                  </td>
-                  <td className="py-3 px-4 text-sm text-muted-foreground">{s.phone || '-'}</td>
-                  <td className="py-3 px-4">
-                    <span className="text-xs bg-muted px-2 py-0.5 rounded-full font-medium">{s.role}</span>
-                  </td>
-                  <td className="py-3 px-4 text-sm font-bold text-right">৳{s.salary.toLocaleString()}</td>
-                  <td className="py-3 px-4">
-                    <button onClick={() => toggleStatus(s.id)}
-                      className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${
-                        s.status === 'active' ? 'bg-[hsl(142,70%,90%)] text-[hsl(142,70%,30%)]' : 'bg-muted text-muted-foreground'
-                      }`}>
-                      {s.status}
-                    </button>
-                  </td>
-                  <td className="py-3 px-4 text-right">
-                    <button onClick={() => setShowDeleteConfirm(s.id)} className="text-destructive hover:text-destructive/80">
-                      <span className="material-symbols-outlined text-lg">delete</span>
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+        {/* Add/Edit Form */}
+        {activeTab === 'add' && (
+          <div className="p-5 space-y-5">
+            {/* Row 1: Name, Designation, NID, Photo */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div>
+                <label className={labelClass}>Name *</label>
+                <input value={name} onChange={e => setName(e.target.value)} className={inputClass} placeholder="Staff name" />
+              </div>
+              <div>
+                <label className={labelClass}>Designation</label>
+                <select value={designation} onChange={e => setDesignation(e.target.value)} className={inputClass}>
+                  <option>Salesman</option>
+                  <option>Manager</option>
+                  <option>Delivery</option>
+                  <option>Labour</option>
+                  <option>Accountant</option>
+                  <option>Cashier</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <div>
+                <label className={labelClass}>NID</label>
+                <input value={nid} onChange={e => setNid(e.target.value)} className={inputClass} placeholder="NID Number" />
+              </div>
+              <div>
+                <label className={labelClass}>Photo</label>
+                <div className="flex items-center gap-2">
+                  {photoPreview && (
+                    <img src={photoPreview} alt="preview" className="w-10 h-10 rounded-lg object-cover border border-border" />
+                  )}
+                  <input ref={fileRef} type="file" accept="image/*" onChange={handlePhotoChange}
+                    className="w-full text-sm text-muted-foreground file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border file:border-border file:text-sm file:font-semibold file:bg-muted file:text-foreground hover:file:bg-muted/80" />
+                </div>
+              </div>
+            </div>
+
+            {/* Row 2: Father, Mother, Mobile, Email */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div>
+                <label className={labelClass}>Father's Name</label>
+                <input value={fatherName} onChange={e => setFatherName(e.target.value)} className={inputClass} placeholder="Father's name" />
+              </div>
+              <div>
+                <label className={labelClass}>Mother's Name</label>
+                <input value={motherName} onChange={e => setMotherName(e.target.value)} className={inputClass} placeholder="Mother's name" />
+              </div>
+              <div>
+                <label className={labelClass}>Mobile</label>
+                <input value={mobile} onChange={e => setMobile(e.target.value)} className={inputClass} placeholder="01XXXXXXXXX" />
+              </div>
+              <div>
+                <label className={labelClass}>Email</label>
+                <input type="email" value={email} onChange={e => setEmail(e.target.value)} className={inputClass} placeholder="email@example.com" />
+              </div>
+            </div>
+
+            {/* Row 3: Address (wide), Salary, Joining Date */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="lg:col-span-2">
+                <label className={labelClass}>Address</label>
+                <input value={address} onChange={e => setAddress(e.target.value)} className={inputClass} placeholder="Full address" />
+              </div>
+              <div>
+                <label className={labelClass}>Salary</label>
+                <input type="number" inputMode="numeric" value={salary} onChange={e => setSalary(e.target.value)} className={inputClass} placeholder="0" />
+              </div>
+              <div>
+                <label className={labelClass}>Joining Date</label>
+                <input type="date" value={joinDate} onChange={e => setJoinDate(e.target.value)} className={inputClass} />
+              </div>
+            </div>
+
+            {/* Buttons */}
+            <div className="flex gap-3 pt-2">
+              <button onClick={handleSave}
+                className="px-6 py-2.5 bg-[hsl(142,70%,40%)] text-white rounded-lg text-sm font-bold hover:bg-[hsl(142,70%,35%)] transition-colors">
+                {editingStaff ? 'Update' : 'Save'}
+              </button>
+              <button onClick={resetForm}
+                className="px-6 py-2.5 bg-muted-foreground/80 text-white rounded-lg text-sm font-bold hover:bg-muted-foreground/70 transition-colors">
+                Reset
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Staff List */}
+        {activeTab === 'list' && (
+          <div className="p-0">
+            {loading ? (
+              <div className="flex justify-center py-12"><span className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>
+            ) : staffs.length === 0 ? (
+              <div className="p-12 text-center">
+                <span className="material-symbols-outlined text-5xl text-muted-foreground/30 mb-3">badge</span>
+                <p className="text-muted-foreground text-sm">No staff members added yet</p>
+                <p className="text-muted-foreground/60 text-xs mt-1">Click "Add Staff" to get started</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-muted/50 text-xs font-bold text-muted-foreground uppercase">
+                      <th className="text-center py-3 px-3">#</th>
+                      <th className="text-left py-3 px-3">Photo</th>
+                      <th className="text-left py-3 px-3">Name</th>
+                      <th className="text-left py-3 px-3">Designation</th>
+                      <th className="text-left py-3 px-3">Mobile</th>
+                      <th className="text-left py-3 px-3">NID</th>
+                      <th className="text-right py-3 px-3">Salary</th>
+                      <th className="text-center py-3 px-3">Status</th>
+                      <th className="text-center py-3 px-3">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {staffs.map((s, i) => (
+                      <tr key={s.id} className="border-t border-border/50 hover:bg-muted/20 transition-colors">
+                        <td className="py-3 px-3 text-center text-xs text-muted-foreground">{i + 1}</td>
+                        <td className="py-3 px-3">
+                          {s.photoUrl ? (
+                            <img src={s.photoUrl} alt={s.name} className="w-9 h-9 rounded-full object-cover border border-border" />
+                          ) : (
+                            <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
+                              <span className="text-xs font-bold text-primary">{s.name.slice(0, 2).toUpperCase()}</span>
+                            </div>
+                          )}
+                        </td>
+                        <td className="py-3 px-3">
+                          <div className="text-sm font-semibold text-foreground">{s.name}</div>
+                          {s.fatherName && <div className="text-[10px] text-muted-foreground">F: {s.fatherName}</div>}
+                        </td>
+                        <td className="py-3 px-3">
+                          <span className="text-xs bg-muted px-2 py-0.5 rounded-full font-medium">{s.role}</span>
+                        </td>
+                        <td className="py-3 px-3 text-sm text-muted-foreground">{s.phone || '-'}</td>
+                        <td className="py-3 px-3 text-sm text-muted-foreground">{s.nid || '-'}</td>
+                        <td className="py-3 px-3 text-sm font-bold text-right">৳{s.salary.toLocaleString()}</td>
+                        <td className="py-3 px-3 text-center">
+                          <button onClick={() => toggleStatus(s.id)}
+                            className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${
+                              s.status === 'active' ? 'bg-[hsl(142,70%,90%)] text-[hsl(142,70%,30%)]' : 'bg-muted text-muted-foreground'
+                            }`}>
+                            {s.status}
+                          </button>
+                        </td>
+                        <td className="py-3 px-3 text-center">
+                          <div className="flex items-center justify-center gap-1">
+                            <button onClick={() => handleEdit(s)} className="text-primary hover:text-primary/80 p-1" title="Edit">
+                              <span className="material-symbols-outlined text-lg">edit</span>
+                            </button>
+                            <button onClick={() => setShowDeleteConfirm(s.id)} className="text-destructive hover:text-destructive/80 p-1" title="Delete">
+                              <span className="material-symbols-outlined text-lg">delete</span>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
