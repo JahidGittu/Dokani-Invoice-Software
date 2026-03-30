@@ -267,7 +267,7 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
       </tr>
     `).join('');
 
-    const totalDueToSupplier = sup?.total_due ?? 0;
+    const totalDueToSupplier = sup?.totalDue ?? 0;
 
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
     <style>
