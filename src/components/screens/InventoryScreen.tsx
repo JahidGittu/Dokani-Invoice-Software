@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import InfoTooltip from "@/components/InfoTooltip";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/hooks/useAuth";
@@ -89,22 +89,39 @@ export default function InventoryScreen({ products }: InventoryScreenProps) {
             <thead><tr className="text-[11px] font-bold text-pos-on-surface-variant uppercase tracking-widest bg-pos-surface-low border-t border-pos-surface-container">
               <th className="px-4 sm:px-8 py-3">{t('product')}</th><th className="px-4 sm:px-8 py-3">{t('size')}</th><th className="px-4 sm:px-8 py-3">{t('stock')}</th><th className="px-4 sm:px-8 py-3">{t('status')}</th>
             </tr></thead>
-            <tbody className="divide-y divide-pos-surface-container">
-              {products.map(p => (
-                <tr key={p.id} className="hover:bg-pos-surface-low transition-colors">
-                  <td className="px-4 sm:px-8 py-4 font-semibold">{p.name}</td>
-                  <td className="px-4 sm:px-8 py-4"><span className="px-2 py-0.5 bg-pos-secondary-container text-pos-on-secondary-container rounded text-xs font-bold">{p.size}</span></td>
-                  <td className="px-4 sm:px-8 py-4 font-bold">{formatStockDisplay(p.stock, p.piecesPerBox || 4)}</td>
-                  <td className="px-4 sm:px-8 py-4">
-                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
-                      p.stock <= 0 ? 'bg-pos-error text-white' :
-                      p.stock <= 20 ? 'bg-pos-error-container text-pos-on-error-container' :
-                      'bg-pos-tertiary-container text-pos-on-tertiary-container'
-                    }`}>
-                      {p.stock <= 0 ? t('outOfStockLabel') : p.stock <= 20 ? t('lowStockLabel') : t('inStock')}
-                    </span>
-                  </td>
-                </tr>
+            <tbody>
+              {Object.entries(
+                products.reduce((groups, p) => {
+                  const key = p.category || 'Uncategorized';
+                  if (!groups[key]) groups[key] = [];
+                  groups[key].push(p);
+                  return groups;
+                }, {} as Record<string, typeof products>)
+              ).map(([category, items]) => (
+                <React.Fragment key={category}>
+                  <tr className="bg-pos-surface-container/50">
+                    <td colSpan={4} className="px-4 sm:px-8 py-2.5">
+                      <span className="text-[11px] font-bold text-pos-primary uppercase tracking-wider">{category}</span>
+                      <span className="text-[10px] text-pos-on-surface-variant ml-2">({items.length})</span>
+                    </td>
+                  </tr>
+                  {items.map(p => (
+                    <tr key={p.id} className="hover:bg-pos-surface-low transition-colors border-b border-pos-surface-container/50">
+                      <td className="px-4 sm:px-8 py-3.5 font-semibold">{p.name}</td>
+                      <td className="px-4 sm:px-8 py-3.5"><span className="px-2 py-0.5 bg-pos-secondary-container text-pos-on-secondary-container rounded text-xs font-bold">{p.size}</span></td>
+                      <td className="px-4 sm:px-8 py-3.5 font-bold">{formatStockDisplay(p.stock, p.piecesPerBox || 4)}</td>
+                      <td className="px-4 sm:px-8 py-3.5">
+                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                          p.stock <= 0 ? 'bg-pos-error text-white' :
+                          p.stock <= 20 ? 'bg-pos-error-container text-pos-on-error-container' :
+                          'bg-pos-tertiary-container text-pos-on-tertiary-container'
+                        }`}>
+                          {p.stock <= 0 ? t('outOfStockLabel') : p.stock <= 20 ? t('lowStockLabel') : t('inStock')}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </React.Fragment>
               ))}
             </tbody>
           </table>
