@@ -14,7 +14,20 @@ interface ReportsScreenProps {
   purchases?: PurchaseRecord[];
 }
 
-type ReportType = 'purchase' | 'sales' | 'stock' | 'payment' | 'general_transaction' | 'customer' | 'supplier' | 'staff' | 'profit' | 'customer_dues' | 'customer_walking' | 'customer_advance' | 'supplier_balance' | 'staff_balance' | 'account';
+type ReportType = 
+  | 'purchase_invoice' | 'purchase_product' | 'category_purchase' | 'product_purchase' | 'supplier_purchase' | 'purchase_summary'
+  | 'sales_invoice' | 'sales_product' | 'category_sales' | 'product_sales' | 'sales_summary' | 'brand_sales' | 'sales_return'
+  | 'overall_stock' | 'overall_stock_no_price' | 'category_stock' | 'brand_stock' | 'low_stock' | 'product_ledger' | 'damage_lost'
+  | 'customer_payment' | 'supplier_payment' | 'staff_salary_payment'
+  | 'general_transaction' | 'category_transaction' | 'transaction_summary'
+  | 'customer_invoices' | 'customer_purchased' | 'customer_ledger'
+  | 'supplier_invoices' | 'supplier_sales' | 'supplier_ledger'
+  | 'staff_salary' | 'cashier_sales' | 'staff_sales'
+  | 'invoice_profit' | 'product_profit' | 'net_profit'
+  | 'customer_dues' | 'customer_walking' | 'customer_advance' | 'supplier_balance' | 'staff_balance'
+  | 'cash_ledger' | 'all_transaction_summary' | 'account_transaction' | 'account_balance'
+  // Legacy aliases
+  | 'purchase' | 'sales' | 'stock' | 'payment' | 'customer' | 'supplier' | 'staff' | 'profit' | 'account';
 
 export default function ReportsScreen({ sales = [], products = [], customers = [], suppliers = [], purchases = [] }: ReportsScreenProps) {
   const { t } = useI18n();
