@@ -831,7 +831,8 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
                 <SortHeader field="invoice">Invoice #</SortHeader>
                 <SortHeader field="date">Date</SortHeader>
                 <SortHeader field="supplierName">Supplier</SortHeader>
-                <SortHeader field="qty">Quantity</SortHeader>
+                <SortHeader field="qty">Carton</SortHeader>
+                <th className="px-4 py-3 text-[11px] font-bold text-pos-on-surface-variant uppercase tracking-wider">Piece</th>
                 <SortHeader field="sqft">Sqft Qty</SortHeader>
                 <SortHeader field="payable" align="text-right">Total</SortHeader>
                 <SortHeader field="paid" align="text-right">Paid</SortHeader>
