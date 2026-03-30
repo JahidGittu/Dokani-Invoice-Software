@@ -350,6 +350,7 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
 
     const sale: SaleRecord = {
       id: crypto.randomUUID(), invoice: inv, customer: finalCustomer,
+      customerType: isWalkingCustomer ? 'Walking' : 'Listed',
       phone: finalPhone, address: finalAddress, items: saleItems, subtotal: total, discount: discountVal,
       discountType, total: payable, paymentMethod: paymentMode.toLowerCase(),
       notes: remark, status: autoStatus as SaleRecord['status'],
