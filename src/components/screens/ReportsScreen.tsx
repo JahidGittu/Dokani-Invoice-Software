@@ -18,9 +18,31 @@ type ReportType = 'purchase' | 'sales' | 'stock' | 'payment' | 'general_transact
 
 export default function ReportsScreen({ sales = [], products = [], customers = [], suppliers = [], purchases = [] }: ReportsScreenProps) {
   const { t } = useI18n();
+  const { user } = useAuth();
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [activeReport, setActiveReport] = useState<ReportType>('sales');
+
+  // Fetch manual transactions
+  const [manualTxns, setManualTxns] = useState<{ transaction_type: string; amount: number; category: string; description: string; account: string; transaction_date: string }[]>([]);
+  const fetchManualTxns = useCallback(async () => {
+    if (!user) return;
+    const { data } = await (supabase.from('manual_transactions') as any)
+      .select('transaction_type, amount, category, description, account, transaction_date')
+      .order('transaction_date', { ascending: false });
+    setManualTxns(data || []);
+  }, [user]);
+  useEffect(() => { fetchManualTxns(); }, [fetchManualTxns]);
+
+  const filteredManualTxns = useMemo(() => {
+    if (!dateFrom && !dateTo) return manualTxns;
+    return manualTxns.filter(tx => {
+      const d = tx.transaction_date;
+      if (dateFrom && d < dateFrom) return false;
+      if (dateTo && d > dateTo) return false;
+      return true;
+    });
+  }, [manualTxns, dateFrom, dateTo]);
 
   const filteredSales = useMemo(() => {
     if (!dateFrom && !dateTo) return sales;
