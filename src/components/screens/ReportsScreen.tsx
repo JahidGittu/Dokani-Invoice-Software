@@ -89,7 +89,7 @@ export default function ReportsScreen({ sales = [], products = [], customers = [
     return { totalRevenue, totalPaid, totalDue, totalProfit, totalCost, dueCustomers, purchaseTotal, purchasePaid, purchaseDue };
   }, [filteredSales, filteredPurchases, products, customers]);
 
-  const reportList: { id: ReportType; label: string; icon: string; children?: { id: ReportType; label: string }[] }[] = [
+  const reportList: { id: ReportType; label: string; icon: string; children?: { id: ReportType; label: string; icon?: string }[] }[] = [
     { id: 'purchase', label: 'Purchase Report', icon: 'shopping_cart' },
     { id: 'sales', label: 'Sales Report', icon: 'point_of_sale' },
     { id: 'stock', label: 'Stock Report', icon: 'layers' },
