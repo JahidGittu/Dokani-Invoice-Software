@@ -382,20 +382,27 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
     // WhatsApp notification
     if (sendWhatsApp && finalPhone) {
       const whatsAppPhone = finalPhone.replace(/[^0-9]/g, '');
-      const saleItemsSummary = items.map(i => `• ${i.name} (${i.itemType}) - ৳${i.subTotal.toFixed(0)}`).join('\n');
-      const msg = `🧾 *${companyName || 'Invoice'}*\n` +
-        `📋 Invoice: ${inv}\n` +
-        `📅 Date: ${saleDate}\n\n` +
+      const fullPhone = whatsAppPhone.startsWith('880') ? whatsAppPhone : '88' + whatsAppPhone;
+      const saleItemsSummary = items.map(i => `- ${i.name} (${i.itemType}) - Tk.${i.subTotal.toFixed(0)}`).join('\n');
+      const msg = `*${companyName || 'Invoice'}*\n` +
+        `Invoice: ${inv}\n` +
+        `Date: ${saleDate}\n\n` +
         `${saleItemsSummary}\n\n` +
-        `💰 Total: ৳${total}\n` +
-        (returnVal > 0 ? `↩️ Return: ৳${returnVal}\n` : '') +
-        (discountVal > 0 ? `🏷️ Discount: ৳${discountVal}\n` : '') +
-        `✅ Payable: ৳${payable}\n` +
-        `💵 Paid: ৳${paidVal}\n` +
-        (dueVal > 0 ? `⚠️ Due: ৳${dueVal}\n` : '') +
-        `\n🙏 ধন্যবাদ!`;
-      const waUrl = `https://wa.me/${whatsAppPhone.startsWith('880') ? whatsAppPhone : '88' + whatsAppPhone}?text=${encodeURIComponent(msg)}`;
-      window.open(waUrl, '_blank');
+        `Total: Tk.${total.toFixed(2)}\n` +
+        (returnVal > 0 ? `Return: Tk.${returnVal.toFixed(2)}\n` : '') +
+        (discountVal > 0 ? `Discount: Tk.${discountVal.toFixed(2)}\n` : '') +
+        `Payable: Tk.${payable.toFixed(2)}\n` +
+        `Paid: Tk.${paidVal.toFixed(2)}\n` +
+        (dueVal > 0 ? `Due: Tk.${dueVal.toFixed(2)}\n` : '') +
+        `\nDhonnobad!`;
+      const waUrl = `https://wa.me/${fullPhone}?text=${encodeURIComponent(msg)}`;
+      // Use location.href as fallback for iframe-blocked contexts
+      try {
+        const win = window.open(waUrl, '_blank');
+        if (!win) window.location.href = waUrl;
+      } catch {
+        window.location.href = waUrl;
+      }
     }
 
     toast.success(`Sale saved: ${inv}`);
