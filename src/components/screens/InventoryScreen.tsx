@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import InfoTooltip from "@/components/InfoTooltip";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/hooks/useAuth";
