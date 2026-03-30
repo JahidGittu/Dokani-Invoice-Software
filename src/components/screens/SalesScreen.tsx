@@ -323,11 +323,11 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
 
   const handleSave = () => {
     if (!items.length) { toast.error('কমপক্ষে একটি প্রোডাক্ট যোগ করুন'); return; }
-    if (!paidAmount && saleStatus !== 'Credit') { toast.error('Paid amount দিন!'); return; }
+    if (!paidAmount && saleStatus !== 'Credit' && payable > 0) { toast.error('Paid amount দিন!'); return; }
 
     const inv = getNextInvoiceNumber(settings.invPrefix);
     const now = new Date(saleDate);
-    const autoStatus = paidVal >= payable ? 'paid' : paidVal > 0 ? 'pending' : 'credit';
+    const autoStatus = payable <= 0 ? 'paid' : paidVal >= payable ? 'paid' : paidVal > 0 ? 'pending' : 'credit';
 
     const finalCustomer = isWalkingCustomer ? (walkingName || t('walkInCustomer')) : (customerName || t('walkInCustomer'));
     const finalPhone = isWalkingCustomer ? walkingPhone : phone;
@@ -338,7 +338,7 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
       return {
         productId: i.productId, name: i.name, detail: p ? `${p.size} · ${p.finish}` : '',
         qty: i.carton, price: i.salesRate, carton: i.carton, piece: i.piece,
-        sqftQty: i.sqftQty, category: p?.category || '', itemType: i.itemType as 'Sale',
+        sqftQty: i.sqftQty, category: p?.category || '', itemType: i.itemType as 'Sale' | 'Return',
       };
     });
 
@@ -353,17 +353,20 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
       previousDues: prevDues, soldBy: salesMan || settings.userName || '',
     };
 
-    // Stock deduction: total pieces
-    onSaleComplete(sale, items.map(i => {
+    // Stock: Sale items DEDUCT, Return items ADD BACK
+    const stockChanges = items.map(i => {
       const p = products.find(x => x.id === i.productId);
+      let totalPieces: number;
       if (p && !isSqftUnit(p.unit)) {
-        // Non-SQFT: qty = piece directly
-        return { productId: i.productId, qty: Math.max(1, i.piece) };
+        totalPieces = Math.max(1, i.piece);
+      } else {
+        const piecesPerBox = p?.piecesPerBox || 4;
+        totalPieces = Math.max(1, cartonPieceToTotalPieces(i.carton, i.piece, piecesPerBox));
       }
-      const piecesPerBox = p?.piecesPerBox || 4;
-      const totalPieces = cartonPieceToTotalPieces(i.carton, i.piece, piecesPerBox);
-      return { productId: i.productId, qty: Math.max(1, totalPieces) };
-    }));
+      // Return items: negative qty means stock is ADDED back
+      return { productId: i.productId, qty: i.itemType === 'Return' ? -totalPieces : totalPieces };
+    });
+    onSaleComplete(sale, stockChanges);
     if (!isWalkingCustomer && finalCustomer !== t('walkInCustomer') && !customers.find(c => c.name === finalCustomer)) {
       onAutoAddCustomer(finalCustomer, finalPhone, finalAddress);
     }
