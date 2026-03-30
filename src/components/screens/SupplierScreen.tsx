@@ -233,7 +233,7 @@ export default function SupplierScreen({ suppliers, onAddSupplier, onDeleteSuppl
                 className="w-full bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2.5 px-3 outline-none focus:border-pos-secondary transition-colors" />
             </div>
             <div className="space-y-1.5">
-              <label className="text-sm font-semibold text-pos-on-surface flex items-center gap-1">Opening Balance <InfoTooltip text="সাপ্লায়ারের কাছে আগে থেকে যত টাকা বাকি আছে। এটি Total Due তে যোগ হবে।" /></label>
+              <label className="text-sm font-semibold text-pos-on-surface flex items-center gap-1">Opening Balance <InfoTooltip text="সাপ্লায়ারের আগের বকেয়া। Total Due তে যোগ হবে।" /></label>
               <input value={openingBalance} onChange={e => setOpeningBalance(e.target.value)} type="number" placeholder="0"
                 className="w-full bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2.5 px-3 outline-none focus:border-pos-secondary transition-colors" />
             </div>
