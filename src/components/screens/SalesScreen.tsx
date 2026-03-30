@@ -371,6 +371,26 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
     if (!isWalkingCustomer && finalCustomer !== t('walkInCustomer') && !customers.find(c => c.name === finalCustomer)) {
       onAutoAddCustomer(finalCustomer, finalPhone, finalAddress);
     }
+
+    // WhatsApp notification
+    if (sendWhatsApp && finalPhone) {
+      const whatsAppPhone = finalPhone.replace(/[^0-9]/g, '');
+      const saleItemsSummary = items.map(i => `• ${i.name} (${i.itemType}) - ৳${i.subTotal.toFixed(0)}`).join('\n');
+      const msg = `🧾 *${companyName || 'Invoice'}*\n` +
+        `📋 Invoice: ${inv}\n` +
+        `📅 Date: ${saleDate}\n\n` +
+        `${saleItemsSummary}\n\n` +
+        `💰 Total: ৳${total}\n` +
+        (returnVal > 0 ? `↩️ Return: ৳${returnVal}\n` : '') +
+        (discountVal > 0 ? `🏷️ Discount: ৳${discountVal}\n` : '') +
+        `✅ Payable: ৳${payable}\n` +
+        `💵 Paid: ৳${paidVal}\n` +
+        (dueVal > 0 ? `⚠️ Due: ৳${dueVal}\n` : '') +
+        `\n🙏 ধন্যবাদ!`;
+      const waUrl = `https://wa.me/${whatsAppPhone.startsWith('880') ? whatsAppPhone : '88' + whatsAppPhone}?text=${encodeURIComponent(msg)}`;
+      window.open(waUrl, '_blank');
+    }
+
     toast.success(`Sale saved: ${inv}`);
     setView('history');
   };
