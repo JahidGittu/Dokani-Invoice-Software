@@ -645,8 +645,8 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
                               onChange={() => isSelected ? removeItem(item!.id) : addProductToItems(p)}
                               className="w-4 h-4 rounded border-pos-surface-container accent-pos-secondary cursor-pointer" />
                           </td>
-                          <td className="px-3 py-2 text-xs text-muted-foreground font-mono">{p.barcode || p.batch || '—'}</td>
-                          <td className="px-3 py-2 text-sm font-medium">
+                          <td className="px-3 py-2 text-xs text-muted-foreground font-mono text-left">{p.barcode || p.batch || '—'}</td>
+                          <td className="px-3 py-2 text-sm font-medium text-center">
                             {p.name}
                             {!pIsSqft && <span className="text-[10px] ml-1 text-muted-foreground">({p.unit})</span>}
                           </td>
