@@ -876,7 +876,7 @@ tbody tr:nth-child(even){background:#fafafa}
                     className="flex-1 bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2 px-3 outline-none" placeholder="Optional note..." />
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-pos-on-surface-variant uppercase flex items-center gap-1">Status <InfoTooltip text="Complete: পুরো টাকা পেয়েছেন। Pending: আংশিক পেয়েছেন। Credit: বাকিতে দিয়েছেন।" size={12} /></span>
+                  <span className="text-xs font-bold text-pos-on-surface-variant uppercase flex items-center gap-1">Status <InfoTooltip text="Complete: পুরো পেমেন্ট। Pending: আংশিক। Credit: বাকি।" size={12} /></span>
                   <select value={saleStatus} onChange={e => setSaleStatus(e.target.value)}
                     className="bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2 px-3 outline-none">
                     <option>Complete</option><option>Pending</option><option>Credit</option>
