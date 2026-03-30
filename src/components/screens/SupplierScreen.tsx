@@ -20,7 +20,7 @@ type SortDir = 'asc' | 'desc';
 
 const ITEMS_PER_PAGE = 10;
 
-export default function SupplierScreen({ suppliers, onAddSupplier, onDeleteSupplier, shopName = '', shopAddress = '' }: SupplierScreenProps) {
+export default function SupplierScreen({ suppliers, onAddSupplier, onDeleteSupplier, onUpdateSupplier, shopName = '', shopAddress = '' }: SupplierScreenProps) {
   const { t } = useI18n();
   const [view, setView] = useState<'list' | 'add'>('add');
   const [name, setName] = useState('');
