@@ -46,7 +46,7 @@ export default function ShopLayout() {
   const activeScreen = pathToScreen[location.pathname] || 'dashboard';
 
   const { products, addProduct, updateProduct, deleteProduct, deductStock, addStock, setProducts } = useSupabaseProducts();
-  const { customers, addCustomer, deleteCustomer, updateCustomerSpend, updateCustomerDue } = useSupabaseCustomers();
+  const { customers, addCustomer, deleteCustomer, updateCustomerSpend, updateCustomerDue, refreshCustomers } = useSupabaseCustomers();
   const { sales, addSale, deleteSale } = useSupabaseSales();
   const { suppliers, addSupplier, deleteSupplier, updateSupplierDue } = useSupabaseSuppliers();
   const { purchases, addPurchase, deletePurchase, updatePurchase } = useSupabasePurchases();
