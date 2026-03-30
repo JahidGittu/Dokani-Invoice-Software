@@ -432,20 +432,28 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
 
   const handleWhatsApp = () => {
     let msg = `*${companyName}*\n`;
-    if (companyPhone) msg += `📞 ${companyPhone}\n`;
-    msg += `📋 Invoice: ${sale.invoice}\n📅 Date: ${dateStr}\n`;
-    msg += `👤 Customer: ${sale.customer}\n`;
-    if (sale.phone) msg += `📱 Phone: ${sale.phone}\n`;
+    if (companyPhone) msg += `Phone: ${companyPhone}\n`;
+    msg += `Invoice: ${sale.invoice}\nDate: ${dateStr}\n`;
+    msg += `Customer: ${sale.customer}\n`;
+    if (sale.phone) msg += `Mobile: ${sale.phone}\n`;
     msg += `\n*Items:*\n`;
     sale.items.forEach((item, i) => {
       msg += `${i + 1}. ${item.name} x${item.qty} = ${formatCurrency(item.price * item.qty)}\n`;
     });
-    if (sale.discount > 0) msg += `\n💰 Discount: -${formatCurrency(sale.discount)}`;
-    msg += `\n*💵 PAYABLE: ${formatCurrency(sale.total)}*`;
-    msg += `\n✅ Paid: ${formatCurrency(sale.paid ?? sale.total)}`;
-    if (dueInBill > 0) msg += `\n⚠️ Due: ${formatCurrency(dueInBill)}`;
-    const url = `https://wa.me/${sale.phone?.replace(/[^0-9]/g, '') || ''}?text=${encodeURIComponent(msg)}`;
-    window.open(url, '_blank');
+    if (sale.discount > 0) msg += `\nDiscount: -${formatCurrency(sale.discount)}`;
+    msg += `\n*PAYABLE: ${formatCurrency(sale.total)}*`;
+    msg += `\nPaid: ${formatCurrency(sale.paid ?? sale.total)}`;
+    if (dueInBill > 0) msg += `\nDue: ${formatCurrency(dueInBill)}`;
+    msg += `\n\nDhonnobad!`;
+    const rawPhone = sale.phone?.replace(/[^0-9]/g, '') || '';
+    const fullPhone = rawPhone.startsWith('880') ? rawPhone : '88' + rawPhone;
+    const url = `https://wa.me/${fullPhone}?text=${encodeURIComponent(msg)}`;
+    try {
+      const win = window.open(url, '_blank');
+      if (!win) window.location.href = url;
+    } catch {
+      window.location.href = url;
+    }
   };
 
   return (
