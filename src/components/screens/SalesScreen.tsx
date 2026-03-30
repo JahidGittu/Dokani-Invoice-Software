@@ -1169,15 +1169,15 @@ tbody tr:nth-child(even){background:#fafafa}
             </div>
             <p className="text-sm text-pos-on-surface-variant mb-4">This action cannot be undone.</p>
             
-            {/* Return All Stock checkbox with attention animation */}
-            <label className="flex items-center gap-3 p-3 rounded-lg bg-pos-tertiary-container/30 border border-pos-tertiary-container cursor-pointer mb-6 animate-[pulse_1.5s_ease-in-out_2]">
-              <Checkbox defaultChecked className="h-5 w-5 border-2 border-pos-tertiary data-[state=checked]:bg-pos-tertiary data-[state=checked]:border-pos-tertiary" />
+            {/* Return All Stock - mandatory, non-interactive */}
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-pos-tertiary-container/30 border border-pos-tertiary-container mb-6 animate-[pulse_1.5s_ease-in-out_2]">
+              <Checkbox checked disabled className="h-5 w-5 border-2 border-pos-tertiary data-[state=checked]:bg-pos-tertiary data-[state=checked]:border-pos-tertiary opacity-100" />
               <div>
                 <span className="text-sm font-semibold text-pos-on-tertiary-container">Return All Stock</span>
                 <p className="text-xs text-pos-on-surface-variant mt-0.5">ডিলিট করলে সব প্রোডাক্ট স্টকে ফেরত যাবে</p>
               </div>
               <span className="material-symbols-outlined text-pos-tertiary ml-auto animate-bounce text-lg">inventory</span>
-            </label>
+            </div>
 
             <div className="flex gap-3">
               <button onClick={() => setShowDeleteConfirm(null)} className="flex-1 py-2.5 bg-pos-surface-container text-pos-on-surface-variant rounded-lg font-semibold text-sm">Cancel</button>
