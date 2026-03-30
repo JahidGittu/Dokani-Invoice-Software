@@ -309,7 +309,7 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
   const dueVal = payable - paidVal;
   const selectedCustomerObj = customers.find(c => c.name === customerName);
   const prevDues = selectedCustomerObj?.totalDue || 0;
-  const balanceVal = payable - paidVal;
+  const balanceVal = dueVal + prevDues;
 
   const openAddSale = () => {
     setView('add');
