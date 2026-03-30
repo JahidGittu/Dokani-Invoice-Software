@@ -1322,7 +1322,13 @@ export default function ReportsScreen({ sales = [], products = [], customers = [
                 <div key={item.id}>
                   <button
                     onClick={() => {
-                      setExpandedParents(prev => ({ ...prev, [item.id]: !isExpanded }));
+                      setExpandedParents(prev => {
+                        // Close all others, toggle current
+                        const next: Record<string, boolean> = {};
+                        Object.keys(prev).forEach(k => { next[k] = false; });
+                        next[item.id] = !isExpanded;
+                        return next;
+                      });
                       if (!item.children.some(c => c.id === activeReport)) {
                         setActiveReport(item.children[0].id);
                       }
