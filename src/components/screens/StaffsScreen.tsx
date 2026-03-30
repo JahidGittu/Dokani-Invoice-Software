@@ -104,43 +104,46 @@ export default function StaffsScreen() {
   const handleSave = async () => {
     if (!name.trim() || !user) { toast.error('নাম দিন'); return; }
 
-    let photoUrl = editingStaff?.photoUrl || '';
+    let photoUrl = '';
     if (photo) {
       photoUrl = await uploadPhoto(photo);
     }
 
-    if (editingStaff) {
-      // Update
-      const { error } = await supabase.from('staffs').update({
-        name: name.trim(), role: designation, phone: mobile, salary: parseFloat(salary) || 0,
-        nid, photo_url: photoUrl, father_name: fatherName, mother_name: motherName,
-        email, address, join_date: joinDate,
-      } as any).eq('id', editingStaff.id);
-      if (error) { toast.error('Failed to update staff'); return; }
-      toast.success('Staff updated');
-    } else {
-      // Insert
-      const { error } = await supabase.from('staffs').insert({
-        user_id: user.id, name: name.trim(), role: designation, phone: mobile,
-        salary: parseFloat(salary) || 0, status: 'active',
-        nid, photo_url: photoUrl, father_name: fatherName, mother_name: motherName,
-        email, address, join_date: joinDate,
-      } as any);
-      if (error) { toast.error('Failed to add staff'); return; }
-      toast.success('Staff added');
-    }
+    const { error } = await supabase.from('staffs').insert({
+      user_id: user.id, name: name.trim(), role: designation, phone: mobile,
+      salary: parseFloat(salary) || 0, status: 'active',
+      nid, photo_url: photoUrl, father_name: fatherName, mother_name: motherName,
+      email, address, join_date: joinDate,
+    } as any);
+    if (error) { toast.error('Failed to add staff'); return; }
+    toast.success('Staff added');
     resetForm();
     fetchStaffs();
   };
 
   const handleEdit = (s: Staff) => {
     setEditingStaff(s);
-    setName(s.name); setDesignation(s.role); setNid(s.nid);
-    setFatherName(s.fatherName); setMotherName(s.motherName);
-    setMobile(s.phone); setEmail(s.email); setAddress(s.address);
-    setSalary(String(s.salary || '')); setJoinDate(s.joinDate?.split('T')[0] || '');
-    setPhotoPreview(s.photoUrl || '');
-    setActiveTab('add');
+    setEditName(s.name); setEditDesignation(s.role); setEditNid(s.nid);
+    setEditFatherName(s.fatherName); setEditMotherName(s.motherName);
+    setEditMobile(s.phone); setEditEmail(s.email); setEditAddress(s.address);
+    setEditSalary(String(s.salary || '')); setEditJoinDate(s.joinDate?.split('T')[0] || '');
+    setEditPhotoPreview(s.photoUrl || ''); setEditPhoto(null);
+    setShowEditModal(true);
+  };
+
+  const handleEditSave = async () => {
+    if (!editName.trim() || !user || !editingStaff) return;
+    let photoUrl = editingStaff.photoUrl || '';
+    if (editPhoto) { photoUrl = await uploadPhoto(editPhoto); }
+    const { error } = await supabase.from('staffs').update({
+      name: editName.trim(), role: editDesignation, phone: editMobile, salary: parseFloat(editSalary) || 0,
+      nid: editNid, photo_url: photoUrl, father_name: editFatherName, mother_name: editMotherName,
+      email: editEmail, address: editAddress, join_date: editJoinDate,
+    } as any).eq('id', editingStaff.id);
+    if (error) { toast.error('Failed to update staff'); return; }
+    toast.success('Staff updated');
+    setShowEditModal(false); setEditingStaff(null);
+    fetchStaffs();
   };
 
   const toggleStatus = async (id: string) => {
