@@ -874,11 +874,10 @@ tbody tr:nth-child(even){background:#fafafa}
                 <span className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase">Total</span>
                 <span className="flex-1 text-right text-lg font-black text-pos-on-surface px-3">{formatCurrency(total)}</span>
               </div>
-              {/* RETURN */}
+              {/* RETURN (auto from cart Return items) */}
               <div className="flex items-center border border-pos-surface-container rounded-lg">
                 <span className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase">Return</span>
-                <input type="number" min={0} step="any" value={returnAmt} onChange={e => setReturnAmt(e.target.value)} placeholder="0"
-                  className="flex-1 min-w-0 text-sm py-3 px-3 outline-none bg-pos-surface-lowest rounded-r-lg text-right font-bold text-pos-error" />
+                <span className={`flex-1 text-right text-lg font-black px-3 ${returnVal > 0 ? 'text-pos-error' : 'text-pos-on-surface'}`}>{formatCurrency(returnVal)}</span>
               </div>
               {/* DISCOUNT with ৳/% toggle */}
               <div className="flex items-center border border-pos-surface-container rounded-lg">
