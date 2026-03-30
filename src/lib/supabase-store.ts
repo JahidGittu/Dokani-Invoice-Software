@@ -371,6 +371,7 @@ export function useSupabasePurchases() {
       discount: Number(p.discount), delivery: Number(p.delivery),
       payable: Number(p.payable), paid: Number(p.paid), due: Number(p.due),
       remark: p.remark || '',
+      account: p.account || 'Cash',
       items: (p.purchase_items || []).map((i: any) => ({
         productId: i.product_id, name: i.name, barcode: i.barcode,
         carton: i.carton, piece: i.piece, sqftQty: Number(i.sqft_qty),
