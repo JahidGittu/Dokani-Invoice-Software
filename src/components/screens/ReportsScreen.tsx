@@ -177,7 +177,7 @@ export default function ReportsScreen({ sales = [], products = [], customers = [
                     <th className="px-4 py-2">{t('invoice')}</th><th className="px-4 py-2">{t('customer')}</th><th className="px-4 py-2 text-right">{t('total')}</th><th className="px-4 py-2 text-right">{t('paid')}</th><th className="px-4 py-2 text-right">{t('due')}</th>
                   </tr></thead>
                   <tbody className="divide-y divide-pos-surface-container">
-                    {filteredSales.slice(0, 20).map(s => (
+                    {filteredSales.map(s => (
                       <tr key={s.id} className="hover:bg-pos-surface-low">
                         <td className="px-4 py-2 text-xs font-bold text-pos-secondary">{s.invoice}</td>
                         <td className="px-4 py-2">{s.customer}</td>
