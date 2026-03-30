@@ -316,7 +316,8 @@ export default function SupplierScreen({ suppliers, onAddSupplier, onDeleteSuppl
                 </TableCell>
                 <TableCell className="text-center">
                   <div className="flex items-center justify-center gap-3">
-                    <button className="text-pos-secondary hover:text-pos-secondary/80 transition-colors" title="Edit">
+                    <button onClick={() => { setEditSupplier(s); setEditName(s.name); setEditContact(s.contactPerson || ''); setEditPhone(s.phone || ''); setEditAddress(s.address || ''); }}
+                      className="text-pos-secondary hover:text-pos-secondary/80 transition-colors" title="Edit">
                       <Pencil size={16} />
                     </button>
                     <button onClick={() => setShowDeleteConfirm(s.id)} className="text-pos-error hover:text-pos-error/80 transition-colors" title={t('delete')}>
