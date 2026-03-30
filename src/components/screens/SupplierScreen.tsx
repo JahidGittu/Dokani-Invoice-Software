@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { useI18n } from "@/lib/i18n";
 import { formatCurrency, type Supplier } from "@/lib/store";
 import { toast } from "sonner";
