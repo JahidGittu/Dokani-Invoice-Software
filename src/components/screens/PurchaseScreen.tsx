@@ -273,8 +273,8 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
       * { margin:0; padding:0; box-sizing:border-box; }
-      body { font-family:'Inter',sans-serif; color:#1a1a1a; padding:20mm 15mm; background:white; }
-      @page { size:A4; margin:15mm 12mm; }
+       body { font-family:'Inter',sans-serif; color:#1a1a1a; padding:8mm 10mm; background:white; }
+       @page { size:A4; margin:8mm 10mm; }
       .header { text-align:center; border-bottom:3px solid #1a1a1a; padding-bottom:12px; margin-bottom:16px; }
       .header h1 { font-size:20px; font-weight:900; text-transform:uppercase; letter-spacing:1px; }
       .header .sub { font-size:11px; color:#555; margin-top:2px; }
@@ -286,9 +286,16 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
       thead tr { background:#1a1a1a; color:white; }
       thead th { padding:7px 8px; font-weight:700; font-size:10px; text-transform:uppercase; }
       .summary-row { display:flex; justify-content:space-between; margin-bottom:20px; }
-      .summary-left { font-size:11px; flex:1; }
-      .summary-left .item { display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid #e5e7eb; max-width:220px; }
-      .summary-right { width:240px; font-size:11px; }
+       .summary-left { font-size:11px; flex:1; max-width:240px; }
+       .due-box { border:1.5px solid #d1d5db; padding:8px 12px; margin-bottom:10px; }
+       .due-box .due-row { display:flex; justify-content:space-between; padding:3px 0; font-weight:600; }
+       .due-box .due-row .lbl { color:#1a1a1a; font-weight:600; }
+       .due-box .due-row .val { font-weight:700; }
+       .extra-info { font-size:11px; margin-top:6px; }
+       .extra-info .info-line { margin-bottom:3px; }
+       .extra-info .info-label { color:#dc2626; font-weight:700; }
+       .extra-info .info-val { font-weight:900; }
+       .summary-right { width:240px; font-size:11px; }
       .summary-right .item { display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid #e5e7eb; }
       .summary-right .payable { display:flex; justify-content:space-between; padding:8px 0; border-top:2px solid #1a1a1a; border-bottom:2px solid #1a1a1a; font-size:13px; font-weight:900; margin:4px 0; }
       .green { color:#15803d; font-weight:700; }
@@ -332,9 +339,15 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
 
       <div class="summary-row">
         <div class="summary-left">
-          <div class="item"><span class="label">Total Due (Supplier)</span><span class="${totalDueToSupplier > 0 ? 'red' : 'green'}">${fc(totalDueToSupplier)}</span></div>
-          <div class="item"><span class="label">This Invoice Due</span><span class="${p.due > 0 ? 'red' : 'green'}">${fc(p.due)}</span></div>
-          ${p.remark ? `<div style="margin-top:8px;"><span class="label">Remark: </span><span>${p.remark}</span></div>` : ''}
+          <div class="due-box">
+            <div class="due-row"><span class="lbl">Due In This Bill:</span><span class="val ${p.due > 0 ? 'red' : ''}">${p.due > 0 ? fc(p.due) : '0/-'}</span></div>
+            <div class="due-row"><span class="lbl">Previous Dues:</span><span class="val ${(totalDueToSupplier - p.due) > 0 ? 'red' : ''}">${(totalDueToSupplier - p.due) > 0 ? fc(totalDueToSupplier - p.due) : '0/-'}</span></div>
+            <div class="due-row"><span class="lbl">Balance:</span><span class="val ${totalDueToSupplier > 0 ? 'red' : ''}">${totalDueToSupplier > 0 ? fc(totalDueToSupplier) : '0/-'}</span></div>
+          </div>
+          <div class="extra-info">
+            ${p.remark ? `<div class="info-line"><span class="info-label">Remark:</span></div><div class="info-line">${p.remark}</div>` : `<div class="info-line"><span class="info-label">Remark:</span></div>`}
+            <div class="info-line" style="margin-top:4px;"><span class="info-label">Total Quantity:</span> <span class="info-val">${p.items.reduce((s, it) => s + it.carton + it.piece, 0)}</span></div>
+          </div>
         </div>
         <div class="summary-right">
           <div class="item"><span style="color:#6b7280;">Sub Total</span><span style="font-weight:700;">${fc(p.total)}</span></div>
