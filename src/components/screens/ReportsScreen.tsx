@@ -34,7 +34,7 @@ export default function ReportsScreen({ sales = [], products = [], customers = [
   const { user } = useAuth();
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
-  const [activeReport, setActiveReport] = useState<ReportType>('sales');
+  const [activeReport, setActiveReport] = useState<ReportType>('sales_invoice');
   const [expandedParents, setExpandedParents] = useState<Record<string, boolean>>({});
 
   // Fetch manual transactions
@@ -180,11 +180,11 @@ export default function ReportsScreen({ sales = [], products = [], customers = [
 
   const exportReport = () => {
     let rows: string[][] = [];
-    if (activeReport === 'sales') {
+    if (activeReport === 'sales_invoice') {
       rows = [['Invoice', 'Customer', 'Total', 'Paid', 'Due', 'Date'], ...filteredSales.map(s => [s.invoice, s.customer, String(s.total), String(s.paid ?? s.total), String(s.due ?? 0), s.date])];
-    } else if (activeReport === 'purchase') {
+    } else if (activeReport === 'purchase_invoice') {
       rows = [['Invoice', 'Supplier', 'Total', 'Paid', 'Due', 'Date'], ...filteredPurchases.map(p => [p.invoice, p.supplierName, String(p.payable), String(p.paid), String(p.due), p.date])];
-    } else if (activeReport === 'stock') {
+    } else if (activeReport === 'overall_stock') {
       rows = [['Product', 'Category', 'Size', 'Stock', 'Buy Rate', 'Sale Rate'], ...products.map(p => [p.name, p.category || '', p.size, String(p.stock), String(p.buyRate || 0), String(p.pricePerBox)])];
     }
     if (rows.length > 0) { downloadCSV(rows, `${activeReport}_report.csv`); toast.success(t('reportExported')); }
@@ -280,7 +280,7 @@ export default function ReportsScreen({ sales = [], products = [], customers = [
           </div>
 
           {/* Report Data */}
-          {activeReport === 'sales' && (
+          {activeReport === 'sales_invoice' && (
             <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container overflow-hidden">
               <div className="px-5 py-3 bg-pos-surface-low font-semibold text-sm">Sales Report ({filteredSales.length})</div>
               <div className="grid grid-cols-3 gap-4 p-4">
@@ -309,7 +309,7 @@ export default function ReportsScreen({ sales = [], products = [], customers = [
             </div>
           )}
 
-          {activeReport === 'purchase' && (
+          {activeReport === 'purchase_invoice' && (
             <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container overflow-hidden">
               <div className="px-5 py-3 bg-pos-surface-low font-semibold text-sm">Purchase Report ({filteredPurchases.length})</div>
               <div className="grid grid-cols-3 gap-4 p-4">
@@ -338,7 +338,7 @@ export default function ReportsScreen({ sales = [], products = [], customers = [
             </div>
           )}
 
-          {activeReport === 'stock' && (
+          {activeReport === 'overall_stock' && (
             <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container overflow-hidden">
               <div className="px-5 py-3 bg-pos-surface-low font-semibold text-sm">Stock Report ({products.length} products)</div>
               <div className="overflow-x-auto">
@@ -362,7 +362,7 @@ export default function ReportsScreen({ sales = [], products = [], customers = [
             </div>
           )}
 
-          {activeReport === 'payment' && (
+          {activeReport === 'customer_payment' && (
             <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container overflow-hidden">
               <div className="px-5 py-3 bg-pos-surface-low font-semibold text-sm">Payment Report</div>
               <div className="overflow-x-auto">
@@ -387,7 +387,7 @@ export default function ReportsScreen({ sales = [], products = [], customers = [
             </div>
           )}
 
-          {activeReport === 'customer' && (
+          {activeReport === 'customer_invoices' && (
             <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container overflow-hidden">
               <div className="px-5 py-3 bg-pos-surface-low font-semibold text-sm">Customer Report ({customers.length})</div>
               <div className="overflow-x-auto">
@@ -410,7 +410,7 @@ export default function ReportsScreen({ sales = [], products = [], customers = [
             </div>
           )}
 
-          {activeReport === 'supplier' && (
+          {activeReport === 'supplier_invoices' && (
             <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container overflow-hidden">
               <div className="px-5 py-3 bg-pos-surface-low font-semibold text-sm">Supplier Report ({suppliers.length})</div>
               <div className="overflow-x-auto">
@@ -433,7 +433,7 @@ export default function ReportsScreen({ sales = [], products = [], customers = [
             </div>
           )}
 
-          {activeReport === 'profit' && (
+          {activeReport === 'invoice_profit' && (
             <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container overflow-hidden">
               <div className="px-5 py-3 bg-pos-surface-low font-semibold text-sm">Profit Report</div>
               <div className="grid grid-cols-3 gap-4 p-4">
@@ -566,7 +566,7 @@ export default function ReportsScreen({ sales = [], products = [], customers = [
           )}
 
           {/* Staff Report */}
-          {activeReport === 'staff' && (
+          {activeReport === 'staff_salary' && (
             <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container overflow-hidden">
               <div className="px-5 py-3 bg-pos-surface-low font-semibold text-sm">Staff Report</div>
               <div className="p-6 text-center text-pos-on-surface-variant">
@@ -625,7 +625,7 @@ export default function ReportsScreen({ sales = [], products = [], customers = [
             </div>
           )}
 
-          {activeReport === 'account' && (
+          {activeReport === 'account_balance' && (
             <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container overflow-hidden">
               <div className="px-5 py-3 bg-pos-surface-low font-semibold text-sm">Account Reports</div>
               <div className="overflow-x-auto">
