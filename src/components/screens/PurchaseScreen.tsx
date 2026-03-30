@@ -19,7 +19,7 @@ interface PurchaseScreenProps {
 }
 
 const PAGE_SIZES = [10, 25, 50, 100];
-type SortField = 'invoice' | 'date' | 'supplierName' | 'qty' | 'payable' | 'paid' | 'due';
+type SortField = 'invoice' | 'date' | 'supplierName' | 'qty' | 'sqft' | 'payable' | 'paid' | 'due';
 
 // ── Item row for Add Purchase ──
 interface PurchaseItemRow {
@@ -94,7 +94,8 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
       if (sortField === 'invoice') cmp = a.invoice.localeCompare(b.invoice);
       else if (sortField === 'date') cmp = new Date(a.date).getTime() - new Date(b.date).getTime();
       else if (sortField === 'supplierName') cmp = a.supplierName.localeCompare(b.supplierName);
-      else if (sortField === 'qty') cmp = a.items.reduce((s, i) => s + i.carton, 0) - b.items.reduce((s, i) => s + i.carton, 0);
+      else if (sortField === 'qty') cmp = a.items.reduce((s, i) => s + i.carton + i.piece, 0) - b.items.reduce((s, i) => s + i.carton + i.piece, 0);
+      else if (sortField === 'sqft') cmp = a.items.reduce((s, i) => s + (i.sqftQty || 0), 0) - b.items.reduce((s, i) => s + (i.sqftQty || 0), 0);
       else if (sortField === 'payable') cmp = a.payable - b.payable;
       else if (sortField === 'paid') cmp = a.paid - b.paid;
       else if (sortField === 'due') cmp = a.due - b.due;
@@ -830,7 +831,8 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
                 <SortHeader field="invoice">Invoice #</SortHeader>
                 <SortHeader field="date">Date</SortHeader>
                 <SortHeader field="supplierName">Supplier</SortHeader>
-                <SortHeader field="qty">QTY./SQFTQTY.</SortHeader>
+                <SortHeader field="qty">Quantity</SortHeader>
+                <SortHeader field="sqft">Sqft Qty</SortHeader>
                 <SortHeader field="payable" align="text-right">Total</SortHeader>
                 <SortHeader field="paid" align="text-right">Paid</SortHeader>
                 <SortHeader field="due" align="text-right">Due</SortHeader>
@@ -839,13 +841,15 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
             </thead>
             <tbody className="divide-y divide-pos-surface-container">
               {paginated.map(p => {
-                const totalQty = p.items.reduce((s, i) => s + (i.carton || 0), 0);
+                const totalQty = p.items.reduce((s, i) => s + (i.carton || 0) + (i.piece || 0), 0);
+                const totalSqft = p.items.reduce((s, i) => s + (i.sqftQty || 0), 0);
                 return (
                   <tr key={p.id} className="hover:bg-pos-surface-low transition-colors">
                     <td className="px-4 py-3 text-sm font-bold text-pos-secondary">{p.invoice}</td>
                     <td className="px-4 py-3 text-sm">{(() => { try { return new Date(p.date).toLocaleDateString('en-GB'); } catch { return p.date; } })()}</td>
                     <td className="px-4 py-3 text-sm font-medium">{p.supplierName}</td>
-                    <td className="px-4 py-3 text-sm">{totalQty}</td>
+                    <td className="px-4 py-3 text-sm text-center">{totalQty}</td>
+                    <td className="px-4 py-3 text-sm text-center">{totalSqft > 0 ? totalSqft.toFixed(2) : '—'}</td>
                     <td className="px-4 py-3 text-sm text-right font-semibold">{formatCurrency(p.payable)}</td>
                     <td className="px-4 py-3 text-sm text-right font-semibold text-[hsl(125,60%,35%)]">{formatCurrency(p.paid)}</td>
                     <td className={`px-4 py-3 text-sm text-right font-semibold ${p.due > 0 ? 'text-destructive' : ''}`}>{formatCurrency(p.due)}</td>
@@ -866,7 +870,7 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
                 );
               })}
               {paginated.length === 0 && (
-                <tr><td colSpan={8} className="px-8 py-8 text-center text-sm text-pos-on-surface-variant">No purchases yet</td></tr>
+                <tr><td colSpan={9} className="px-8 py-8 text-center text-sm text-pos-on-surface-variant">No purchases yet</td></tr>
               )}
             </tbody>
           </table>
