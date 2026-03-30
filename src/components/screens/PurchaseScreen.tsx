@@ -623,6 +623,7 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
                   <thead className="sticky top-0 z-10">
                     <tr className="text-[10px] font-bold text-white uppercase tracking-wider bg-[hsl(230,45%,35%)]">
                       <th className="px-2 py-2.5 w-8"><span className="material-symbols-outlined text-sm">check_box</span></th>
+                      <th className="px-3 py-2.5">Barcode</th>
                       <th className="px-3 py-2.5">Product Name</th>
                       <th className="px-3 py-2.5 text-center">Stock</th>
                       <th className="px-3 py-2.5 text-center">Qty / Carton</th>
@@ -644,6 +645,7 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
                               onChange={() => isSelected ? removeItem(item!.id) : addProductToItems(p)}
                               className="w-4 h-4 rounded border-pos-surface-container accent-pos-secondary cursor-pointer" />
                           </td>
+                          <td className="px-3 py-2 text-xs text-muted-foreground font-mono">{p.barcode || p.batch || '—'}</td>
                           <td className="px-3 py-2 text-sm font-medium">
                             {p.name}
                             {!pIsSqft && <span className="text-[10px] ml-1 text-muted-foreground">({p.unit})</span>}
