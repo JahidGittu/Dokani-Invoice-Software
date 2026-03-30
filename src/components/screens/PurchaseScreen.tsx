@@ -698,7 +698,7 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
                             </>
                           ) : (
                             <>
-                              <td className="px-3 py-2 text-right text-sm text-muted-foreground">{p.buyRate || 0}</td>
+                              <td className="px-3 py-2 text-center text-sm text-muted-foreground">{p.buyRate || 0}</td>
                               <td className="px-3 py-2 text-right text-sm text-muted-foreground">0.00</td>
                             </>
                           )}
