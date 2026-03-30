@@ -125,7 +125,7 @@ export default function ShopLayout() {
     products, addProduct, updateProduct, deleteProduct, deductStock, addStock, setProducts,
     customers, addCustomer, deleteCustomer, updateCustomerSpend, updateCustomerDue, refreshCustomers,
     sales, addSale, deleteSale: handleDeleteSale,
-    suppliers, addSupplier, deleteSupplier, updateSupplierDue, refreshSuppliers,
+    suppliers, addSupplier, deleteSupplier, updateSupplier, updateSupplierDue, refreshSuppliers,
     purchases, addPurchase: handleAddPurchase, deletePurchase: handleDeletePurchase, updatePurchase: handleUpdatePurchase,
     settings, setSettings,
     handleSaleComplete, handleAutoAddCustomer, handleImportProducts,

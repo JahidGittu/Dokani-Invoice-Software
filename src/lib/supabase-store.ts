@@ -339,7 +339,18 @@ export function useSupabaseSuppliers() {
     fetchSuppliers();
   }, [user, suppliers, fetchSuppliers]);
 
-  return { suppliers, setSuppliers: fetchSuppliers as any, addSupplier, deleteSupplier, updateSupplierDue, refreshSuppliers: fetchSuppliers };
+  const updateSupplier = useCallback(async (id: string, updates: { name?: string; phone?: string; address?: string; contactPerson?: string }) => {
+    if (!user) return;
+    const dbUpdates: Record<string, unknown> = {};
+    if (updates.name !== undefined) dbUpdates.name = updates.name;
+    if (updates.phone !== undefined) dbUpdates.phone = updates.phone;
+    if (updates.address !== undefined) dbUpdates.address = updates.address;
+    if (updates.contactPerson !== undefined) dbUpdates.contact_person = updates.contactPerson;
+    await supabase.from('suppliers').update(dbUpdates).eq('id', id);
+    fetchSuppliers();
+  }, [user, fetchSuppliers]);
+
+  return { suppliers, setSuppliers: fetchSuppliers as any, addSupplier, deleteSupplier, updateSupplier, updateSupplierDue, refreshSuppliers: fetchSuppliers };
 }
 
 // ─── Purchases Hook (Supabase) ───
