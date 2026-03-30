@@ -69,7 +69,7 @@ export default function InventoryScreen({ products }: InventoryScreenProps) {
           <div className="text-2xl font-black text-pos-on-surface">{products.reduce((s, p) => s + p.stock, 0).toLocaleString()} Pcs</div>
         </div>
         <div className="bg-pos-surface-lowest rounded-xl p-5 border border-pos-surface-container">
-          <div className="text-xs font-bold text-pos-on-surface-variant uppercase mb-2 flex items-center gap-1">{t('lowStockItems')} <InfoTooltip text="যেসব প্রোডাক্টের স্টক ২০ পিসের নিচে সেগুলো Low Stock হিসেবে দেখায়। Settings থেকে লিমিট পরিবর্তন করা যায়।" /></div>
+          <div className="text-xs font-bold text-pos-on-surface-variant uppercase mb-2 flex items-center gap-1">{t('lowStockItems')} <InfoTooltip text="স্টক কম আছে এমন পণ্য। Settings থেকে লিমিট বদলানো যায়।" /></div>
           <div className="text-2xl font-black text-pos-error">{lowStockCount}</div>
         </div>
         <div className="bg-pos-surface-lowest rounded-xl p-5 border border-pos-surface-container">

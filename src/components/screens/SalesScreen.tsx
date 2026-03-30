@@ -952,7 +952,7 @@ tbody tr:nth-child(even){background:#fafafa}
               </div>
               {/* TOTAL DUE (Due + Previous Dues) */}
               <div className="flex items-center border border-pos-surface-container rounded-lg">
-                <span className="text-[11px] font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase leading-tight flex items-center gap-1">Total Due <InfoTooltip text="এই বিলের Due + আগের বাকি (Previous Dues) = কাস্টমারের কাছে সর্বমোট পাওনা।" /></span>
+                <span className="text-[11px] font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase leading-tight flex items-center gap-1">Total Due <InfoTooltip text="এই বিল + আগের সব বাকি মিলিয়ে মোট পাওনা।" /></span>
                 <span className={`flex-1 text-right text-lg font-black px-3 ${balanceVal < 0 ? 'text-[hsl(125,60%,35%)]' : balanceVal > 0 ? 'text-destructive' : 'text-pos-on-surface'}`}>{formatCurrency(balanceVal)}</span>
               </div>
               {/* MODE */}
