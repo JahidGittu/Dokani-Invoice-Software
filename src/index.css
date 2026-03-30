@@ -171,6 +171,22 @@ input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
     font-size: 11px !important;
   }
 
+  html, #root {
+    background: white !important;
+  }
+
+  .bg-pos-surface,
+  .bg-pos-surface-low,
+  .bg-pos-surface-lowest,
+  .bg-pos-surface-high,
+  .bg-pos-surface-container,
+  .bg-pos-surface-container-low,
+  .bg-pos-surface-container-high {
+    background: white !important;
+    background-color: white !important;
+    background-image: none !important;
+  }
+
   /* Hide sidebar, header, FAB */
   aside, nav, header,
   button[title="New Sale (F2)"] {
@@ -236,6 +252,19 @@ input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
     border: 1px solid #d1d5db !important;
     border-radius: 0 !important;
     page-break-inside: auto;
+  }
+
+  .print-report-table,
+  .print-report-table > div,
+  .print-report-table table,
+  .print-report-table thead,
+  .print-report-table tbody,
+  .print-report-table tr,
+  .print-report-table th,
+  .print-report-table td {
+    background: white !important;
+    background-color: white !important;
+    background-image: none !important;
   }
 
   .print-report-table table {

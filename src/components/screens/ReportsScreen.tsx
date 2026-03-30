@@ -32,13 +32,13 @@ function ReportTable({ title, summary, headers, children, emptyText }: {
   title: string; summary?: React.ReactNode; headers: string[]; children: React.ReactNode; emptyText?: string;
 }) {
   return (
-    <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container overflow-hidden print-report-table">
-      <div className="px-5 py-3 bg-pos-surface-low font-semibold text-sm print:bg-gray-100">{title}</div>
+    <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container overflow-hidden print-report-table print:bg-white">
+      <div className="px-5 py-3 bg-pos-surface-low font-semibold text-sm print:bg-white">{title}</div>
       {summary && <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 p-4 print:grid-cols-4">{summary}</div>}
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm print:text-xs">
           <thead>
-            <tr className="text-[11px] font-bold text-pos-on-surface-variant uppercase bg-pos-surface-low print:bg-gray-100">
+            <tr className="text-[11px] font-bold text-pos-on-surface-variant uppercase bg-pos-surface-low print:bg-white">
               {headers.map((h, i) => <th key={i} className={`px-4 py-2 ${i >= headers.length - 3 ? 'text-right' : ''}`}>{h}</th>)}
             </tr>
           </thead>
@@ -53,7 +53,7 @@ function ReportTable({ title, summary, headers, children, emptyText }: {
 
 function SummaryCard({ label, value, color }: { label: string; value: string; color?: string }) {
   return (
-    <div className="bg-pos-surface-high rounded-lg p-3 print:border print:border-gray-300">
+    <div className="bg-pos-surface-high rounded-lg p-3 print:bg-white print:border print:border-gray-300">
       <div className="text-[10px] text-pos-on-surface-variant uppercase font-bold">{label}</div>
       <div className={`text-lg font-black ${color || ''}`}>{value}</div>
     </div>
@@ -1298,7 +1298,7 @@ export default function ReportsScreen({ sales = [], products = [], customers = [
   };
 
   return (
-    <section className="p-4 sm:p-8 max-w-7xl mx-auto space-y-6">
+    <section className="p-4 sm:p-8 max-w-7xl mx-auto space-y-6 print:bg-white">
       {/* Screen Header - hidden on print */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 no-print">
         <div>
