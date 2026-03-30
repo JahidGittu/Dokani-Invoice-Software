@@ -146,9 +146,9 @@ export default function DashboardScreen({ onNavigate, products, customers, sales
             <span className="text-xs font-bold uppercase tracking-wider text-pos-on-surface">CASH TRX. TODAY</span>
           </div>
           <div className="space-y-1.5 text-xs">
-            <div className="flex justify-between items-center"><span className="text-pos-on-surface-variant flex items-center gap-1">Cash Receive <InfoTooltip text="আজকের সব বিক্রি থেকে যত টাকা নগদ পেয়েছেন।" /></span><span className="font-bold">{formatCurrency(todayCashReceive)}</span></div>
-            <div className="flex justify-between items-center"><span className="text-pos-on-surface-variant flex items-center gap-1">Cash Payment <InfoTooltip text="আজকে পার্চেজ/কেনাকাটায় যত টাকা দিয়েছেন।" /></span><span className="font-bold">{formatCurrency(todayCashPayment)}</span></div>
-            <div className="flex justify-between items-center"><span className="text-pos-on-surface-variant flex items-center gap-1">Cash Balance <InfoTooltip text="আজকের নগদ আয় − নগদ ব্যয়। হাতে যত টাকা আছে।" /></span><span className="font-bold">{formatCurrency(cashBalance)}</span></div>
+            <div className="flex justify-between items-center"><span className="text-pos-on-surface-variant flex items-center gap-1">Cash Receive <InfoTooltip text="আজকের মোট নগদ বিক্রয়।" /></span><span className="font-bold">{formatCurrency(todayCashReceive)}</span></div>
+            <div className="flex justify-between items-center"><span className="text-pos-on-surface-variant flex items-center gap-1">Cash Payment <InfoTooltip text="আজকে কেনাকাটায় যত টাকা দিয়েছেন।" /></span><span className="font-bold">{formatCurrency(todayCashPayment)}</span></div>
+            <div className="flex justify-between items-center"><span className="text-pos-on-surface-variant flex items-center gap-1">Cash Balance <InfoTooltip text="আজকের আয় ও ব্যয়ের পর হাতে যে টাকা রইল।" /></span><span className="font-bold">{formatCurrency(cashBalance)}</span></div>
           </div>
         </div>
 
