@@ -35,7 +35,7 @@ export default function InventoryScreen({ products }: InventoryScreenProps) {
       .from('inventory_logs')
       .select('*')
       .order('created_at', { ascending: false })
-      .limit(50);
+      .limit(15);
     if (error) { console.error('Fetch inventory logs error:', error); return; }
     setLogs((data || []) as InventoryLog[]);
     setLoading(false);
