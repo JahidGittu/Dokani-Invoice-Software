@@ -1159,14 +1159,25 @@ tbody tr:nth-child(even){background:#fafafa}
       {/* Delete Confirm */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/35 flex items-center justify-center z-[1000]" onClick={() => setShowDeleteConfirm(null)}>
-          <div className="bg-pos-surface-lowest rounded-xl w-[360px] shadow-2xl p-7" onClick={e => e.stopPropagation()}>
+          <div className="bg-pos-surface-lowest rounded-xl w-[360px] shadow-2xl p-7 animate-scale-in" onClick={e => e.stopPropagation()}>
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-full bg-pos-error/10 flex items-center justify-center">
                 <span className="material-symbols-outlined text-pos-error">delete</span>
               </div>
               <h3 className="text-lg font-bold">Delete Sale?</h3>
             </div>
-            <p className="text-sm text-pos-on-surface-variant mb-6">This action cannot be undone.</p>
+            <p className="text-sm text-pos-on-surface-variant mb-4">This action cannot be undone.</p>
+            
+            {/* Return All Stock checkbox with attention animation */}
+            <label className="flex items-center gap-3 p-3 rounded-lg bg-pos-tertiary-container/30 border border-pos-tertiary-container cursor-pointer mb-6 animate-[pulse_1.5s_ease-in-out_2]">
+              <Checkbox defaultChecked className="h-5 w-5 border-2 border-pos-tertiary data-[state=checked]:bg-pos-tertiary data-[state=checked]:border-pos-tertiary" />
+              <div>
+                <span className="text-sm font-semibold text-pos-on-tertiary-container">Return All Stock</span>
+                <p className="text-xs text-pos-on-surface-variant mt-0.5">ডিলিট করলে সব প্রোডাক্ট স্টকে ফেরত যাবে</p>
+              </div>
+              <span className="material-symbols-outlined text-pos-tertiary ml-auto animate-bounce text-lg">inventory</span>
+            </label>
+
             <div className="flex gap-3">
               <button onClick={() => setShowDeleteConfirm(null)} className="flex-1 py-2.5 bg-pos-surface-container text-pos-on-surface-variant rounded-lg font-semibold text-sm">Cancel</button>
               <button onClick={confirmDelete} className="flex-1 py-2.5 bg-pos-error text-white rounded-lg font-semibold text-sm">Delete</button>
