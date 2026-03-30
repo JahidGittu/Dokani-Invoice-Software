@@ -7,7 +7,7 @@ import { Pencil, Trash2, Printer, Search, ArrowUpDown, ChevronLeft, ChevronRight
 
 interface SupplierScreenProps {
   suppliers: Supplier[];
-  onAddSupplier: (name: string, phone: string, address: string, contactPerson?: string) => void;
+  onAddSupplier: (name: string, phone: string, address: string, contactPerson?: string, openingBalance?: number) => void;
   onDeleteSupplier: (id: string) => void;
   shopName?: string;
   shopAddress?: string;
@@ -38,7 +38,7 @@ export default function SupplierScreen({ suppliers, onAddSupplier, onDeleteSuppl
 
   const handleAdd = () => {
     if (!name.trim()) { toast.error('Supplier name required'); return; }
-    onAddSupplier(name, phone, address, contactPerson);
+    onAddSupplier(name, phone, address, contactPerson, openingBalance ? parseFloat(openingBalance) : 0);
     toast.success(t('supplierAdded'));
     resetForm();
   };

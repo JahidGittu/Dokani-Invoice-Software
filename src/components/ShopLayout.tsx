@@ -46,9 +46,9 @@ export default function ShopLayout() {
   const activeScreen = pathToScreen[location.pathname] || 'dashboard';
 
   const { products, addProduct, updateProduct, deleteProduct, deductStock, addStock, setProducts } = useSupabaseProducts();
-  const { customers, addCustomer, deleteCustomer, updateCustomerSpend, updateCustomerDue } = useSupabaseCustomers();
+  const { customers, addCustomer, deleteCustomer, updateCustomerSpend, updateCustomerDue, refreshCustomers } = useSupabaseCustomers();
   const { sales, addSale, deleteSale } = useSupabaseSales();
-  const { suppliers, addSupplier, deleteSupplier, updateSupplierDue } = useSupabaseSuppliers();
+  const { suppliers, addSupplier, deleteSupplier, updateSupplierDue, refreshSuppliers } = useSupabaseSuppliers();
   const { purchases, addPurchase, deletePurchase, updatePurchase } = useSupabasePurchases();
   const { settings, setSettings } = useSupabaseSettings();
 
@@ -65,7 +65,9 @@ export default function ShopLayout() {
       const dueAmount = sale.due ?? 0;
       await updateCustomerSpend(sale.customer, sale.total, dueAmount);
     }
-  }, [addSale, deductStock, updateCustomerSpend]);
+    // Refresh customers to sync dashboard
+    refreshCustomers();
+  }, [addSale, deductStock, updateCustomerSpend, refreshCustomers]);
 
   const handleAutoAddCustomer = useCallback((name: string, phone: string, address: string) => {
     if (!customers.find(c => c.name === name)) {
@@ -96,13 +98,35 @@ export default function ShopLayout() {
     return () => window.removeEventListener('keydown', handleKey);
   }, [navigate]);
 
+  // Wrapped purchase operations that auto-refresh suppliers
+  const handleAddPurchase = useCallback(async (purchase: any) => {
+    await addPurchase(purchase);
+    refreshSuppliers();
+  }, [addPurchase, refreshSuppliers]);
+
+  const handleDeletePurchase = useCallback(async (id: string) => {
+    await deletePurchase(id);
+    refreshSuppliers();
+  }, [deletePurchase, refreshSuppliers]);
+
+  const handleUpdatePurchase = useCallback(async (purchase: any) => {
+    await updatePurchase(purchase);
+    refreshSuppliers();
+  }, [updatePurchase, refreshSuppliers]);
+
+  // Wrapped deleteSale that auto-refreshes customers
+  const handleDeleteSale = useCallback(async (id: string) => {
+    await deleteSale(id);
+    refreshCustomers();
+  }, [deleteSale, refreshCustomers]);
+
   // Context passed to child routes via Outlet context
   const ctx = {
     products, addProduct, updateProduct, deleteProduct, deductStock, addStock, setProducts,
-    customers, addCustomer, deleteCustomer, updateCustomerSpend, updateCustomerDue,
-    sales, addSale, deleteSale,
-    suppliers, addSupplier, deleteSupplier, updateSupplierDue,
-    purchases, addPurchase, deletePurchase, updatePurchase,
+    customers, addCustomer, deleteCustomer, updateCustomerSpend, updateCustomerDue, refreshCustomers,
+    sales, addSale, deleteSale: handleDeleteSale,
+    suppliers, addSupplier, deleteSupplier, updateSupplierDue, refreshSuppliers,
+    purchases, addPurchase: handleAddPurchase, deletePurchase: handleDeletePurchase, updatePurchase: handleUpdatePurchase,
     settings, setSettings,
     handleSaleComplete, handleAutoAddCustomer, handleImportProducts,
     onNavigate: handleNavigate,
