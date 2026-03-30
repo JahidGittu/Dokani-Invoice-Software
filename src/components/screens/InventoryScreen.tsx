@@ -27,6 +27,7 @@ export default function InventoryScreen({ products }: InventoryScreenProps) {
   const { user } = useAuth();
   const [logs, setLogs] = useState<InventoryLog[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filterType, setFilterType] = useState<'ALL' | 'IN' | 'OUT'>('ALL');
 
   const fetchLogs = useCallback(async () => {
     if (!user) return;
@@ -34,7 +35,7 @@ export default function InventoryScreen({ products }: InventoryScreenProps) {
       .from('inventory_logs')
       .select('*')
       .order('created_at', { ascending: false })
-      .limit(50);
+      .limit(15);
     if (error) { console.error('Fetch inventory logs error:', error); return; }
     setLogs((data || []) as InventoryLog[]);
     setLoading(false);
@@ -112,9 +113,26 @@ export default function InventoryScreen({ products }: InventoryScreenProps) {
 
       {/* Stock Movements - Real Data */}
       <div className="bg-pos-surface-lowest rounded-xl shadow-sm overflow-hidden border border-pos-surface-container">
-        <div className="px-4 sm:px-8 py-5 bg-pos-surface-low flex items-center justify-between">
+        <div className="px-4 sm:px-8 py-5 bg-pos-surface-low flex flex-wrap items-center justify-between gap-3">
           <h3 className="text-base font-semibold">{t('stockMovements')}</h3>
-          <button onClick={fetchLogs} className="text-xs text-pos-primary font-semibold hover:underline">Refresh</button>
+          <div className="flex items-center gap-2">
+            {(['ALL', 'IN', 'OUT'] as const).map(type => (
+              <button
+                key={type}
+                onClick={() => setFilterType(type)}
+                className={`px-3 py-1 rounded-full text-[11px] font-bold transition-colors ${
+                  filterType === type
+                    ? type === 'IN' ? 'bg-pos-tertiary-container text-pos-on-tertiary-container'
+                    : type === 'OUT' ? 'bg-pos-error-container text-pos-on-error-container'
+                    : 'bg-pos-primary text-white'
+                    : 'bg-pos-surface-container text-pos-on-surface-variant hover:bg-pos-surface-low'
+                }`}
+              >
+                {type === 'ALL' ? 'সব' : type === 'IN' ? 'Stock In' : 'Stock Out'}
+              </button>
+            ))}
+            <button onClick={fetchLogs} className="text-xs text-pos-primary font-semibold hover:underline ml-2">Refresh</button>
+          </div>
         </div>
         <div className="overflow-x-auto">
           {loading ? (
@@ -127,7 +145,7 @@ export default function InventoryScreen({ products }: InventoryScreenProps) {
                 <th className="px-4 sm:px-8 py-3">{t('date')}</th><th className="px-4 sm:px-8 py-3">{t('product')}</th><th className="px-4 sm:px-8 py-3">{t('type')}</th><th className="px-4 sm:px-8 py-3">{t('qty')}</th><th className="px-4 sm:px-8 py-3">{t('totalStock')}</th><th className="px-4 sm:px-8 py-3">{t('note')}</th>
               </tr></thead>
               <tbody className="divide-y divide-pos-surface-container">
-                {logs.map(l => {
+                {logs.filter(l => filterType === 'ALL' || l.log_type === filterType).map(l => {
                   const isIn = l.log_type === 'IN';
                   const prod = products.find(p => p.id === l.product_id);
                   const piecesPerBox = prod?.piecesPerBox || 4;
