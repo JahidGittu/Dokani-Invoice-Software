@@ -838,9 +838,9 @@ tbody tr:nth-child(even){background:#fafafa}
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold text-pos-on-surface-variant uppercase">Status</span>
-                  <select value={saleStatus} onChange={e => setSaleStatus(e.target.value)}
+                  <select value={saleStatus} onChange={e => { setSaleStatus(e.target.value); if (e.target.value !== 'Return') setReturnAmt(''); }}
                     className="bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2 px-3 outline-none">
-                    <option>Complete</option><option>Pending</option><option>Credit</option>
+                    <option>Complete</option><option>Pending</option><option>Credit</option><option>Return</option>
                   </select>
                 </div>
                 <div className="flex items-center gap-2">
@@ -875,10 +875,11 @@ tbody tr:nth-child(even){background:#fafafa}
                 <span className="flex-1 text-right text-lg font-black text-pos-on-surface px-3">{formatCurrency(total)}</span>
               </div>
               {/* RETURN */}
-              <div className="flex items-center border border-pos-surface-container rounded-lg">
+              <div className={`flex items-center border border-pos-surface-container rounded-lg ${saleStatus !== 'Return' ? 'opacity-50' : ''}`}>
                 <span className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase">Return</span>
                 <input type="number" min={0} step="any" value={returnAmt} onChange={e => setReturnAmt(e.target.value)} placeholder="0"
-                  className="flex-1 min-w-0 text-sm py-3 px-3 outline-none bg-pos-surface-lowest rounded-r-lg text-right font-bold text-pos-error" />
+                  disabled={saleStatus !== 'Return'}
+                  className="flex-1 min-w-0 text-sm py-3 px-3 outline-none bg-pos-surface-lowest rounded-r-lg text-right font-bold text-pos-error disabled:cursor-not-allowed" />
               </div>
               {/* DISCOUNT with ৳/% toggle */}
               <div className="flex items-center border border-pos-surface-container rounded-lg">
