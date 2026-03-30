@@ -224,7 +224,7 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
       id: crypto.randomUUID(), invoice: invoiceNo, supplierName,
       date: new Date(purchaseDate).toISOString(), items: purchaseItems,
       total, discount: discountVal, delivery: deliveryVal,
-      payable, paid: paidVal, due: dueVal, remark,
+      payable, paid: paidVal, due: dueVal, remark, account,
     };
 
     onAddPurchase(purchase);

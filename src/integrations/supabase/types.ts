@@ -552,6 +552,7 @@ export type Database = {
       }
       purchases: {
         Row: {
+          account: string
           created_at: string
           delivery: number
           discount: number
@@ -568,6 +569,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          account?: string
           created_at?: string
           delivery?: number
           discount?: number
@@ -584,6 +586,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          account?: string
           created_at?: string
           delivery?: number
           discount?: number

@@ -371,6 +371,7 @@ export function useSupabasePurchases() {
       discount: Number(p.discount), delivery: Number(p.delivery),
       payable: Number(p.payable), paid: Number(p.paid), due: Number(p.due),
       remark: p.remark || '',
+      account: p.account || 'Cash',
       items: (p.purchase_items || []).map((i: any) => ({
         productId: i.product_id, name: i.name, barcode: i.barcode,
         carton: i.carton, piece: i.piece, sqftQty: Number(i.sqft_qty),
@@ -405,7 +406,7 @@ export function useSupabasePurchases() {
       purchase_date: purchase.date, total: purchase.total,
       discount: purchase.discount, delivery: purchase.delivery,
       payable: purchase.payable, paid: purchase.paid, due: purchase.due,
-      remark: purchase.remark,
+      remark: purchase.remark, account: purchase.account || 'Cash',
     } as any).select().single();
     if (error || !pRow) { toast.error('Failed to save purchase'); return; }
 
@@ -455,7 +456,7 @@ export function useSupabasePurchases() {
       purchase_date: purchase.date, total: purchase.total,
       discount: purchase.discount, delivery: purchase.delivery,
       payable: purchase.payable, paid: purchase.paid, due: purchase.due,
-      remark: purchase.remark,
+      remark: purchase.remark, account: purchase.account || 'Cash',
     } as any).eq('id', purchase.id);
     if (error) { toast.error('Failed to update purchase'); return; }
 
