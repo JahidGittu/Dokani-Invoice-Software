@@ -277,7 +277,7 @@ export default function StaffsScreen() {
             <div className="flex gap-3 pt-2">
               <button onClick={handleSave}
                 className="px-6 py-2.5 bg-[hsl(142,70%,40%)] text-white rounded-lg text-sm font-bold hover:bg-[hsl(142,70%,35%)] transition-colors">
-                {editingStaff ? 'Update' : 'Save'}
+                Save
               </button>
               <button onClick={resetForm}
                 className="px-6 py-2.5 bg-muted-foreground/80 text-white rounded-lg text-sm font-bold hover:bg-muted-foreground/70 transition-colors">
