@@ -323,7 +323,12 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
   };
 
   const handleSave = () => {
+    // ── Required field validations ──
+    if (!customerName && !isWalkingCustomer) { toast.error('কাস্টমার সিলেক্ট করুন'); return; }
+    if (isWalkingCustomer && !walkingName.trim()) { toast.error('Walking Customer এর নাম দিন'); return; }
     if (!items.length) { toast.error('কমপক্ষে একটি প্রোডাক্ট যোগ করুন'); return; }
+    if (!salesMan) { toast.error('Sales Man সিলেক্ট করুন'); return; }
+    if (!paymentMode) { toast.error('Payment Mode সিলেক্ট করুন'); return; }
     if (!paidAmount && saleStatus !== 'Credit' && payable > 0) { toast.error('Paid amount দিন!'); return; }
 
     const inv = getNextInvoiceNumber(settings.invPrefix);
