@@ -7,7 +7,7 @@ import { Pencil, Trash2, Printer, Search, ArrowUpDown, ChevronLeft, ChevronRight
 
 interface SupplierScreenProps {
   suppliers: Supplier[];
-  onAddSupplier: (name: string, phone: string, address: string, contactPerson?: string) => void;
+  onAddSupplier: (name: string, phone: string, address: string, contactPerson?: string, openingBalance?: number) => void;
   onDeleteSupplier: (id: string) => void;
   shopName?: string;
   shopAddress?: string;

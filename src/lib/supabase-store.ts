@@ -314,10 +314,10 @@ export function useSupabaseSuppliers() {
 
   useEffect(() => { fetchSuppliers(); }, [fetchSuppliers]);
 
-  const addSupplier = useCallback(async (name: string, phone: string, address: string, contactPerson?: string) => {
+  const addSupplier = useCallback(async (name: string, phone: string, address: string, contactPerson?: string, openingBalance?: number) => {
     if (!user) return;
     const { error } = await supabase.from('suppliers').insert({
-      user_id: user.id, name, phone, address, contact_person: contactPerson || '', total_due: 0,
+      user_id: user.id, name, phone, address, contact_person: contactPerson || '', total_due: openingBalance || 0,
     } as any);
     if (error) { toast.error('Failed to add supplier'); return; }
     fetchSuppliers();
