@@ -831,8 +831,10 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
                 <SortHeader field="invoice">Invoice #</SortHeader>
                 <SortHeader field="date">Date</SortHeader>
                 <SortHeader field="supplierName">Supplier</SortHeader>
+                <th className="px-4 py-3 text-[11px] font-bold text-pos-on-surface-variant uppercase tracking-wider">Category</th>
+                <th className="px-4 py-3 text-[11px] font-bold text-pos-on-surface-variant uppercase tracking-wider">Size</th>
                 <SortHeader field="qty">Carton</SortHeader>
-                <th className="px-4 py-3 text-[11px] font-bold text-pos-on-surface-variant uppercase tracking-wider">Piece</th>
+                <th className="px-4 py-3 text-[11px] font-bold text-pos-on-surface-variant uppercase tracking-wider text-center">Piece</th>
                 <SortHeader field="sqft">Sqft Qty</SortHeader>
                 <SortHeader field="payable" align="text-right">Total</SortHeader>
                 <SortHeader field="paid" align="text-right">Paid</SortHeader>
@@ -845,11 +847,17 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
                 const totalCarton = p.items.reduce((s, i) => s + (i.carton || 0), 0);
                 const totalPiece = p.items.reduce((s, i) => s + (i.piece || 0), 0);
                 const totalSqft = p.items.reduce((s, i) => s + (i.sqftQty || 0), 0);
+                // Lookup category/size from products
+                const productMap = new Map(products.map(pr => [pr.id, pr]));
+                const categories = [...new Set(p.items.map(i => productMap.get(i.productId)?.category).filter(Boolean))];
+                const sizes = [...new Set(p.items.map(i => productMap.get(i.productId)?.size).filter(Boolean))];
                 return (
                   <tr key={p.id} className="hover:bg-pos-surface-low transition-colors">
                     <td className="px-4 py-3 text-sm font-bold text-pos-secondary">{p.invoice}</td>
                     <td className="px-4 py-3 text-sm">{(() => { try { return new Date(p.date).toLocaleDateString('en-GB'); } catch { return p.date; } })()}</td>
                     <td className="px-4 py-3 text-sm font-medium">{p.supplierName}</td>
+                    <td className="px-4 py-3 text-xs">{categories.join(', ') || '—'}</td>
+                    <td className="px-4 py-3 text-xs">{sizes.join(', ') || '—'}</td>
                     <td className="px-4 py-3 text-sm text-center">{totalCarton}</td>
                     <td className="px-4 py-3 text-sm text-center">{totalPiece}</td>
                     <td className="px-4 py-3 text-sm text-center">{totalSqft > 0 ? totalSqft.toFixed(2) : '—'}</td>
