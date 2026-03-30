@@ -56,7 +56,7 @@ export default function DashboardScreen({ onNavigate, products, customers, sales
       try {
         if (new Date(p.date).toDateString() === todayStr) {
           cashPayment += p.paid;
-          if (p.paid > 0) paymentList.push({ label: `Purchase / ${p.invoice}`, amount: p.paid });
+          if (p.paid > 0) paymentList.push({ label: `${p.supplierName || 'Purchase'} / ${p.invoice}`, amount: p.paid });
         }
       } catch {}
     });
