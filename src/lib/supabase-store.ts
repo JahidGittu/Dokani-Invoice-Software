@@ -167,7 +167,7 @@ export function useSupabaseCustomers() {
     fetchCustomers();
   }, [user, fetchCustomers]);
 
-  return { customers, setCustomers: fetchCustomers as any, addCustomer, deleteCustomer, updateCustomerSpend, updateCustomerDue };
+  return { customers, setCustomers: fetchCustomers as any, addCustomer, deleteCustomer, updateCustomerSpend, updateCustomerDue, refreshCustomers: fetchCustomers };
 }
 
 // ─── Sales Hook (Supabase) ───
