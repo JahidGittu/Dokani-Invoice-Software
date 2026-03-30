@@ -14,14 +14,27 @@ interface ReportsScreenProps {
   purchases?: PurchaseRecord[];
 }
 
-type ReportType = 'purchase' | 'sales' | 'stock' | 'payment' | 'general_transaction' | 'customer' | 'supplier' | 'staff' | 'profit' | 'customer_dues' | 'customer_walking' | 'customer_advance' | 'supplier_balance' | 'staff_balance' | 'account';
+type ReportType = 
+  | 'purchase_invoice' | 'purchase_product' | 'category_purchase' | 'product_purchase' | 'supplier_purchase' | 'purchase_summary'
+  | 'sales_invoice' | 'sales_product' | 'category_sales' | 'product_sales' | 'sales_summary' | 'brand_sales' | 'sales_return'
+  | 'overall_stock' | 'overall_stock_no_price' | 'category_stock' | 'brand_stock' | 'low_stock' | 'product_ledger' | 'damage_lost'
+  | 'customer_payment' | 'supplier_payment' | 'staff_salary_payment'
+  | 'general_transaction' | 'category_transaction' | 'transaction_summary'
+  | 'customer_invoices' | 'customer_purchased' | 'customer_ledger'
+  | 'supplier_invoices' | 'supplier_sales' | 'supplier_ledger'
+  | 'staff_salary' | 'cashier_sales' | 'staff_sales'
+  | 'invoice_profit' | 'product_profit' | 'net_profit'
+  | 'customer_dues' | 'customer_walking' | 'customer_advance' | 'supplier_balance' | 'staff_balance'
+  | 'cash_ledger' | 'all_transaction_summary' | 'account_transaction' | 'account_balance'
+  // Legacy aliases
+  | 'purchase' | 'sales' | 'stock' | 'payment' | 'customer' | 'supplier' | 'staff' | 'profit' | 'account';
 
 export default function ReportsScreen({ sales = [], products = [], customers = [], suppliers = [], purchases = [] }: ReportsScreenProps) {
   const { t } = useI18n();
   const { user } = useAuth();
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
-  const [activeReport, setActiveReport] = useState<ReportType>('sales');
+  const [activeReport, setActiveReport] = useState<ReportType>('sales_invoice');
   const [expandedParents, setExpandedParents] = useState<Record<string, boolean>>({});
 
   // Fetch manual transactions
@@ -89,24 +102,76 @@ export default function ReportsScreen({ sales = [], products = [], customers = [
     return { totalRevenue, totalPaid, totalDue, totalProfit, totalCost, dueCustomers, purchaseTotal, purchasePaid, purchaseDue };
   }, [filteredSales, filteredPurchases, products, customers]);
 
-  const reportList: { id: ReportType; label: string; icon: string; children?: { id: ReportType; label: string; icon?: string }[] }[] = [
-    { id: 'purchase', label: 'Purchase Report', icon: 'shopping_cart' },
-    { id: 'sales', label: 'Sales Report', icon: 'point_of_sale' },
-    { id: 'stock', label: 'Stock Report', icon: 'layers' },
-    { id: 'payment', label: 'Payment Report', icon: 'payments' },
-    { id: 'general_transaction', label: 'General Transaction', icon: 'receipt_long' },
-    { id: 'customer', label: 'Customer Report', icon: 'group' },
-    { id: 'supplier', label: 'Supplier Report', icon: 'local_shipping' },
-    { id: 'staff', label: 'Staff Report', icon: 'badge' },
-    { id: 'profit', label: 'Profit Reports', icon: 'trending_up' },
-    { id: 'customer_dues', label: 'Due Reports', icon: 'warning', children: [
+  const reportList: { id: string; label: string; icon: string; children: { id: ReportType; label: string; icon: string }[] }[] = [
+    { id: 'purchase', label: 'Purchase Report', icon: 'shopping_cart', children: [
+      { id: 'purchase_invoice', label: 'Invoice', icon: 'receipt' },
+      { id: 'purchase_product', label: 'Product', icon: 'inventory_2' },
+      { id: 'category_purchase', label: 'Category', icon: 'category' },
+      { id: 'product_purchase', label: 'Prod. Wise', icon: 'view_list' },
+      { id: 'supplier_purchase', label: 'Supplier', icon: 'local_shipping' },
+      { id: 'purchase_summary', label: 'Summary', icon: 'summarize' },
+    ]},
+    { id: 'sales', label: 'Sales Report', icon: 'point_of_sale', children: [
+      { id: 'sales_invoice', label: 'Invoice', icon: 'receipt_long' },
+      { id: 'sales_product', label: 'Product', icon: 'inventory_2' },
+      { id: 'category_sales', label: 'Category', icon: 'category' },
+      { id: 'product_sales', label: 'Prod. Wise', icon: 'view_list' },
+      { id: 'sales_summary', label: 'Summary', icon: 'summarize' },
+      { id: 'brand_sales', label: 'Brand', icon: 'branding_watermark' },
+      { id: 'sales_return', label: 'Return', icon: 'assignment_return' },
+    ]},
+    { id: 'stock', label: 'Stock Report', icon: 'layers', children: [
+      { id: 'overall_stock', label: 'Overall', icon: 'inventory' },
+      { id: 'overall_stock_no_price', label: 'No Price', icon: 'visibility_off' },
+      { id: 'category_stock', label: 'Category', icon: 'category' },
+      { id: 'brand_stock', label: 'Brand', icon: 'branding_watermark' },
+      { id: 'low_stock', label: 'Low Stock', icon: 'warning' },
+      { id: 'product_ledger', label: 'Ledger', icon: 'menu_book' },
+      { id: 'damage_lost', label: 'Damage', icon: 'broken_image' },
+    ]},
+    { id: 'payment', label: 'Payment Report', icon: 'payments', children: [
+      { id: 'customer_payment', label: 'Customer', icon: 'person' },
+      { id: 'supplier_payment', label: 'Supplier', icon: 'local_shipping' },
+      { id: 'staff_salary_payment', label: 'Staff', icon: 'badge' },
+    ]},
+    { id: 'transaction', label: 'Transaction Report', icon: 'receipt_long', children: [
+      { id: 'general_transaction', label: 'General', icon: 'swap_horiz' },
+      { id: 'category_transaction', label: 'Category', icon: 'category' },
+      { id: 'transaction_summary', label: 'Summary', icon: 'summarize' },
+    ]},
+    { id: 'customer', label: 'Customer Report', icon: 'group', children: [
+      { id: 'customer_invoices', label: 'Invoices', icon: 'receipt' },
+      { id: 'customer_purchased', label: 'Products', icon: 'shopping_bag' },
+      { id: 'customer_ledger', label: 'Ledger', icon: 'menu_book' },
+    ]},
+    { id: 'supplier', label: 'Supplier Report', icon: 'local_shipping', children: [
+      { id: 'supplier_invoices', label: 'Invoices', icon: 'receipt' },
+      { id: 'supplier_sales', label: 'Products', icon: 'shopping_bag' },
+      { id: 'supplier_ledger', label: 'Ledger', icon: 'menu_book' },
+    ]},
+    { id: 'staff', label: 'Staff Report', icon: 'badge', children: [
+      { id: 'staff_salary', label: 'Salary', icon: 'payments' },
+      { id: 'cashier_sales', label: 'Cashier', icon: 'point_of_sale' },
+      { id: 'staff_sales', label: 'Sales', icon: 'receipt_long' },
+    ]},
+    { id: 'profit', label: 'Profit Reports', icon: 'trending_up', children: [
+      { id: 'invoice_profit', label: 'Invoice', icon: 'receipt' },
+      { id: 'product_profit', label: 'Product', icon: 'inventory_2' },
+      { id: 'net_profit', label: 'Net Profit', icon: 'trending_up' },
+    ]},
+    { id: 'dues', label: 'Due Reports', icon: 'warning', children: [
       { id: 'customer_dues', label: 'Cust. Dues', icon: 'person' },
       { id: 'customer_walking', label: 'Walking', icon: 'directions_walk' },
       { id: 'customer_advance', label: 'Advance', icon: 'savings' },
       { id: 'supplier_balance', label: 'Supplier', icon: 'local_shipping' },
       { id: 'staff_balance', label: 'Staff', icon: 'badge' },
     ]},
-    { id: 'account', label: 'Account Reports', icon: 'account_balance' },
+    { id: 'account', label: 'Account Reports', icon: 'account_balance', children: [
+      { id: 'cash_ledger', label: 'Cash Led.', icon: 'menu_book' },
+      { id: 'all_transaction_summary', label: 'All TRX', icon: 'summarize' },
+      { id: 'account_transaction', label: 'Acc. TRX', icon: 'swap_horiz' },
+      { id: 'account_balance', label: 'Balance', icon: 'account_balance_wallet' },
+    ]},
   ];
 
   const handlePrint = () => {
@@ -115,11 +180,11 @@ export default function ReportsScreen({ sales = [], products = [], customers = [
 
   const exportReport = () => {
     let rows: string[][] = [];
-    if (activeReport === 'sales') {
+    if (activeReport === 'sales_invoice') {
       rows = [['Invoice', 'Customer', 'Total', 'Paid', 'Due', 'Date'], ...filteredSales.map(s => [s.invoice, s.customer, String(s.total), String(s.paid ?? s.total), String(s.due ?? 0), s.date])];
-    } else if (activeReport === 'purchase') {
+    } else if (activeReport === 'purchase_invoice') {
       rows = [['Invoice', 'Supplier', 'Total', 'Paid', 'Due', 'Date'], ...filteredPurchases.map(p => [p.invoice, p.supplierName, String(p.payable), String(p.paid), String(p.due), p.date])];
-    } else if (activeReport === 'stock') {
+    } else if (activeReport === 'overall_stock') {
       rows = [['Product', 'Category', 'Size', 'Stock', 'Buy Rate', 'Sale Rate'], ...products.map(p => [p.name, p.category || '', p.size, String(p.stock), String(p.buyRate || 0), String(p.pricePerBox)])];
     }
     if (rows.length > 0) { downloadCSV(rows, `${activeReport}_report.csv`); toast.success(t('reportExported')); }
@@ -143,23 +208,19 @@ export default function ReportsScreen({ sales = [], products = [], customers = [
           <h3 className="text-sm font-bold text-pos-on-surface-variant uppercase tracking-wider mb-4">List of Reports</h3>
           <div className="space-y-1">
             {reportList.map(item => {
-              const isParentActive = activeReport === item.id || item.children?.some(c => c.id === activeReport);
-              const isExpanded = item.children ? (expandedParents[item.id] ?? isParentActive) : false;
+              const isParentActive = item.children.some(c => c.id === activeReport);
+              const isExpanded = expandedParents[item.id] ?? isParentActive;
 
               return (
                 <div key={item.id}>
                   <button
                     onClick={() => {
-                      if (item.children) {
-                        setExpandedParents(prev => ({ ...prev, [item.id]: !isExpanded }));
-                        if (!item.children.some(c => c.id === activeReport)) {
-                          setActiveReport(item.children[0].id);
-                        }
-                      } else {
-                        setActiveReport(item.id);
+                      setExpandedParents(prev => ({ ...prev, [item.id]: !isExpanded }));
+                      if (!item.children.some(c => c.id === activeReport)) {
+                        setActiveReport(item.children[0].id);
                       }
                     }}
-                    className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                    className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                       isParentActive
                         ? 'bg-pos-secondary text-white'
                         : 'text-pos-on-surface hover:bg-pos-surface-high'
@@ -167,14 +228,12 @@ export default function ReportsScreen({ sales = [], products = [], customers = [
                   >
                     <span className="material-symbols-outlined text-base">{item.icon}</span>
                     <span className="flex-1 text-left">{item.label}</span>
-                    {item.children && (
-                      <span className={`material-symbols-outlined text-base transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
-                        expand_more
-                      </span>
-                    )}
+                    <span className={`material-symbols-outlined text-base transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
+                      expand_more
+                    </span>
                   </button>
-                  {item.children && isExpanded && (
-                    <div className="mt-1.5 ml-2 grid grid-cols-3 gap-1.5 animate-in slide-in-from-top-2 duration-200">
+                  {isExpanded && (
+                    <div className="mt-1.5 ml-2 grid grid-cols-3 gap-1.5 animate-in slide-in-from-top-2 duration-200 mb-1">
                       {item.children.map(child => (
                         <button
                           key={child.id}
@@ -221,7 +280,7 @@ export default function ReportsScreen({ sales = [], products = [], customers = [
           </div>
 
           {/* Report Data */}
-          {activeReport === 'sales' && (
+          {activeReport === 'sales_invoice' && (
             <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container overflow-hidden">
               <div className="px-5 py-3 bg-pos-surface-low font-semibold text-sm">Sales Report ({filteredSales.length})</div>
               <div className="grid grid-cols-3 gap-4 p-4">
@@ -250,7 +309,7 @@ export default function ReportsScreen({ sales = [], products = [], customers = [
             </div>
           )}
 
-          {activeReport === 'purchase' && (
+          {activeReport === 'purchase_invoice' && (
             <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container overflow-hidden">
               <div className="px-5 py-3 bg-pos-surface-low font-semibold text-sm">Purchase Report ({filteredPurchases.length})</div>
               <div className="grid grid-cols-3 gap-4 p-4">
@@ -279,7 +338,7 @@ export default function ReportsScreen({ sales = [], products = [], customers = [
             </div>
           )}
 
-          {activeReport === 'stock' && (
+          {activeReport === 'overall_stock' && (
             <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container overflow-hidden">
               <div className="px-5 py-3 bg-pos-surface-low font-semibold text-sm">Stock Report ({products.length} products)</div>
               <div className="overflow-x-auto">
@@ -303,7 +362,7 @@ export default function ReportsScreen({ sales = [], products = [], customers = [
             </div>
           )}
 
-          {activeReport === 'payment' && (
+          {activeReport === 'customer_payment' && (
             <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container overflow-hidden">
               <div className="px-5 py-3 bg-pos-surface-low font-semibold text-sm">Payment Report</div>
               <div className="overflow-x-auto">
@@ -328,7 +387,7 @@ export default function ReportsScreen({ sales = [], products = [], customers = [
             </div>
           )}
 
-          {activeReport === 'customer' && (
+          {activeReport === 'customer_invoices' && (
             <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container overflow-hidden">
               <div className="px-5 py-3 bg-pos-surface-low font-semibold text-sm">Customer Report ({customers.length})</div>
               <div className="overflow-x-auto">
@@ -351,7 +410,7 @@ export default function ReportsScreen({ sales = [], products = [], customers = [
             </div>
           )}
 
-          {activeReport === 'supplier' && (
+          {activeReport === 'supplier_invoices' && (
             <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container overflow-hidden">
               <div className="px-5 py-3 bg-pos-surface-low font-semibold text-sm">Supplier Report ({suppliers.length})</div>
               <div className="overflow-x-auto">
@@ -374,7 +433,7 @@ export default function ReportsScreen({ sales = [], products = [], customers = [
             </div>
           )}
 
-          {activeReport === 'profit' && (
+          {activeReport === 'invoice_profit' && (
             <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container overflow-hidden">
               <div className="px-5 py-3 bg-pos-surface-low font-semibold text-sm">Profit Report</div>
               <div className="grid grid-cols-3 gap-4 p-4">
@@ -507,7 +566,7 @@ export default function ReportsScreen({ sales = [], products = [], customers = [
           )}
 
           {/* Staff Report */}
-          {activeReport === 'staff' && (
+          {activeReport === 'staff_salary' && (
             <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container overflow-hidden">
               <div className="px-5 py-3 bg-pos-surface-low font-semibold text-sm">Staff Report</div>
               <div className="p-6 text-center text-pos-on-surface-variant">
@@ -566,7 +625,7 @@ export default function ReportsScreen({ sales = [], products = [], customers = [
             </div>
           )}
 
-          {activeReport === 'account' && (
+          {activeReport === 'account_balance' && (
             <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container overflow-hidden">
               <div className="px-5 py-3 bg-pos-surface-low font-semibold text-sm">Account Reports</div>
               <div className="overflow-x-auto">
@@ -586,6 +645,23 @@ export default function ReportsScreen({ sales = [], products = [], customers = [
                     })}
                   </tbody>
                 </table>
+              </div>
+            </div>
+          )}
+
+          {/* Fallback for unimplemented reports */}
+          {![
+            'sales_invoice', 'purchase_invoice', 'overall_stock', 'customer_payment',
+            'general_transaction', 'customer_invoices', 'supplier_invoices', 'staff_salary',
+            'invoice_profit', 'customer_dues', 'customer_walking', 'customer_advance',
+            'supplier_balance', 'staff_balance', 'account_balance'
+          ].includes(activeReport) && (
+            <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container overflow-hidden">
+              <div className="px-5 py-3 bg-pos-surface-low font-semibold text-sm capitalize">{activeReport.replace(/_/g, ' ')}</div>
+              <div className="p-8 text-center text-pos-on-surface-variant">
+                <span className="material-symbols-outlined text-5xl mb-3 block opacity-40">construction</span>
+                <p className="text-sm font-medium">এই রিপোর্টটি শীঘ্রই আসছে</p>
+                <p className="text-xs mt-1 opacity-60">Coming Soon — This report is under development</p>
               </div>
             </div>
           )}
