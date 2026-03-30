@@ -830,7 +830,8 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
                 <SortHeader field="invoice">Invoice #</SortHeader>
                 <SortHeader field="date">Date</SortHeader>
                 <SortHeader field="supplierName">Supplier</SortHeader>
-                <SortHeader field="qty">QTY./SQFTQTY.</SortHeader>
+                <SortHeader field="qty">Quantity</SortHeader>
+                <SortHeader field="sqft">Sqft Qty</SortHeader>
                 <SortHeader field="payable" align="text-right">Total</SortHeader>
                 <SortHeader field="paid" align="text-right">Paid</SortHeader>
                 <SortHeader field="due" align="text-right">Due</SortHeader>
