@@ -381,6 +381,46 @@ export default function SupplierScreen({ suppliers, onAddSupplier, onDeleteSuppl
           </div>
         </div>
       )}
+
+      {/* Edit Supplier Modal */}
+      {editSupplier && (
+        <div className="fixed inset-0 bg-black/35 flex items-center justify-center z-[1000]" onClick={() => setEditSupplier(null)}>
+          <div className="bg-pos-surface-lowest rounded-xl w-[95vw] max-w-[450px] shadow-2xl p-7" onClick={e => e.stopPropagation()}>
+            <h3 className="text-lg font-bold mb-5">Edit Supplier</h3>
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-pos-on-surface">Supplier Name *</label>
+                <input value={editName} onChange={e => setEditName(e.target.value)}
+                  className="w-full bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2.5 px-3 outline-none focus:border-pos-secondary" />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-pos-on-surface">Contact Person</label>
+                <input value={editContact} onChange={e => setEditContact(e.target.value)}
+                  className="w-full bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2.5 px-3 outline-none focus:border-pos-secondary" />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-pos-on-surface">Mobile</label>
+                <input value={editPhone} onChange={e => setEditPhone(e.target.value)}
+                  className="w-full bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2.5 px-3 outline-none focus:border-pos-secondary" />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-pos-on-surface">Address</label>
+                <input value={editAddress} onChange={e => setEditAddress(e.target.value)}
+                  className="w-full bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2.5 px-3 outline-none focus:border-pos-secondary" />
+              </div>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button onClick={() => setEditSupplier(null)} className="flex-1 py-2.5 bg-pos-surface-container text-pos-on-surface-variant rounded-lg font-semibold text-sm">{t('cancel')}</button>
+              <button onClick={() => {
+                if (!editName.trim()) { toast.error('Name required'); return; }
+                onUpdateSupplier?.(editSupplier.id, { name: editName.trim(), phone: editPhone, address: editAddress, contactPerson: editContact });
+                toast.success('Supplier updated');
+                setEditSupplier(null);
+              }} className="flex-1 py-2.5 bg-pos-secondary text-white rounded-lg font-semibold text-sm">Save</button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
