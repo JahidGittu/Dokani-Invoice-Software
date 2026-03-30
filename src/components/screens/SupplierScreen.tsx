@@ -136,7 +136,7 @@ export default function SupplierScreen({ suppliers, onAddSupplier, onDeleteSuppl
             <th>Contact Person</th>
             <th>Address</th>
             <th>Mobile</th>
-            <th style="text-align:right;">Balance</th>
+            <th style="text-align:right;">Total Due</th>
           </tr></thead>
           <tbody>${filteredSuppliers.map((s, idx) => `
             <tr>
