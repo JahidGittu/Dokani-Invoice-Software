@@ -838,7 +838,7 @@ tbody tr:nth-child(even){background:#fafafa}
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold text-pos-on-surface-variant uppercase">Status</span>
-                  <select value={saleStatus} onChange={e => setSaleStatus(e.target.value)}
+                  <select value={saleStatus} onChange={e => { setSaleStatus(e.target.value); if (e.target.value !== 'Return') setReturnAmt(''); }}
                     className="bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2 px-3 outline-none">
                     <option>Complete</option><option>Pending</option><option>Credit</option><option>Return</option>
                   </select>
