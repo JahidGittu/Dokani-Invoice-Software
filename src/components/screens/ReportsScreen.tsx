@@ -1341,8 +1341,16 @@ export default function ReportsScreen({ sales = [], products = [], customers = [
                     <span className="flex-1 text-left">{item.label}</span>
                     <span className={`material-symbols-outlined text-base transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>expand_more</span>
                   </button>
-                  {isExpanded && (
-                    <div className="mt-1.5 ml-2 grid grid-cols-3 gap-1.5 animate-in slide-in-from-top-2 duration-200 mb-1">
+                  <div
+                    className="overflow-hidden transition-all duration-300 ease-in-out"
+                    style={{
+                      maxHeight: isExpanded ? '500px' : '0px',
+                      opacity: isExpanded ? 1 : 0,
+                      marginTop: isExpanded ? '6px' : '0px',
+                      marginBottom: isExpanded ? '4px' : '0px',
+                    }}
+                  >
+                    <div className="ml-2 grid grid-cols-3 gap-1.5">
                       {item.children.map(child => (
                         <button
                           key={child.id}
@@ -1356,7 +1364,7 @@ export default function ReportsScreen({ sales = [], products = [], customers = [
                         </button>
                       ))}
                     </div>
-                  )}
+                  </div>
                 </div>
               );
             })}
