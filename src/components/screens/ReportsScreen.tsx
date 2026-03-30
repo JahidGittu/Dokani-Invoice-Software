@@ -89,7 +89,7 @@ export default function ReportsScreen({ sales = [], products = [], customers = [
     return { totalRevenue, totalPaid, totalDue, totalProfit, totalCost, dueCustomers, purchaseTotal, purchasePaid, purchaseDue };
   }, [filteredSales, filteredPurchases, products, customers]);
 
-  const reportList: { id: ReportType; label: string; icon: string; children?: { id: ReportType; label: string }[] }[] = [
+  const reportList: { id: ReportType; label: string; icon: string; children?: { id: ReportType; label: string; icon?: string }[] }[] = [
     { id: 'purchase', label: 'Purchase Report', icon: 'shopping_cart' },
     { id: 'sales', label: 'Sales Report', icon: 'point_of_sale' },
     { id: 'stock', label: 'Stock Report', icon: 'layers' },
@@ -100,11 +100,11 @@ export default function ReportsScreen({ sales = [], products = [], customers = [
     { id: 'staff', label: 'Staff Report', icon: 'badge' },
     { id: 'profit', label: 'Profit Reports', icon: 'trending_up' },
     { id: 'customer_dues', label: 'Due Reports', icon: 'warning', children: [
-      { id: 'customer_dues', label: 'Customer Dues' },
-      { id: 'customer_walking', label: 'Customer Dues (Walking)' },
-      { id: 'customer_advance', label: 'Customer Advance' },
-      { id: 'supplier_balance', label: 'Supplier Balance' },
-      { id: 'staff_balance', label: 'Staff Balance' },
+      { id: 'customer_dues', label: 'Cust. Dues', icon: 'person' },
+      { id: 'customer_walking', label: 'Walking', icon: 'directions_walk' },
+      { id: 'customer_advance', label: 'Advance', icon: 'savings' },
+      { id: 'supplier_balance', label: 'Supplier', icon: 'local_shipping' },
+      { id: 'staff_balance', label: 'Staff', icon: 'badge' },
     ]},
     { id: 'account', label: 'Account Reports', icon: 'account_balance' },
   ];
@@ -174,17 +174,18 @@ export default function ReportsScreen({ sales = [], products = [], customers = [
                     )}
                   </button>
                   {item.children && isExpanded && (
-                    <div className="ml-4 mt-1 space-y-0.5 border-l-2 border-pos-surface-container pl-3 animate-in slide-in-from-top-2 duration-200">
+                    <div className="mt-1.5 ml-2 grid grid-cols-3 gap-1.5 animate-in slide-in-from-top-2 duration-200">
                       {item.children.map(child => (
                         <button
                           key={child.id}
                           onClick={() => setActiveReport(child.id)}
-                          className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                          className={`flex flex-col items-center gap-0.5 px-2 py-2 rounded-lg text-[10px] font-medium transition-all ${
                             activeReport === child.id
-                              ? 'bg-pos-secondary/10 text-pos-secondary font-bold border-l-2 border-pos-secondary -ml-[3px] pl-[13px]'
-                              : 'text-pos-on-surface-variant hover:text-pos-on-surface hover:bg-pos-surface-high'
+                              ? 'bg-pos-secondary text-white shadow-md'
+                              : 'bg-pos-surface-high text-pos-on-surface-variant hover:bg-pos-surface-container'
                           }`}
                         >
+                          <span className="material-symbols-outlined text-sm">{child.icon}</span>
                           {child.label}
                         </button>
                       ))}
