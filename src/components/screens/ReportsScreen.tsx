@@ -144,15 +144,14 @@ export default function ReportsScreen({ sales = [], products = [], customers = [
           <div className="space-y-1">
             {reportList.map(item => {
               const isParentActive = activeReport === item.id || item.children?.some(c => c.id === activeReport);
-              const [expanded, setExpanded] = useState(isParentActive || false);
+              const isExpanded = item.children ? (expandedParents[item.id] ?? isParentActive) : false;
 
               return (
                 <div key={item.id}>
                   <button
                     onClick={() => {
                       if (item.children) {
-                        setExpanded(prev => !prev);
-                        // Also set active to first child if not already on a child
+                        setExpandedParents(prev => ({ ...prev, [item.id]: !isExpanded }));
                         if (!item.children.some(c => c.id === activeReport)) {
                           setActiveReport(item.children[0].id);
                         }
@@ -169,13 +168,13 @@ export default function ReportsScreen({ sales = [], products = [], customers = [
                     <span className="material-symbols-outlined text-base">{item.icon}</span>
                     <span className="flex-1 text-left">{item.label}</span>
                     {item.children && (
-                      <span className={`material-symbols-outlined text-base transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}>
+                      <span className={`material-symbols-outlined text-base transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
                         expand_more
                       </span>
                     )}
                   </button>
-                  {item.children && expanded && (
-                    <div className="ml-4 mt-1 space-y-0.5 border-l-2 border-pos-surface-container pl-3">
+                  {item.children && isExpanded && (
+                    <div className="ml-4 mt-1 space-y-0.5 border-l-2 border-pos-surface-container pl-3 animate-in slide-in-from-top-2 duration-200">
                       {item.children.map(child => (
                         <button
                           key={child.id}
