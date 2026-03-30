@@ -113,9 +113,26 @@ export default function InventoryScreen({ products }: InventoryScreenProps) {
 
       {/* Stock Movements - Real Data */}
       <div className="bg-pos-surface-lowest rounded-xl shadow-sm overflow-hidden border border-pos-surface-container">
-        <div className="px-4 sm:px-8 py-5 bg-pos-surface-low flex items-center justify-between">
+        <div className="px-4 sm:px-8 py-5 bg-pos-surface-low flex flex-wrap items-center justify-between gap-3">
           <h3 className="text-base font-semibold">{t('stockMovements')}</h3>
-          <button onClick={fetchLogs} className="text-xs text-pos-primary font-semibold hover:underline">Refresh</button>
+          <div className="flex items-center gap-2">
+            {(['ALL', 'IN', 'OUT'] as const).map(type => (
+              <button
+                key={type}
+                onClick={() => setFilterType(type)}
+                className={`px-3 py-1 rounded-full text-[11px] font-bold transition-colors ${
+                  filterType === type
+                    ? type === 'IN' ? 'bg-pos-tertiary-container text-pos-on-tertiary-container'
+                    : type === 'OUT' ? 'bg-pos-error-container text-pos-on-error-container'
+                    : 'bg-pos-primary text-white'
+                    : 'bg-pos-surface-container text-pos-on-surface-variant hover:bg-pos-surface-low'
+                }`}
+              >
+                {type === 'ALL' ? 'সব' : type === 'IN' ? 'Stock In' : 'Stock Out'}
+              </button>
+            ))}
+            <button onClick={fetchLogs} className="text-xs text-pos-primary font-semibold hover:underline ml-2">Refresh</button>
+          </div>
         </div>
         <div className="overflow-x-auto">
           {loading ? (
