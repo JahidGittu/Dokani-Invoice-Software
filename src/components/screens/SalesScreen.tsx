@@ -296,19 +296,19 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
     }));
   };
 
-  // ── Calculations ──
-  const total = items.reduce((s, i) => s + i.subTotal, 0);
-  const returnVal = parseFloat(returnAmt) || 0;
+  // ── Calculations (Sale/Return from cart items) ──
+  const total = items.filter(i => i.itemType === 'Sale').reduce((s, i) => s + i.subTotal, 0);
+  const returnVal = items.filter(i => i.itemType === 'Return').reduce((s, i) => s + i.subTotal, 0);
   const discountVal = discountType === 'percent' ? Math.round(total * (parseFloat(discount) || 0) / 100) : (parseFloat(discount) || 0);
   const lessVal = parseFloat(lessAmt) || 0;
   const deliveryVal = parseFloat(delivery) || 0;
   const labourVal = parseFloat(labourCost) || 0;
-  const payable = Math.max(0, total - returnVal - discountVal - lessVal + deliveryVal + labourVal);
+  const payable = total - returnVal - discountVal - lessVal + deliveryVal + labourVal;
   const paidVal = parseFloat(paidAmount) || 0;
-  const dueVal = Math.max(0, payable - paidVal);
+  const dueVal = payable - paidVal;
   const selectedCustomerObj = customers.find(c => c.name === customerName);
   const prevDues = selectedCustomerObj?.totalDue || 0;
-  const balanceVal = dueVal + prevDues;
+  const balanceVal = payable - paidVal;
 
   const openAddSale = () => {
     setView('add');
@@ -323,11 +323,11 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
 
   const handleSave = () => {
     if (!items.length) { toast.error('কমপক্ষে একটি প্রোডাক্ট যোগ করুন'); return; }
-    if (!paidAmount && saleStatus !== 'Credit') { toast.error('Paid amount দিন!'); return; }
+    if (!paidAmount && saleStatus !== 'Credit' && payable > 0) { toast.error('Paid amount দিন!'); return; }
 
     const inv = getNextInvoiceNumber(settings.invPrefix);
     const now = new Date(saleDate);
-    const autoStatus = paidVal >= payable ? 'paid' : paidVal > 0 ? 'pending' : 'credit';
+    const autoStatus = payable <= 0 ? 'paid' : paidVal >= payable ? 'paid' : paidVal > 0 ? 'pending' : 'credit';
 
     const finalCustomer = isWalkingCustomer ? (walkingName || t('walkInCustomer')) : (customerName || t('walkInCustomer'));
     const finalPhone = isWalkingCustomer ? walkingPhone : phone;
@@ -338,7 +338,7 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
       return {
         productId: i.productId, name: i.name, detail: p ? `${p.size} · ${p.finish}` : '',
         qty: i.carton, price: i.salesRate, carton: i.carton, piece: i.piece,
-        sqftQty: i.sqftQty, category: p?.category || '', itemType: i.itemType as 'Sale',
+        sqftQty: i.sqftQty, category: p?.category || '', itemType: i.itemType as 'Sale' | 'Return',
       };
     });
 
@@ -353,17 +353,20 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
       previousDues: prevDues, soldBy: salesMan || settings.userName || '',
     };
 
-    // Stock deduction: total pieces
-    onSaleComplete(sale, items.map(i => {
+    // Stock: Sale items DEDUCT, Return items ADD BACK
+    const stockChanges = items.map(i => {
       const p = products.find(x => x.id === i.productId);
+      let totalPieces: number;
       if (p && !isSqftUnit(p.unit)) {
-        // Non-SQFT: qty = piece directly
-        return { productId: i.productId, qty: Math.max(1, i.piece) };
+        totalPieces = Math.max(1, i.piece);
+      } else {
+        const piecesPerBox = p?.piecesPerBox || 4;
+        totalPieces = Math.max(1, cartonPieceToTotalPieces(i.carton, i.piece, piecesPerBox));
       }
-      const piecesPerBox = p?.piecesPerBox || 4;
-      const totalPieces = cartonPieceToTotalPieces(i.carton, i.piece, piecesPerBox);
-      return { productId: i.productId, qty: Math.max(1, totalPieces) };
-    }));
+      // Return items: negative qty means stock is ADDED back
+      return { productId: i.productId, qty: i.itemType === 'Return' ? -totalPieces : totalPieces };
+    });
+    onSaleComplete(sale, stockChanges);
     if (!isWalkingCustomer && finalCustomer !== t('walkInCustomer') && !customers.find(c => c.name === finalCustomer)) {
       onAutoAddCustomer(finalCustomer, finalPhone, finalAddress);
     }
@@ -874,20 +877,22 @@ tbody tr:nth-child(even){background:#fafafa}
                 <span className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase">Total</span>
                 <span className="flex-1 text-right text-lg font-black text-pos-on-surface px-3">{formatCurrency(total)}</span>
               </div>
-              {/* RETURN */}
+              {/* RETURN (auto from cart Return items) */}
               <div className="flex items-center border border-pos-surface-container rounded-lg">
                 <span className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase">Return</span>
-                <input type="number" min={0} step="any" value={returnAmt} onChange={e => setReturnAmt(e.target.value)} placeholder="0"
-                  className="flex-1 min-w-0 text-sm py-3 px-3 outline-none bg-pos-surface-lowest rounded-r-lg text-right font-bold text-pos-error" />
+                <span className={`flex-1 text-right text-lg font-black px-3 ${returnVal > 0 ? 'text-pos-error' : 'text-pos-on-surface'}`}>{formatCurrency(returnVal)}</span>
               </div>
-              {/* DISCOUNT with ৳/% toggle */}
+              {/* DISCOUNT with ৳/% toggle + Less */}
               <div className="flex items-center border border-pos-surface-container rounded-lg">
                 <button onClick={() => setDiscountType(discountType === 'flat' ? 'percent' : 'flat')}
-                  className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase cursor-pointer hover:bg-pos-surface-high transition-colors rounded-l-lg select-none">
+                  className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 uppercase cursor-pointer hover:bg-pos-surface-high transition-colors rounded-l-lg select-none">
                   {discountType === 'flat' ? 'Dis. ৳' : 'Dis. %'}
                 </button>
                 <input type="number" min={0} step="any" value={discount} onChange={e => setDiscount(e.target.value)} placeholder="0"
-                  className="flex-1 min-w-0 text-sm py-3 px-3 outline-none bg-pos-surface-lowest rounded-r-lg text-right" />
+                  className="flex-1 min-w-0 text-sm py-3 px-3 outline-none bg-pos-surface-lowest text-right" />
+                <span className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 uppercase border-l border-pos-surface-container">Less</span>
+                <input type="number" min={0} step="any" value={lessAmt} onChange={e => setLessAmt(e.target.value)} placeholder="0"
+                  className="w-20 min-w-0 text-sm py-3 px-3 outline-none bg-pos-surface-lowest rounded-r-lg text-right" />
               </div>
               {/* LABOUR */}
               <div className="flex items-center border border-pos-surface-container rounded-lg">
@@ -898,23 +903,23 @@ tbody tr:nth-child(even){background:#fafafa}
               {/* PAYABLE */}
               <div className="flex items-center border-2 border-pos-secondary rounded-lg bg-pos-secondary/5">
                 <span className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase">Payable</span>
-                <span className="flex-1 text-right text-lg font-black text-pos-secondary px-3">{formatCurrency(payable)}</span>
+                <span className={`flex-1 text-right text-lg font-black px-3 ${payable < 0 ? 'text-destructive' : 'text-pos-secondary'}`}>{formatCurrency(payable)}</span>
               </div>
               {/* PAID */}
               <div className="flex items-center border border-pos-surface-container rounded-lg">
                 <span className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase">Paid</span>
-                <input type="number" min={0} step="any" value={paidAmount} onChange={e => setPaidAmount(e.target.value)} placeholder="0"
+                <input type="number" step="any" value={paidAmount} onChange={e => setPaidAmount(e.target.value)} placeholder="0"
                   className="flex-1 min-w-0 text-sm py-3 px-3 outline-none bg-pos-surface-lowest rounded-r-lg text-right font-bold" />
               </div>
               {/* DUE */}
               <div className="flex items-center border border-pos-surface-container rounded-lg">
                 <span className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase">Due</span>
-                <span className={`flex-1 text-right text-lg font-black px-3 ${dueVal > 0 ? 'text-destructive' : 'text-[hsl(125,60%,35%)]'}`}>{formatCurrency(dueVal)}</span>
+                <span className={`flex-1 text-right text-lg font-black px-3 ${dueVal > 0 ? 'text-destructive' : dueVal < 0 ? 'text-[hsl(125,60%,35%)]' : 'text-pos-on-surface'}`}>{formatCurrency(dueVal)}</span>
               </div>
               {/* BALANCE */}
               <div className="flex items-center border border-pos-surface-container rounded-lg">
                 <span className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase">Balance</span>
-                <span className={`flex-1 text-right text-lg font-black px-3 ${balanceVal > 0 ? 'text-destructive' : 'text-[hsl(125,60%,35%)]'}`}>{formatCurrency(balanceVal)}</span>
+                <span className={`flex-1 text-right text-lg font-black px-3 ${balanceVal < 0 ? 'text-[hsl(125,60%,35%)]' : balanceVal > 0 ? 'text-destructive' : 'text-pos-on-surface'}`}>{formatCurrency(balanceVal)}</span>
               </div>
               {/* MODE */}
               <div className="flex items-center border border-pos-surface-container rounded-lg">
