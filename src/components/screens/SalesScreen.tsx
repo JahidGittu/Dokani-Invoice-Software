@@ -930,7 +930,7 @@ tbody tr:nth-child(even){background:#fafafa}
               </div>
               {/* LABOUR */}
               <div className="flex items-center border border-pos-surface-container rounded-lg">
-                <span className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase flex items-center gap-1">Labour <InfoTooltip text="রাজমিস্ত্রি বা শ্রমিকের খরচ। এটি Payable এর সাথে যোগ হবে।" /></span>
+                <span className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase flex items-center gap-1">Labour <InfoTooltip text="শ্রমিক/মিস্ত্রি খরচ। Payable এ যোগ হবে।" /></span>
                 <input type="number" min={0} step="any" value={labourCost} onChange={e => setLabourCost(e.target.value)} placeholder="0"
                   className="flex-1 min-w-0 text-sm py-3 px-3 outline-none bg-pos-surface-lowest rounded-r-lg text-right" />
               </div>
