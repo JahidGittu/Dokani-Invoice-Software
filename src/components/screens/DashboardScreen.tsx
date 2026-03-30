@@ -105,7 +105,7 @@ export default function DashboardScreen({ onNavigate, products, customers, sales
       .map(([date, total]) => ({ date, total }));
   }, [sales]);
 
-  // Account balances (includes manual transactions)
+  // Account balances (all-time: sales + purchases + ALL manual transactions)
   const accountBalances = useMemo(() => {
     const balances: Record<string, number> = { cash: 0, bkash: 0, nagad: 0, card: 0, bank: 0 };
     sales.forEach(s => {
@@ -115,8 +115,8 @@ export default function DashboardScreen({ onNavigate, products, customers, sales
       else balances['cash'] += paid;
     });
     purchases.forEach(p => { balances['cash'] -= p.paid; });
-    // Include manual transactions in balance
-    manualTxns.forEach(tx => {
+    // Include ALL manual transactions in balance (not just today's)
+    allManualTxns.forEach(tx => {
       const account = (tx.account || 'cash').toLowerCase();
       const key = account in balances ? account : 'cash';
       if (tx.transaction_type === 'cash_received' || tx.transaction_type === 'loan_receive') {
@@ -126,7 +126,7 @@ export default function DashboardScreen({ onNavigate, products, customers, sales
       }
     });
     return balances;
-  }, [sales, purchases, manualTxns]);
+  }, [sales, purchases, allManualTxns]);
   const totalBalance = Object.values(accountBalances).reduce((s, v) => s + v, 0);
 
   const quickActions = [
