@@ -897,23 +897,23 @@ tbody tr:nth-child(even){background:#fafafa}
               {/* PAYABLE */}
               <div className="flex items-center border-2 border-pos-secondary rounded-lg bg-pos-secondary/5">
                 <span className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase">Payable</span>
-                <span className="flex-1 text-right text-lg font-black text-pos-secondary px-3">{formatCurrency(payable)}</span>
+                <span className={`flex-1 text-right text-lg font-black px-3 ${payable < 0 ? 'text-destructive' : 'text-pos-secondary'}`}>{formatCurrency(payable)}</span>
               </div>
               {/* PAID */}
               <div className="flex items-center border border-pos-surface-container rounded-lg">
                 <span className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase">Paid</span>
-                <input type="number" min={0} step="any" value={paidAmount} onChange={e => setPaidAmount(e.target.value)} placeholder="0"
+                <input type="number" step="any" value={paidAmount} onChange={e => setPaidAmount(e.target.value)} placeholder="0"
                   className="flex-1 min-w-0 text-sm py-3 px-3 outline-none bg-pos-surface-lowest rounded-r-lg text-right font-bold" />
               </div>
               {/* DUE */}
               <div className="flex items-center border border-pos-surface-container rounded-lg">
                 <span className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase">Due</span>
-                <span className={`flex-1 text-right text-lg font-black px-3 ${dueVal > 0 ? 'text-destructive' : 'text-[hsl(125,60%,35%)]'}`}>{formatCurrency(dueVal)}</span>
+                <span className={`flex-1 text-right text-lg font-black px-3 ${dueVal > 0 ? 'text-destructive' : dueVal < 0 ? 'text-[hsl(125,60%,35%)]' : 'text-pos-on-surface'}`}>{formatCurrency(dueVal)}</span>
               </div>
               {/* BALANCE */}
               <div className="flex items-center border border-pos-surface-container rounded-lg">
                 <span className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase">Balance</span>
-                <span className={`flex-1 text-right text-lg font-black px-3 ${balanceVal > 0 ? 'text-destructive' : 'text-[hsl(125,60%,35%)]'}`}>{formatCurrency(balanceVal)}</span>
+                <span className={`flex-1 text-right text-lg font-black px-3 ${balanceVal < 0 ? 'text-[hsl(125,60%,35%)]' : balanceVal > 0 ? 'text-destructive' : 'text-pos-on-surface'}`}>{formatCurrency(balanceVal)}</span>
               </div>
               {/* MODE */}
               <div className="flex items-center border border-pos-surface-container rounded-lg">
