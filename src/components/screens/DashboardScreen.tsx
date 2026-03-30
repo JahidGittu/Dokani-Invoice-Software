@@ -1,9 +1,11 @@
-import { useMemo } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import { useI18n } from "@/lib/i18n";
 import { formatCurrency, getLowStockProducts, type Product, type Customer, type SaleRecord, type Supplier, type PurchaseRecord } from "@/lib/store";
 import { formatStockDisplay } from "@/lib/calc-utils";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import InfoTooltip from "@/components/InfoTooltip";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 interface DashboardScreenProps {
   onNavigate: (screen: string) => void;
