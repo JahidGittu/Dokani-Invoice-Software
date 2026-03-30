@@ -210,7 +210,7 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
   };
 
   const handleSave = () => {
-    if (!invoice.trim()) { toast.error('Invoice নম্বর দিন'); return; }
+    if (!invoiceNo.trim()) { toast.error('Invoice নম্বর দিন'); return; }
     if (!supplierName.trim()) { toast.error('Supplier সিলেক্ট করুন'); return; }
     if (!items.length) { toast.error('কমপক্ষে একটি প্রোডাক্ট যোগ করুন'); return; }
 
