@@ -286,9 +286,16 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
       thead tr { background:#1a1a1a; color:white; }
       thead th { padding:7px 8px; font-weight:700; font-size:10px; text-transform:uppercase; }
       .summary-row { display:flex; justify-content:space-between; margin-bottom:20px; }
-      .summary-left { font-size:11px; flex:1; }
-      .summary-left .item { display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid #e5e7eb; max-width:220px; }
-      .summary-right { width:240px; font-size:11px; }
+       .summary-left { font-size:11px; flex:1; max-width:240px; }
+       .due-box { border:1.5px solid #d1d5db; padding:8px 12px; margin-bottom:10px; }
+       .due-box .due-row { display:flex; justify-content:space-between; padding:3px 0; font-weight:600; }
+       .due-box .due-row .lbl { color:#1a1a1a; font-weight:600; }
+       .due-box .due-row .val { font-weight:700; }
+       .extra-info { font-size:11px; margin-top:6px; }
+       .extra-info .info-line { margin-bottom:3px; }
+       .extra-info .info-label { color:#dc2626; font-weight:700; }
+       .extra-info .info-val { font-weight:900; }
+       .summary-right { width:240px; font-size:11px; }
       .summary-right .item { display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid #e5e7eb; }
       .summary-right .payable { display:flex; justify-content:space-between; padding:8px 0; border-top:2px solid #1a1a1a; border-bottom:2px solid #1a1a1a; font-size:13px; font-weight:900; margin:4px 0; }
       .green { color:#15803d; font-weight:700; }
