@@ -23,12 +23,12 @@ export default function DashboardScreen({ onNavigate, products, customers, sales
   const todayStr = new Date().toDateString();
 
   // Fetch today's manual transactions
-  const [manualTxns, setManualTxns] = useState<{ transaction_type: string; amount: number; category: string; description: string }[]>([]);
+  const [manualTxns, setManualTxns] = useState<{ transaction_type: string; amount: number; category: string; description: string; account: string }[]>([]);
   const fetchManualTxns = useCallback(async () => {
     if (!user) return;
     const todayISO = new Date().toISOString().split('T')[0];
     const { data } = await (supabase.from('manual_transactions') as any)
-      .select('transaction_type, amount, category, description')
+      .select('transaction_type, amount, category, description, account')
       .eq('transaction_date', todayISO);
     setManualTxns(data || []);
   }, [user]);
