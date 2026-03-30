@@ -170,12 +170,25 @@ export default function StaffsScreen() {
                       <span className="material-symbols-outlined text-lg">delete</span>
                     </button>
                   </td>
-                    </button>
-                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/35 flex items-center justify-center z-[1000]" onClick={() => setShowDeleteConfirm(null)}>
+          <div className="bg-card rounded-xl w-[350px] shadow-2xl p-7 text-center" onClick={e => e.stopPropagation()}>
+            <span className="material-symbols-outlined text-4xl text-destructive mb-3">warning</span>
+            <h3 className="text-lg font-bold mb-2">Delete Staff?</h3>
+            <p className="text-sm text-muted-foreground mb-5">This action cannot be undone.</p>
+            <div className="flex gap-3">
+              <button onClick={() => setShowDeleteConfirm(null)} className="flex-1 py-2.5 bg-muted rounded-lg font-semibold text-sm">Cancel</button>
+              <button onClick={() => deleteStaff(showDeleteConfirm)} className="flex-1 py-2.5 bg-destructive text-white rounded-lg font-semibold text-sm">Delete</button>
+            </div>
+          </div>
         </div>
       )}
     </section>
