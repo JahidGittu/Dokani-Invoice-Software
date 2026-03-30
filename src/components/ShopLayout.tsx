@@ -102,17 +102,20 @@ export default function ShopLayout() {
   const handleAddPurchase = useCallback(async (purchase: any) => {
     await addPurchase(purchase);
     refreshSuppliers();
-  }, [addPurchase, refreshSuppliers]);
+    refreshProducts();
+  }, [addPurchase, refreshSuppliers, refreshProducts]);
 
   const handleDeletePurchase = useCallback(async (id: string) => {
     await deletePurchase(id);
     refreshSuppliers();
-  }, [deletePurchase, refreshSuppliers]);
+    refreshProducts();
+  }, [deletePurchase, refreshSuppliers, refreshProducts]);
 
   const handleUpdatePurchase = useCallback(async (purchase: any) => {
     await updatePurchase(purchase);
     refreshSuppliers();
-  }, [updatePurchase, refreshSuppliers]);
+    refreshProducts();
+  }, [updatePurchase, refreshSuppliers, refreshProducts]);
 
   // Wrapped deleteSale that auto-refreshes customers
   const handleDeleteSale = useCallback(async (id: string) => {
