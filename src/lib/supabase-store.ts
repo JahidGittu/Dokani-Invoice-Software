@@ -370,6 +370,22 @@ export function useSupabasePurchases() {
 
   useEffect(() => { fetchPurchases(); }, [fetchPurchases]);
 
+  // Recalculate supplier total_due from all their purchases
+  const syncSupplierDue = useCallback(async (supplierName: string) => {
+    if (!user || !supplierName) return;
+    // Sum all due from purchases for this supplier
+    const { data: allPurchases } = await supabase
+      .from('purchases')
+      .select('due')
+      .eq('user_id', user.id)
+      .eq('supplier_name', supplierName);
+    const totalDue = (allPurchases || []).reduce((sum: number, p: any) => sum + (Number(p.due) || 0), 0);
+    // Update supplier
+    await supabase.from('suppliers').update({ total_due: totalDue } as any)
+      .eq('user_id', user.id)
+      .eq('name', supplierName);
+  }, [user]);
+
   const addPurchase = useCallback(async (purchase: PurchaseRecord) => {
     if (!user) return;
     const { data: pRow, error } = await supabase.from('purchases').insert({
@@ -392,12 +408,12 @@ export function useSupabasePurchases() {
         } as any))
       );
     }
+    await syncSupplierDue(purchase.supplierName);
     fetchPurchases();
-  }, [user, fetchPurchases]);
+  }, [user, fetchPurchases, syncSupplierDue]);
 
   const deletePurchase = useCallback(async (id: string) => {
     if (!user) return;
-    // Reverse stock addition: deduct the pieces that were added
     const purchaseToDelete = purchases.find(p => p.id === id);
     if (purchaseToDelete && purchaseToDelete.items.length > 0) {
       for (const item of purchaseToDelete.items) {
@@ -411,12 +427,18 @@ export function useSupabasePurchases() {
         }
       }
     }
+    const supplierName = purchaseToDelete?.supplierName || '';
     await supabase.from('purchases').delete().eq('id', id);
+    if (supplierName) await syncSupplierDue(supplierName);
     fetchPurchases();
-  }, [user, purchases, fetchPurchases]);
+  }, [user, purchases, fetchPurchases, syncSupplierDue]);
 
   const updatePurchase = useCallback(async (purchase: PurchaseRecord) => {
     if (!user) return;
+    // Get old supplier name in case it changed
+    const oldPurchase = purchases.find(p => p.id === purchase.id);
+    const oldSupplierName = oldPurchase?.supplierName || '';
+
     const { error } = await supabase.from('purchases').update({
       invoice: purchase.invoice, supplier_name: purchase.supplierName,
       purchase_date: purchase.date, total: purchase.total,
@@ -438,8 +460,13 @@ export function useSupabasePurchases() {
         } as any))
       );
     }
+    // Sync supplier due (both old and new if changed)
+    await syncSupplierDue(purchase.supplierName);
+    if (oldSupplierName && oldSupplierName !== purchase.supplierName) {
+      await syncSupplierDue(oldSupplierName);
+    }
     fetchPurchases();
-  }, [user, fetchPurchases]);
+  }, [user, purchases, fetchPurchases, syncSupplierDue]);
 
   return { purchases, setPurchases: fetchPurchases as any, addPurchase, deletePurchase, updatePurchase };
 }
