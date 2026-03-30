@@ -28,6 +28,15 @@ export default function InventoryScreen({ products }: InventoryScreenProps) {
   const [logs, setLogs] = useState<InventoryLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterType, setFilterType] = useState<'ALL' | 'IN' | 'OUT'>('ALL');
+  const [collapsedCats, setCollapsedCats] = useState<Set<string>>(new Set());
+
+  const toggleCategory = (cat: string) => {
+    setCollapsedCats(prev => {
+      const next = new Set(prev);
+      next.has(cat) ? next.delete(cat) : next.add(cat);
+      return next;
+    });
+  };
 
   const fetchLogs = useCallback(async () => {
     if (!user) return;
