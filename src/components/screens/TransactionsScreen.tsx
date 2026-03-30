@@ -388,7 +388,61 @@ export default function TransactionsScreen({ sales, purchases }: TransactionsScr
             </button>
           </div>
         </div>
-      )}
+
+        {/* Recent Transactions - separate section below form */}
+        {allTransactions.length > 0 && (
+          <div className="bg-card border border-border rounded-xl overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-3 border-b border-border bg-muted/30">
+              <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary text-base">receipt_long</span>
+                Recent Transactions
+              </h4>
+              <button onClick={() => setTab('all')} className="flex items-center gap-1 text-xs font-bold text-primary hover:underline">
+                View All <span className="material-symbols-outlined text-sm">arrow_forward</span>
+              </button>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="bg-muted/50 text-[10px] font-bold uppercase text-muted-foreground border-b border-border">
+                    <th className="text-left py-2.5 px-3">#</th>
+                    <th className="text-left py-2.5 px-3">Date</th>
+                    <th className="text-left py-2.5 px-3">Type</th>
+                    <th className="text-left py-2.5 px-3">Category</th>
+                    <th className="text-left py-2.5 px-3">Description</th>
+                    <th className="text-left py-2.5 px-3">Account</th>
+                    <th className="text-right py-2.5 px-3">Amount</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {allTransactions.slice(0, 5).map((t, i) => (
+                    <tr key={t.id} className="hover:bg-muted/30 transition-colors">
+                      <td className="py-2.5 px-3 text-muted-foreground">{i + 1}</td>
+                      <td className="py-2.5 px-3">{formatDate(t.date)}</td>
+                      <td className="py-2.5 px-3">
+                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${
+                          t.type === 'cash_received' || t.type === 'loan_receive'
+                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
+                            : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
+                        }`}>
+                          {typeLabel(t.type)}
+                        </span>
+                      </td>
+                      <td className="py-2.5 px-3 font-medium">{t.category || '-'}</td>
+                      <td className="py-2.5 px-3 text-muted-foreground truncate max-w-[180px]">{t.description || '-'}</td>
+                      <td className="py-2.5 px-3">{t.account}</td>
+                      <td className={`py-2.5 px-3 text-right font-bold ${
+                        t.type === 'cash_received' || t.type === 'loan_receive' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                      }`}>
+                        {t.type === 'cash_received' || t.type === 'loan_receive' ? '+' : '-'}৳{t.amount.toLocaleString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
 
       {/* ────── TAB 2: All Transactions ────── */}
       {tab === 'all' && (
