@@ -7,6 +7,7 @@ import { formatStockDisplay, totalPiecesToCartonPiece } from "@/lib/calc-utils";
 
 interface InventoryLog {
   id: string;
+  product_id: string;
   product_name: string;
   log_type: string;
   qty: number;

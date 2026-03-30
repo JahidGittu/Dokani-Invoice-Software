@@ -57,13 +57,13 @@ export default function ShopLayout() {
     navigate(path);
   }, [navigate]);
 
-  const handleSaleComplete = useCallback((sale: SaleRecord, stockDeductions: { productId: string; qty: number }[]) => {
-    addSale(sale);
-    deductStock(stockDeductions);
+  const handleSaleComplete = useCallback(async (sale: SaleRecord, stockDeductions: { productId: string; qty: number }[]) => {
+    await addSale(sale);
+    await deductStock(stockDeductions);
     const walkInNames = ['Walk-in Customer', 'সরাসরি কাস্টমার'];
     if (!walkInNames.includes(sale.customer) && sale.customer.trim()) {
       const dueAmount = sale.due ?? 0;
-      updateCustomerSpend(sale.customer, sale.total, dueAmount);
+      await updateCustomerSpend(sale.customer, sale.total, dueAmount);
     }
   }, [addSale, deductStock, updateCustomerSpend]);
 
