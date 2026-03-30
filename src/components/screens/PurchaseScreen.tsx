@@ -255,6 +255,28 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
     const fmtDate = (d: string) => { try { return new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }); } catch { return d; } };
     const fc = (n: number) => `৳${n.toLocaleString('en-IN', { minimumFractionDigits: 0 })}`;
 
+    // Number to words (Taka)
+    const numToWords = (num: number): string => {
+      if (num === 0) return 'Zero Taka Only';
+      const ones = ['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'];
+      const tens = ['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
+      const scales = ['','Thousand','Lakh','Crore'];
+      const n = Math.round(Math.abs(num));
+      if (n === 0) return 'Zero Taka Only';
+      const convert = (n: number): string => {
+        if (n < 20) return ones[n];
+        if (n < 100) return tens[Math.floor(n / 10)] + (n % 10 ? ' ' + ones[n % 10] : '');
+        return ones[Math.floor(n / 100)] + ' Hundred' + (n % 100 ? ' ' + convert(n % 100) : '');
+      };
+      // Indian numbering: last 3, then groups of 2
+      const parts: number[] = [];
+      let rem = n;
+      parts.push(rem % 1000); rem = Math.floor(rem / 1000);
+      while (rem > 0) { parts.push(rem % 100); rem = Math.floor(rem / 100); }
+      const words = parts.map((p, i) => p > 0 ? convert(p) + (scales[i] ? ' ' + scales[i] : '') : '').reverse().filter(Boolean).join(' ');
+      return words + ' Taka Only';
+    };
+
     const itemRows = p.items.map((item, i) => `
       <tr style="${i % 2 === 0 ? '' : 'background:#fafafa;'}">
         <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;color:#6b7280;">${i + 1}</td>
@@ -347,6 +369,7 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
           <div class="extra-info">
             ${p.remark ? `<div class="info-line"><span class="info-label">Remark:</span></div><div class="info-line">${p.remark}</div>` : `<div class="info-line"><span class="info-label">Remark:</span></div>`}
             <div class="info-line" style="margin-top:4px;"><span class="info-label">Total Quantity:</span> <span class="info-val">${p.items.reduce((s, it) => s + it.carton + it.piece, 0)}</span></div>
+            <div class="info-line" style="margin-top:4px;"><span class="info-label">In Word:</span> <span class="info-val">${numToWords(p.payable)}</span></div>
           </div>
         </div>
         <div class="summary-right">
