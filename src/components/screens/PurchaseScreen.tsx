@@ -873,7 +873,7 @@ export default function PurchaseScreen({ products, suppliers, purchases, onAddPu
                 );
               })}
               {paginated.length === 0 && (
-                <tr><td colSpan={9} className="px-8 py-8 text-center text-sm text-pos-on-surface-variant">No purchases yet</td></tr>
+                <tr><td colSpan={10} className="px-8 py-8 text-center text-sm text-pos-on-surface-variant">No purchases yet</td></tr>
               )}
             </tbody>
           </table>
