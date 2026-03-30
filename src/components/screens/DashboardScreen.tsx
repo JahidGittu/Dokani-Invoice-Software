@@ -23,12 +23,12 @@ export default function DashboardScreen({ onNavigate, products, customers, sales
   const todayStr = new Date().toDateString();
 
   // Fetch today's manual transactions
-  const [manualTxns, setManualTxns] = useState<{ transaction_type: string; amount: number; category: string; description: string }[]>([]);
+  const [manualTxns, setManualTxns] = useState<{ transaction_type: string; amount: number; category: string; description: string; account: string }[]>([]);
   const fetchManualTxns = useCallback(async () => {
     if (!user) return;
     const todayISO = new Date().toISOString().split('T')[0];
     const { data } = await (supabase.from('manual_transactions') as any)
-      .select('transaction_type, amount, category, description')
+      .select('transaction_type, amount, category, description, account')
       .eq('transaction_date', todayISO);
     setManualTxns(data || []);
   }, [user]);
@@ -97,7 +97,7 @@ export default function DashboardScreen({ onNavigate, products, customers, sales
       .map(([date, total]) => ({ date, total }));
   }, [sales]);
 
-  // Account balances
+  // Account balances (includes manual transactions)
   const accountBalances = useMemo(() => {
     const balances: Record<string, number> = { cash: 0, bkash: 0, nagad: 0, card: 0, bank: 0 };
     sales.forEach(s => {
@@ -107,8 +107,18 @@ export default function DashboardScreen({ onNavigate, products, customers, sales
       else balances['cash'] += paid;
     });
     purchases.forEach(p => { balances['cash'] -= p.paid; });
+    // Include manual transactions in balance
+    manualTxns.forEach(tx => {
+      const account = (tx.account || 'cash').toLowerCase();
+      const key = account in balances ? account : 'cash';
+      if (tx.transaction_type === 'cash_received' || tx.transaction_type === 'loan_receive') {
+        balances[key] += tx.amount;
+      } else if (tx.transaction_type === 'cash_payment' || tx.transaction_type === 'loan_payment') {
+        balances[key] -= tx.amount;
+      }
+    });
     return balances;
-  }, [sales, purchases]);
+  }, [sales, purchases, manualTxns]);
   const totalBalance = Object.values(accountBalances).reduce((s, v) => s + v, 0);
 
   const quickActions = [

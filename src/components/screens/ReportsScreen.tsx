@@ -1,8 +1,10 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useI18n } from "@/lib/i18n";
 import { toast } from "sonner";
 import { formatCurrency, downloadCSV, type SaleRecord, type Product, type Customer, type Supplier, type PurchaseRecord } from "@/lib/store";
 import { isSqftUnit } from "@/lib/calc-utils";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 interface ReportsScreenProps {
   sales?: SaleRecord[];
@@ -16,9 +18,31 @@ type ReportType = 'purchase' | 'sales' | 'stock' | 'payment' | 'general_transact
 
 export default function ReportsScreen({ sales = [], products = [], customers = [], suppliers = [], purchases = [] }: ReportsScreenProps) {
   const { t } = useI18n();
+  const { user } = useAuth();
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [activeReport, setActiveReport] = useState<ReportType>('sales');
+
+  // Fetch manual transactions
+  const [manualTxns, setManualTxns] = useState<{ transaction_type: string; amount: number; category: string; description: string; account: string; transaction_date: string }[]>([]);
+  const fetchManualTxns = useCallback(async () => {
+    if (!user) return;
+    const { data } = await (supabase.from('manual_transactions') as any)
+      .select('transaction_type, amount, category, description, account, transaction_date')
+      .order('transaction_date', { ascending: false });
+    setManualTxns(data || []);
+  }, [user]);
+  useEffect(() => { fetchManualTxns(); }, [fetchManualTxns]);
+
+  const filteredManualTxns = useMemo(() => {
+    if (!dateFrom && !dateTo) return manualTxns;
+    return manualTxns.filter(tx => {
+      const d = tx.transaction_date;
+      if (dateFrom && d < dateFrom) return false;
+      if (dateTo && d > dateTo) return false;
+      return true;
+    });
+  }, [manualTxns, dateFrom, dateTo]);
 
   const filteredSales = useMemo(() => {
     if (!dateFrom && !dateTo) return sales;
@@ -411,10 +435,11 @@ export default function ReportsScreen({ sales = [], products = [], customers = [
           {activeReport === 'general_transaction' && (
             <div className="bg-pos-surface-lowest rounded-xl border border-pos-surface-container overflow-hidden">
               <div className="px-5 py-3 bg-pos-surface-low font-semibold text-sm">General Transaction</div>
-              <div className="grid grid-cols-3 gap-4 p-4">
+              <div className="grid grid-cols-4 gap-4 p-4">
                 <div className="bg-pos-surface-high rounded-lg p-3"><div className="text-[10px] text-pos-on-surface-variant uppercase font-bold">Sales Income</div><div className="text-xl font-black text-[hsl(125,60%,35%)]">{formatCurrency(stats.totalPaid)}</div></div>
                 <div className="bg-pos-surface-high rounded-lg p-3"><div className="text-[10px] text-pos-on-surface-variant uppercase font-bold">Purchase Expense</div><div className="text-xl font-black text-destructive">{formatCurrency(stats.purchasePaid)}</div></div>
-                <div className="bg-pos-surface-high rounded-lg p-3"><div className="text-[10px] text-pos-on-surface-variant uppercase font-bold">Net Balance</div><div className={`text-xl font-black ${stats.totalPaid - stats.purchasePaid >= 0 ? 'text-[hsl(125,60%,35%)]' : 'text-destructive'}`}>{formatCurrency(stats.totalPaid - stats.purchasePaid)}</div></div>
+                <div className="bg-pos-surface-high rounded-lg p-3"><div className="text-[10px] text-pos-on-surface-variant uppercase font-bold">Manual TRX</div><div className="text-xl font-black text-pos-secondary">{formatCurrency(filteredManualTxns.reduce((s, tx) => s + (tx.transaction_type === 'cash_received' || tx.transaction_type === 'loan_receive' ? tx.amount : -tx.amount), 0))}</div></div>
+                <div className="bg-pos-surface-high rounded-lg p-3"><div className="text-[10px] text-pos-on-surface-variant uppercase font-bold">Net Balance</div><div className={`text-xl font-black ${stats.totalPaid - stats.purchasePaid + filteredManualTxns.reduce((s, tx) => s + (tx.transaction_type === 'cash_received' || tx.transaction_type === 'loan_receive' ? tx.amount : -tx.amount), 0) >= 0 ? 'text-[hsl(125,60%,35%)]' : 'text-destructive'}`}>{formatCurrency(stats.totalPaid - stats.purchasePaid + filteredManualTxns.reduce((s, tx) => s + (tx.transaction_type === 'cash_received' || tx.transaction_type === 'loan_receive' ? tx.amount : -tx.amount), 0))}</div></div>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm">
@@ -423,12 +448,19 @@ export default function ReportsScreen({ sales = [], products = [], customers = [
                   </tr></thead>
                   <tbody className="divide-y divide-pos-surface-container">
                     {[...filteredSales.map(s => ({ date: s.date, type: 'Sale' as const, ref: s.invoice, party: s.customer, amount: s.paid ?? s.total })),
-                      ...filteredPurchases.map(p => ({ date: p.date, type: 'Purchase' as const, ref: p.invoice, party: p.supplierName, amount: -p.paid }))]
+                      ...filteredPurchases.map(p => ({ date: p.date, type: 'Purchase' as const, ref: p.invoice, party: p.supplierName, amount: -p.paid })),
+                      ...filteredManualTxns.map(tx => ({
+                        date: tx.transaction_date,
+                        type: (tx.transaction_type === 'cash_received' || tx.transaction_type === 'loan_receive' ? 'Cash In' : 'Cash Out') as string,
+                        ref: tx.category || '-',
+                        party: tx.description || tx.category || '-',
+                        amount: tx.transaction_type === 'cash_received' || tx.transaction_type === 'loan_receive' ? tx.amount : -tx.amount
+                      }))]
                       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-                      .slice(0, 30).map((t, i) => (
+                      .map((t, i) => (
                       <tr key={i} className="hover:bg-pos-surface-low">
                         <td className="px-4 py-2 text-xs">{(() => { try { return new Date(t.date).toLocaleDateString('en-GB'); } catch { return t.date; } })()}</td>
-                        <td className="px-4 py-2"><span className={`text-xs font-bold px-2 py-0.5 rounded ${t.type === 'Sale' ? 'bg-[hsl(125,60%,90%)] text-[hsl(125,60%,25%)]' : 'bg-[hsl(0,60%,90%)] text-destructive'}`}>{t.type}</span></td>
+                        <td className="px-4 py-2"><span className={`text-xs font-bold px-2 py-0.5 rounded ${t.type === 'Sale' ? 'bg-[hsl(125,60%,90%)] text-[hsl(125,60%,25%)]' : t.type === 'Cash In' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' : 'bg-[hsl(0,60%,90%)] text-destructive'}`}>{t.type}</span></td>
                         <td className="px-4 py-2 text-xs font-bold text-pos-secondary">{t.ref}</td>
                         <td className="px-4 py-2">{t.party}</td>
                         <td className={`px-4 py-2 text-right font-bold ${t.amount >= 0 ? 'text-[hsl(125,60%,35%)]' : 'text-destructive'}`}>{t.amount >= 0 ? '+' : ''}{formatCurrency(t.amount)}</td>
