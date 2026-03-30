@@ -28,6 +28,11 @@ export default function SupplierScreen({ suppliers, onAddSupplier, onDeleteSuppl
   const [address, setAddress] = useState('');
   const [openingBalance, setOpeningBalance] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+  const [editSupplier, setEditSupplier] = useState<Supplier | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editContact, setEditContact] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+  const [editAddress, setEditAddress] = useState('');
 
   // Search, Sort, Pagination
   const [search, setSearch] = useState('');
