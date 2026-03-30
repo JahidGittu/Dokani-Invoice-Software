@@ -141,25 +141,58 @@ export default function ReportsScreen({ sales = [], products = [], customers = [
         <div className="lg:col-span-4 bg-pos-surface-lowest rounded-xl border border-pos-surface-container p-5">
           <h3 className="text-sm font-bold text-pos-on-surface-variant uppercase tracking-wider mb-4">List of Reports</h3>
           <div className="space-y-1">
-            {reportList.map(item => (
-              <div key={item.id}>
-                <button onClick={() => setActiveReport(item.id)}
-                  className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${activeReport === item.id || item.children?.some(c => c.id === activeReport) ? 'bg-pos-secondary text-white' : 'text-pos-on-surface hover:bg-pos-surface-high'}`}>
-                  <span className="material-symbols-outlined text-base">{item.icon}</span>
-                  {item.label}
-                </button>
-                {item.children && (
-                  <div className="ml-8 space-y-0.5 mt-0.5">
-                    {item.children.map(child => (
-                      <button key={child.id} onClick={() => setActiveReport(child.id)}
-                        className={`w-full text-left px-3 py-1.5 rounded text-xs font-medium transition-colors ${activeReport === child.id ? 'text-pos-secondary font-bold' : 'text-pos-on-surface-variant hover:text-pos-on-surface'}`}>
-                        {child.label}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
+            {reportList.map(item => {
+              const isParentActive = activeReport === item.id || item.children?.some(c => c.id === activeReport);
+              const [expanded, setExpanded] = useState(isParentActive || false);
+
+              return (
+                <div key={item.id}>
+                  <button
+                    onClick={() => {
+                      if (item.children) {
+                        setExpanded(prev => !prev);
+                        // Also set active to first child if not already on a child
+                        if (!item.children.some(c => c.id === activeReport)) {
+                          setActiveReport(item.children[0].id);
+                        }
+                      } else {
+                        setActiveReport(item.id);
+                      }
+                    }}
+                    className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                      isParentActive
+                        ? 'bg-pos-secondary text-white'
+                        : 'text-pos-on-surface hover:bg-pos-surface-high'
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-base">{item.icon}</span>
+                    <span className="flex-1 text-left">{item.label}</span>
+                    {item.children && (
+                      <span className={`material-symbols-outlined text-base transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}>
+                        expand_more
+                      </span>
+                    )}
+                  </button>
+                  {item.children && expanded && (
+                    <div className="ml-4 mt-1 space-y-0.5 border-l-2 border-pos-surface-container pl-3">
+                      {item.children.map(child => (
+                        <button
+                          key={child.id}
+                          onClick={() => setActiveReport(child.id)}
+                          className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                            activeReport === child.id
+                              ? 'bg-pos-secondary/10 text-pos-secondary font-bold border-l-2 border-pos-secondary -ml-[3px] pl-[13px]'
+                              : 'text-pos-on-surface-variant hover:text-pos-on-surface hover:bg-pos-surface-high'
+                          }`}
+                        >
+                          {child.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
 
