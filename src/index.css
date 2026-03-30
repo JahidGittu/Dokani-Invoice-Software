@@ -163,7 +163,113 @@ input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
 
 @media print {
   .no-print { display: none !important; }
-  body * { visibility: hidden; }
+
+  /* Reset visibility approach - show everything by default in print */
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 11px !important;
+  }
+
+  /* Hide sidebar, header, FAB */
+  aside, nav, header,
+  .lg\:ml-64,
+  button[title="New Sale (F2)"] {
+    display: none !important;
+  }
+
+  /* Report print area */
+  main {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  section {
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+
+  /* Make grid full width on print */
+  .grid {
+    display: block !important;
+  }
+
+  /* Print header styling */
+  .print-header {
+    display: block !important;
+  }
+
+  .print\:block {
+    display: block !important;
+  }
+
+  .print\:bg-gray-100 {
+    background: #f3f4f6 !important;
+  }
+
+  .print\:border {
+    border: 1px solid #d1d5db !important;
+  }
+
+  .print\:border-gray-300 {
+    border-color: #d1d5db !important;
+  }
+
+  .print\:divide-gray-300 > * + * {
+    border-color: #d1d5db !important;
+  }
+
+  .print\:text-xs {
+    font-size: 10px !important;
+  }
+
+  .print\:grid-cols-4 {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+
+  /* Report table print styles */
+  .print-report-table {
+    border: 1px solid #d1d5db !important;
+    border-radius: 0 !important;
+    page-break-inside: auto;
+  }
+
+  .print-report-table table {
+    font-size: 10px !important;
+  }
+
+  .print-report-table th,
+  .print-report-table td {
+    padding: 4px 8px !important;
+    border-bottom: 1px solid #e5e7eb !important;
+  }
+
+  .print-report-table thead tr {
+    background: #f3f4f6 !important;
+  }
+
+  /* Summary cards in print */
+  .print-report-table .grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  /* Colors for print */
+  .text-destructive { color: #b91c1c !important; }
+  .text-pos-secondary { color: #0052b4 !important; }
+
+  /* A4 page setup */
+  @page {
+    size: A4;
+    margin: 15mm 12mm;
+  }
+
+  tr {
+    page-break-inside: avoid;
+  }
+
+  /* Keep purchase invoice print support */
   #purchase-invoice-print, #purchase-invoice-print * { visibility: visible !important; }
   #purchase-invoice-print {
     position: absolute;
