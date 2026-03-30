@@ -112,56 +112,56 @@ export default function DashboardScreen({ onNavigate, products, customers, sales
       </div>
 
       {/* ── 4 Summary Cards ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* PROFILE */}
-        <div className="bg-pos-surface-lowest rounded-lg border border-pos-surface-container p-4">
-          <div className="flex items-center gap-2 mb-3 pb-2 border-b border-pos-surface-container">
-            <span className="material-symbols-outlined text-pos-secondary text-xl">person</span>
-            <span className="text-xs font-bold uppercase tracking-wider text-pos-on-surface">PROFILE</span>
+        <div className="bg-pos-surface-lowest rounded-2xl border border-pos-surface-container p-5 sm:p-6 shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.12)] transition-shadow duration-300">
+          <div className="flex items-center gap-2.5 mb-4 pb-3 border-b border-pos-surface-container">
+            <span className="material-symbols-outlined text-pos-secondary text-2xl">person</span>
+            <span className="text-sm font-bold uppercase tracking-wider text-pos-on-surface">PROFILE</span>
           </div>
-          <div className="space-y-1.5 text-xs">
-            <div className="flex justify-between"><span className="text-pos-on-surface-variant">{t('totalCustomers')}:</span><span className="font-bold">{customers.length}</span></div>
-            <div className="flex justify-between"><span className="text-pos-on-surface-variant">{t('suppliers')}:</span><span className="font-bold">{suppliers.length}</span></div>
-            <div className="flex justify-between"><span className="text-pos-on-surface-variant">{t('totalProducts')}:</span><span className="font-bold">{products.length}</span></div>
+          <div className="space-y-2.5 text-sm">
+            <div className="flex justify-between"><span className="text-pos-on-surface-variant">{t('totalCustomers')}:</span><span className="font-bold text-base">{customers.length}</span></div>
+            <div className="flex justify-between"><span className="text-pos-on-surface-variant">{t('suppliers')}:</span><span className="font-bold text-base">{suppliers.length}</span></div>
+            <div className="flex justify-between"><span className="text-pos-on-surface-variant">{t('totalProducts')}:</span><span className="font-bold text-base">{products.length}</span></div>
           </div>
         </div>
 
         {/* SALES TODAY */}
-        <div className="bg-pos-surface-lowest rounded-lg border border-pos-surface-container p-4">
-          <div className="flex items-center gap-2 mb-3 pb-2 border-b border-pos-surface-container">
-            <span className="material-symbols-outlined text-pos-secondary text-xl">shopping_cart</span>
-            <span className="text-xs font-bold uppercase tracking-wider text-pos-on-surface">SALES TODAY</span>
+        <div className="bg-pos-surface-lowest rounded-2xl border border-pos-surface-container p-5 sm:p-6 shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.12)] transition-shadow duration-300">
+          <div className="flex items-center gap-2.5 mb-4 pb-3 border-b border-pos-surface-container">
+            <span className="material-symbols-outlined text-pos-secondary text-2xl">shopping_cart</span>
+            <span className="text-sm font-bold uppercase tracking-wider text-pos-on-surface">SALES TODAY</span>
           </div>
-          <div className="space-y-1.5 text-xs">
-            <div className="flex justify-between"><span className="text-pos-on-surface-variant">{t('totalSales')} ({todayCount}):</span><span className="font-bold">{formatCurrency(todayTotal)}</span></div>
-            <div className="flex justify-between"><span className="text-pos-on-surface-variant">Cash Sales:</span><span className="font-bold">{formatCurrency(todayCashSales)}</span></div>
-            <div className="flex justify-between"><span className="text-pos-on-surface-variant">Dues Sales:</span><span className="font-bold">{formatCurrency(todayDueSales)}</span></div>
+          <div className="space-y-2.5 text-sm">
+            <div className="flex justify-between"><span className="text-pos-on-surface-variant">{t('totalSales')} ({todayCount}):</span><span className="font-bold text-base">{formatCurrency(todayTotal)}</span></div>
+            <div className="flex justify-between"><span className="text-pos-on-surface-variant">Cash Sales:</span><span className="font-bold text-base">{formatCurrency(todayCashSales)}</span></div>
+            <div className="flex justify-between"><span className="text-pos-on-surface-variant">Dues Sales:</span><span className="font-bold text-base">{formatCurrency(todayDueSales)}</span></div>
           </div>
         </div>
 
         {/* CASH TRX TODAY */}
-        <div className="bg-pos-surface-lowest rounded-lg border border-pos-surface-container p-4">
-          <div className="flex items-center gap-2 mb-3 pb-2 border-b border-pos-surface-container">
-            <span className="material-symbols-outlined text-pos-secondary text-xl">check_circle</span>
-            <span className="text-xs font-bold uppercase tracking-wider text-pos-on-surface">CASH TRX. TODAY</span>
+        <div className="bg-pos-surface-lowest rounded-2xl border border-pos-surface-container p-5 sm:p-6 shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.12)] transition-shadow duration-300">
+          <div className="flex items-center gap-2.5 mb-4 pb-3 border-b border-pos-surface-container">
+            <span className="material-symbols-outlined text-pos-secondary text-2xl">check_circle</span>
+            <span className="text-sm font-bold uppercase tracking-wider text-pos-on-surface">CASH TRX. TODAY</span>
           </div>
-          <div className="space-y-1.5 text-xs">
-            <div className="flex justify-between items-center"><span className="text-pos-on-surface-variant flex items-center gap-1">Cash Receive <InfoTooltip text="আজকের মোট নগদ বিক্রয়।" /></span><span className="font-bold">{formatCurrency(todayCashReceive)}</span></div>
-            <div className="flex justify-between items-center"><span className="text-pos-on-surface-variant flex items-center gap-1">Cash Payment <InfoTooltip text="আজকে কেনাকাটায় যত টাকা দিয়েছেন।" /></span><span className="font-bold">{formatCurrency(todayCashPayment)}</span></div>
-            <div className="flex justify-between items-center"><span className="text-pos-on-surface-variant flex items-center gap-1">Cash Balance <InfoTooltip text="আজকের আয় ও ব্যয়ের পর হাতে যে টাকা রইল।" /></span><span className="font-bold">{formatCurrency(cashBalance)}</span></div>
+          <div className="space-y-2.5 text-sm">
+            <div className="flex justify-between items-center"><span className="text-pos-on-surface-variant flex items-center gap-1">Cash Receive <InfoTooltip text="আজকের মোট নগদ বিক্রয়।" /></span><span className="font-bold text-base">{formatCurrency(todayCashReceive)}</span></div>
+            <div className="flex justify-between items-center"><span className="text-pos-on-surface-variant flex items-center gap-1">Cash Payment <InfoTooltip text="আজকে কেনাকাটায় যত টাকা দিয়েছেন।" /></span><span className="font-bold text-base">{formatCurrency(todayCashPayment)}</span></div>
+            <div className="flex justify-between items-center"><span className="text-pos-on-surface-variant flex items-center gap-1">Cash Balance <InfoTooltip text="আজকের আয় ও ব্যয়ের পর হাতে যে টাকা রইল।" /></span><span className="font-bold text-base">{formatCurrency(cashBalance)}</span></div>
           </div>
         </div>
 
         {/* OVERALL BALANCE */}
-        <div className="bg-pos-surface-lowest rounded-lg border border-pos-surface-container p-4">
-          <div className="flex items-center gap-2 mb-3 pb-2 border-b border-pos-surface-container">
-            <span className="material-symbols-outlined text-pos-secondary text-xl">grid_view</span>
-            <span className="text-xs font-bold uppercase tracking-wider text-pos-on-surface">OVERALL BALANCE</span>
+        <div className="bg-pos-surface-lowest rounded-2xl border border-pos-surface-container p-5 sm:p-6 shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.12)] transition-shadow duration-300">
+          <div className="flex items-center gap-2.5 mb-4 pb-3 border-b border-pos-surface-container">
+            <span className="material-symbols-outlined text-pos-secondary text-2xl">grid_view</span>
+            <span className="text-sm font-bold uppercase tracking-wider text-pos-on-surface">OVERALL BALANCE</span>
           </div>
-          <div className="space-y-1.5 text-xs">
-            <div className="flex justify-between items-center"><span className="text-pos-on-surface-variant flex items-center gap-1">Supplier Dues <InfoTooltip text="সাপ্লায়ারদের মোট দেনা/পাবে।" /></span><span className="font-bold">{formatCurrency(supplierDues)}</span></div>
-            <div className="flex justify-between items-center"><span className="text-pos-on-surface-variant flex items-center gap-1">Customer Dues <InfoTooltip text="কাস্টমারদের মোট বকেয়া।" /></span><span className="font-bold text-destructive">{formatCurrency(customerDues)}</span></div>
-            <div className="flex justify-between items-center"><span className="text-pos-on-surface-variant flex items-center gap-1">Liability <InfoTooltip text="পজিটিভ হলে কাস্টমারদের বকেয়া, নেগেটিভ হলে সাপ্লায়ারদের দেনা।" /></span><span className="font-bold">{formatCurrency(liability)}</span></div>
+          <div className="space-y-2.5 text-sm">
+            <div className="flex justify-between items-center"><span className="text-pos-on-surface-variant flex items-center gap-1">Supplier Dues <InfoTooltip text="সাপ্লায়ারদের মোট দেনা/পাবে।" /></span><span className="font-bold text-base">{formatCurrency(supplierDues)}</span></div>
+            <div className="flex justify-between items-center"><span className="text-pos-on-surface-variant flex items-center gap-1">Customer Dues <InfoTooltip text="কাস্টমারদের মোট বকেয়া।" /></span><span className="font-bold text-base text-destructive">{formatCurrency(customerDues)}</span></div>
+            <div className="flex justify-between items-center"><span className="text-pos-on-surface-variant flex items-center gap-1">Liability <InfoTooltip text="পজিটিভ হলে কাস্টমারদের বকেয়া, নেগেটিভ হলে সাপ্লায়ারদের দেনা।" /></span><span className="font-bold text-base">{formatCurrency(liability)}</span></div>
           </div>
         </div>
       </div>
