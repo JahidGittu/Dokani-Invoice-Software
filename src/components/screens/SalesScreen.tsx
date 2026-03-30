@@ -916,7 +916,7 @@ tbody tr:nth-child(even){background:#fafafa}
               </div>
               {/* RETURN (auto from cart Return items) */}
               <div className="flex items-center border border-pos-surface-container rounded-lg">
-                <span className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase flex items-center gap-1">Return <InfoTooltip text="রিটার্ন আইটেমের মোট মূল্য। কার্টে Return টাইপ সিলেক্ট করলে এখানে অটো যোগ হয়।" /></span>
+                <span className="text-sm font-bold text-pos-secondary px-3 py-3 bg-pos-surface-low shrink-0 w-24 uppercase flex items-center gap-1">Return <InfoTooltip text="ফেরত পণ্যের মোট মূল্য। কার্টে Return সিলেক্ট করলে অটো যোগ হয়।" /></span>
                 <span className={`flex-1 text-right text-lg font-black px-3 ${returnVal > 0 ? 'text-pos-error' : 'text-pos-on-surface'}`}>{formatCurrency(returnVal)}</span>
               </div>
               {/* DISCOUNT with ৳/% toggle */}
