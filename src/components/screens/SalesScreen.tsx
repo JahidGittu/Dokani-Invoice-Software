@@ -107,7 +107,15 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
   const searchRef = useRef<HTMLInputElement>(null);
   const customerDropdownRef = useRef<HTMLDivElement>(null);
 
-  // ── Sort helpers ──
+
+  // ── Fetch staffs for Sales Man dropdown ──
+  const [staffList, setStaffList] = useState<{ name: string; role: string }[]>([]);
+  useEffect(() => {
+    supabase.from('staffs').select('name, role, status').eq('status', 'active').then(({ data }) => {
+      if (data) setStaffList(data.map(s => ({ name: s.name, role: s.role })));
+    });
+  }, []);
+
   const toggleSort = (field: SortField) => {
     if (sortField === field) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
     else { setSortField(field); setSortDir('desc'); }
