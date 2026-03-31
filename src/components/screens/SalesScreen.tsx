@@ -8,6 +8,7 @@ import { calcSqftQty, calcCartonPieceFromSqft, calcSubTotal, isSqftUnit, getDisp
 import { toast } from "sonner";
 import InvoiceModal from "@/components/InvoiceModal";
 import ComboInput from "@/components/ComboInput";
+import { supabase } from "@/integrations/supabase/client";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import QRCode from "qrcode";
