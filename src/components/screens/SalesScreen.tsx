@@ -8,6 +8,7 @@ import { calcSqftQty, calcCartonPieceFromSqft, calcSubTotal, isSqftUnit, getDisp
 import { toast } from "sonner";
 import InvoiceModal from "@/components/InvoiceModal";
 import ComboInput from "@/components/ComboInput";
+import { supabase } from "@/integrations/supabase/client";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import QRCode from "qrcode";
@@ -106,7 +107,15 @@ export default function SalesScreen({ products, customers, sales, settings, onSa
   const searchRef = useRef<HTMLInputElement>(null);
   const customerDropdownRef = useRef<HTMLDivElement>(null);
 
-  // ── Sort helpers ──
+
+  // ── Fetch staffs for Sales Man dropdown ──
+  const [staffList, setStaffList] = useState<{ name: string; role: string }[]>([]);
+  useEffect(() => {
+    supabase.from('staffs').select('name, role, status').eq('status', 'active').then(({ data }) => {
+      if (data) setStaffList(data.map(s => ({ name: s.name, role: s.role })));
+    });
+  }, []);
+
   const toggleSort = (field: SortField) => {
     if (sortField === field) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
     else { setSortField(field); setSortDir('desc'); }
@@ -898,7 +907,10 @@ tbody tr:nth-child(even){background:#fafafa}
                   <select value={salesMan} onChange={e => setSalesMan(e.target.value)}
                     className="bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2 px-3 outline-none">
                     <option value="">Select</option>
-                    <option>{settings.userName || 'Owner'}</option>
+                    <option value={settings.userName || 'Owner'}>{settings.userName || 'Owner'} — মালিক</option>
+                    {staffList.map(s => (
+                      <option key={s.name} value={`${s.name} — ${s.role}`}>{s.name} — {s.role}</option>
+                    ))}
                   </select>
                 </div>
                 <label className="flex items-center gap-1.5 text-xs cursor-pointer">
