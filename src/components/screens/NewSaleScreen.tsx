@@ -748,8 +748,7 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
                         {isSqft ? (
                           <>
                             <input type="number" min={0} step="0.1" value={row.sqftInput} onChange={e => updateRow(row.id, 'sqftInput', e.target.value)}
-                              className="w-16 bg-[hsl(200,100%,96%)] border border-[hsl(200,60%,70%)] rounded text-xs py-1 text-center outline-none focus:border-primary" placeholder="sqft" />
-                            {sqftQty > 0 && <div className="text-[8px] text-muted-foreground text-center mt-0.5">{sqftQty.toFixed(1)} sqft</div>}
+                              className="w-20 bg-[hsl(200,100%,96%)] border border-[hsl(200,60%,70%)] rounded text-xs py-1.5 text-center outline-none focus:border-primary focus:ring-1 focus:ring-primary/30" placeholder="sqft" />
                           </>
                         ) : (
                           <div className="text-xs text-center font-semibold text-foreground">{sqftQty > 0 ? sqftQty : '-'}</div>
