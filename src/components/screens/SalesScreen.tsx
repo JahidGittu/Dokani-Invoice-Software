@@ -907,7 +907,10 @@ tbody tr:nth-child(even){background:#fafafa}
                   <select value={salesMan} onChange={e => setSalesMan(e.target.value)}
                     className="bg-pos-surface-high border border-pos-surface-container rounded-lg text-sm py-2 px-3 outline-none">
                     <option value="">Select</option>
-                    <option>{settings.userName || 'Owner'}</option>
+                    <option value={settings.userName || 'Owner'}>{settings.userName || 'Owner'} — মালিক</option>
+                    {staffList.map(s => (
+                      <option key={s.name} value={`${s.name} — ${s.role}`}>{s.name} — {s.role}</option>
+                    ))}
                   </select>
                 </div>
                 <label className="flex items-center gap-1.5 text-xs cursor-pointer">
