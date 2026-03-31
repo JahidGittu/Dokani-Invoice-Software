@@ -200,7 +200,10 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
       return;
     }
     const p = products.find(x => x.id === productId);
-    if (p) setRows(prev => prev.map(r => r.id === rowId ? { ...r, productId, rate: p.pricePerBox, qty: 1, carton: 1, piece: 0, sqftInput: '' } : r));
+    if (p) {
+      const initialSqft = isSqftUnit(p.unit) ? calcSqftQty(p, 1, 0) : 0;
+      setRows(prev => prev.map(r => r.id === rowId ? { ...r, productId, rate: p.pricePerBox, qty: 1, carton: 1, piece: 0, sqftInput: initialSqft > 0 ? initialSqft.toFixed(1) : '' } : r));
+    }
   };
 
   const handleBarcode = (e: React.KeyboardEvent) => {
