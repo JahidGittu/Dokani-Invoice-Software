@@ -836,7 +836,11 @@ tbody tr:nth-child(even){background:#fafafa}
                               <input type="number" min={0} value={item.piece} onChange={e => updateItem(item.id, 'piece', parseInt(e.target.value) || 0)}
                                 className="w-14 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-center outline-none focus:border-pos-secondary mx-auto block" />
                             </td>
-                            <td className="px-3 py-2 text-center text-sm">{item.sqftQty > 0 ? item.sqftQty.toFixed(3) : '0'}</td>
+                            <td className="px-1 py-1">
+                              <input type="number" min={0} step="0.001" value={item.sqftQty}
+                                onChange={e => updateItem(item.id, 'sqftQty', parseFloat(e.target.value) || 0)}
+                                className="w-20 bg-white dark:bg-pos-surface-high border border-pos-surface-container rounded text-sm py-1.5 text-center outline-none focus:border-pos-secondary mx-auto block" />
+                            </td>
                           </>
                         ) : (
                           <>
