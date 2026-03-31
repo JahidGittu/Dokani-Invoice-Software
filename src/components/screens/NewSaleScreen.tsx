@@ -200,10 +200,7 @@ export default function NewSaleScreen({ products, customers, settings, onSaleCom
       return;
     }
     const p = products.find(x => x.id === productId);
-    if (p) {
-      const initialSqft = isSqftUnit(p.unit) ? calcSqftQty(p, 1, 0) : 0;
-      setRows(prev => prev.map(r => r.id === rowId ? { ...r, productId, rate: p.pricePerBox, qty: 1, carton: 1, piece: 0, sqftInput: initialSqft > 0 ? initialSqft.toFixed(1) : '' } : r));
-    }
+    if (p) setRows(prev => prev.map(r => r.id === rowId ? { ...r, productId, rate: p.pricePerBox, qty: 1, carton: 1, piece: 0, sqftInput: '' } : r));
   };
 
   const handleBarcode = (e: React.KeyboardEvent) => {
@@ -748,7 +745,8 @@ ${(sale.due ?? 0) > 0 ? `<div class="row" style="color:red"><span>Due</span><spa
                         {isSqft ? (
                           <>
                             <input type="number" min={0} step="0.1" value={row.sqftInput} onChange={e => updateRow(row.id, 'sqftInput', e.target.value)}
-                              className="w-20 bg-[hsl(200,100%,96%)] border border-[hsl(200,60%,70%)] rounded text-xs py-1.5 text-center outline-none focus:border-primary focus:ring-1 focus:ring-primary/30" placeholder="sqft" />
+                              className="w-16 bg-[hsl(200,100%,96%)] border border-[hsl(200,60%,70%)] rounded text-xs py-1 text-center outline-none focus:border-primary" placeholder="sqft" />
+                            {sqftQty > 0 && <div className="text-[8px] text-muted-foreground text-center mt-0.5">{sqftQty.toFixed(1)} sqft</div>}
                           </>
                         ) : (
                           <div className="text-xs text-center font-semibold text-foreground">{sqftQty > 0 ? sqftQty : '-'}</div>
